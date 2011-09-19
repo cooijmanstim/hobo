@@ -2,15 +2,32 @@ package hobo;
 
 import java.util.*;
 
-public class State {
+public class State implements Cloneable {
 	private final LinkedList<PlayerState> players = new LinkedList<PlayerState>();
 	
-	private final int size = 3;
+	public final int size = 3;
 	private final String[][] board = new String[size][size];
+
+	private boolean gameOver = false;
+	private List<int[]> winningPosition;
+
+	public State() {}
 	
 	public State(List<String> player_names) {
 		for (String pn: player_names)
 			players.add(new PlayerState(pn));
+	}
+	
+	public State clone() {
+		State that = new State();
+		for (PlayerState p: this.players)
+			that.players.add(p.clone());
+		for (int x = 0; x < size; x++)
+			for (int y = 0; y < size; y++)
+				that.board[x][y] = this.board[x][y];
+		that.gameOver = this.gameOver;
+		that.winningPosition = this.winningPosition;
+		return that;
 	}
 
 	public String toString() {
@@ -24,9 +41,9 @@ public class State {
 		return sb.toString();
 	}
 	
-	public void applyDecision(String player_name, Decision d) {
+	public void applyDecision(Decision d) {
 		assert(isLegal(d));
-		board[d.x][d.y] = player_name;
+		board[d.x][d.y] = currentPlayer();
 		detectGameOver(d);
 	}
 	
@@ -34,9 +51,6 @@ public class State {
 		// within bounds and not taken yet?
 		return 0 <= d.x && d.x < size && 0 <= d.y && d.y < size && board[d.x][d.y] == null;
 	}
-
-	private boolean gameOver = false;
-	private List<int[]> winningPosition;
 
 	// if the last decision completed a row of three, set winningPosition
 	// to the coordinates denoting the row.
@@ -52,19 +66,19 @@ public class State {
 					diagonal1  = new ArrayList<int[]>(),
 					diagonal2  = new ArrayList<int[]>();
 		for (int i = 0; i < size; i++) {
-			if (horizontal != null && board[i][d.y]    == board[d.x][d.y])
+			if (horizontal != null && board[i][d.y]      == board[d.x][d.y])
 				horizontal.add(new int[]{ i, d.y });
 			else
 				horizontal = null;
-			if (vertical   != null && board[d.x][i]    == board[d.x][d.y])
+			if (vertical   != null && board[d.x][i]      == board[d.x][d.y])
 				vertical.add(new int[]{ d.x, i });
 			else
 				vertical = null;
-			if (diagonal1  != null && board[i][i]      == board[d.x][d.y] && d.x == d.y)
+			if (diagonal1  != null && board[i][i]        == board[d.x][d.y] && d.x == d.y)
 				diagonal1.add(new int[]{ i, i });
 			else
 				diagonal1 = null;
-			if (diagonal2  != null && board[i][size-i-1] == board[d.x][d.y] && d.x == d.y)
+			if (diagonal2  != null && board[i][size-i-1] == board[d.x][d.y] && d.x == size-d.y-1)
 				diagonal2.add(new int[]{ i, size-i-1 });
 			else
 				diagonal2 = null;

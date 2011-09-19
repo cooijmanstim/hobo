@@ -53,7 +53,7 @@ public class Game {
 			p.illegal(state, d);
 		}
 		
-		state.applyDecision(p.name(), d);
+		state.applyDecision(d);
 		
 		Event e = new Event(state, p, d);
 		notifyPlayers(e);
