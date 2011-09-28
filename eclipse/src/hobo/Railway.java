@@ -1,5 +1,7 @@
 package hobo;
 
+import java.awt.Color;
+
 public class Railway {
 	public final City source, destination;
 	public final int tracks;
@@ -32,6 +34,60 @@ public class Railway {
 		this.double_sided = double_sided;
 		this.color1 = color1;
 		this.color2 = color2;
+	}
+	
+	public City source(){
+		return source;
+	}
+	
+	public City destination(){
+		return destination;
+	}
+	
+	public int tracks(){
+		return tracks;
+	}
+	
+	public Boolean doubleTracks(){
+		return double_sided;
+	}
+	
+	//remember to check if the tracks are double_sided before asking for the colors!!!
+	// because i haven't build in an exception, there can be one sided tracks while a color2 is returned.
+	public Color getColor(int color){
+		switch(color){
+		case 0:
+			return Color.black;
+		case 1:
+			return Color.gray;
+		case 2:
+			return Color.white;
+		case 3: 
+			return Color.yellow;
+		case 4:
+			return Color.green;
+		case 5:
+			return Color.red;
+		case 6:
+			return Color.blue;
+		case 7:
+			return Color.orange;
+		case 8:
+			return Color.pink;
+		default:
+			return Color.gray;
+		}
+	}
+	
+	public Color getColor1(){
+		return getColor(color1);		
+	}
+	
+	public Color getColor2(){
+		if (color2 == -1)
+			return getColor(color1);
+		else
+			return getColor(color2);		
 	}
 	
 	public static Railway VC = new Railway(City.VANCOUVER, City.CALGARY, 3, false, 1);
