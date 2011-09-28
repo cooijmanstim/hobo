@@ -2,9 +2,9 @@ package hobo;
 
 public class HumanPlayer implements Player {
 	private final String name;
-	private final UserInterface ui;
+	private final PlayerInteraction ui;
 	
-	public HumanPlayer(String name, UserInterface ui) {
+	public HumanPlayer(String name, PlayerInteraction ui) {
 		this.name = name;
 		this.ui = ui;
 	}

@@ -2,7 +2,7 @@ package hobo;
 
 import java.io.*;
 
-public class TextualUserInterface implements UserInterface {
+public class TextualPlayerInteraction implements PlayerInteraction {
 	public void observe(Event e) {
 		System.out.println(e.state);
 	}

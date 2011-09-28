@@ -23,6 +23,9 @@ public class Game {
 		while (true) {
 			playTurn();
 			
+			if (aborted)
+				return;
+
 			if (state.gameOver()) {
 				if (state.isDraw()) {
 					for (Player p: players_by_name.values())
@@ -48,6 +51,10 @@ public class Game {
 		Decision d;
 		while (true) {
 			d = p.decide(state);
+			if (state == null) {
+				abort();
+				return;
+			}
 			if (state.isLegal(d))
 				break;
 			p.illegal(state, d);
@@ -59,6 +66,11 @@ public class Game {
 		notifyPlayers(e);
 		notifyObservers(e);
 	}
+
+	private boolean aborted = false;
+	public void abort() {
+		aborted = true;
+	}
 	
 	public void notifyPlayers(Event e) {
 		for (Player p: players_by_name.values())
@@ -67,6 +79,7 @@ public class Game {
 	
 	public void registerObserver(GameObserver go) {
 		observers.add(go);
+		go.observe(new Event(state, null, null));
 	}
 	
 	public void notifyObservers(Event e) {

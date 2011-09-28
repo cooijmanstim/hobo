@@ -48,10 +48,9 @@ public class State implements Cloneable {
 	}
 	
 	public boolean isLegal(Decision d) {
-		// within bounds and not taken yet?
-		return 0 <= d.x && d.x < size && 0 <= d.y && d.y < size && board[d.x][d.y] == null;
+		return d != null && withinBounds(d.x, d.y) && board[d.x][d.y] == null;
 	}
-
+	
 	// if the last decision completed a row of three, set winningPosition
 	// to the coordinates denoting the row.
 	private void detectGameOver(Decision d) {
@@ -113,5 +112,13 @@ public class State implements Cloneable {
 	public String winner() {
 		int[] xy = winningPosition.get(0);
 		return board[xy[0]][xy[1]];
+	}
+	
+	public String symbolAt(int x, int y) {
+		return withinBounds(x, y) ? board[x][y] : null;
+	}
+
+	public boolean withinBounds(int x, int y) {
+		return 0 <= x && x < size && 0 <= y && y < size;
 	}
 }
