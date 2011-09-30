@@ -67,7 +67,7 @@ public class State implements Cloneable {
 		PlayerState p = currentPlayerState();
 
 		illegalIf(p.drawn_card != null || p.drawn_missions != null);
-		illegalUnless(p.ncars >= d.railway.tracks);
+		illegalUnless(p.ncars >= d.railway.length);
 		illegalIf(isClaimed(d.railway)); // TODO: do the more complicated dance with double railways
 		illegalUnless(p.hand.containsAll(d.cards));
 		illegalUnless(d.railway.costs(d.cards));
@@ -75,7 +75,7 @@ public class State implements Cloneable {
 		p.hand.removeAll(d.cards);
 		discarded.addAll(d.cards);
 
-		p.ncars -= d.railway.tracks;
+		p.ncars -= d.railway.length;
 		p.score += d.railway.score();
 
 		p.railways.add(d.railway);
