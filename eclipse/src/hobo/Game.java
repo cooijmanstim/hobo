@@ -6,7 +6,7 @@ public class Game {
 	private final State state;
 	private final Map<String,Player> players_by_name;
 	private final List<GameObserver> observers = new ArrayList<GameObserver>();
-	
+
 	public Game(List<Player> ps) {
 		Map<String,Player> players_by_name = new HashMap<String,Player>();
 		for (Player p: ps)
@@ -21,8 +21,8 @@ public class Game {
 
 	public void play() {
 		while (true) {
-			playTurn();
-			
+			advance();
+		
 			if (aborted)
 				return;
 
@@ -40,14 +40,12 @@ public class Game {
 				}
 				break;
 			}
-			
-			state.switchTurns();
 		}
 	}
-	
-	public void playTurn() {
+
+	public void advance() {
 		Player p = players_by_name.get(state.currentPlayer());
-		
+	
 		Decision d;
 		while (true) {
 			d = p.decide(state);
@@ -55,13 +53,14 @@ public class Game {
 				abort();
 				return;
 			}
-			if (state.isLegal(d))
+			try {
+				state.applyDecision(d);
 				break;
-			p.illegal(state, d);
+			} catch (IllegalDecisionException e) {
+				p.illegal(state, d);
+			}
 		}
-		
-		state.applyDecision(d);
-		
+	
 		Event e = new Event(state, p, d);
 		notifyPlayers(e);
 		notifyObservers(e);
@@ -71,17 +70,17 @@ public class Game {
 	public void abort() {
 		aborted = true;
 	}
-	
+
 	public void notifyPlayers(Event e) {
 		for (Player p: players_by_name.values())
 			p.perceive(e);
 	}
-	
+
 	public void registerObserver(GameObserver go) {
 		observers.add(go);
 		go.observe(new Event(state, null, null));
 	}
-	
+
 	public void notifyObservers(Event e) {
 		for (GameObserver go: observers)
 			go.observe(e);

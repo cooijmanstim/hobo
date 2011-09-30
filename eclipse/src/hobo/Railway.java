@@ -89,7 +89,17 @@ public class Railway {
 		else
 			return getColor(color2);		
 	}
-	
+
+	// is the given collection of cards enough to claim this route?
+	public boolean costs(CardBag cards) {
+		return cards.size() == tracks && cards.count(Card.values()[color1]) + cards.count(Card.GREY) == tracks;
+	}
+
+	private static final int[] score_by_length = new int[]{ 0, 1, 2, 4, 7, 10, 15 };
+	public int score() {
+		return score_by_length[tracks];
+	}
+
 	public static Railway VC = new Railway(City.VANCOUVER, City.CALGARY, 3, false, 1);
 	public static Railway VS = new Railway(City.VANCOUVER, City.SEATTLE, 1, true, 1);
 	
