@@ -3,6 +3,10 @@ package hobo;
 import java.util.*;
 
 public class State implements Cloneable {
+	public static final int NCARDS_PER_COLOR = 12,
+		                    INITIAL_HAND_SIZE = 4,
+                            OPEN_DECK_SIZE = 5;
+
 	// store all playerstates in one place, keyed by player name.
 	// players are referred to by name in most other places.
 	private Map<String,PlayerState> players_by_name = new HashMap<String,PlayerState>();
@@ -23,9 +27,33 @@ public class State implements Cloneable {
 
 	public State clone() {
 		State that = new State();
-		that.player_sequence = (LinkedList<String>)this.player_sequence.clone();
-		// TODO
+		for (PlayerState ps: this.players_by_name.values())
+			that.players_by_name.put(ps.name, ps.clone());
+		that.player_sequence.addAll(this.player_sequence);
+		that.owner_by_railway.putAll(this.owner_by_railway);
+		that.deck.addAll(this.deck);
+		that.open_deck.addAll(this.deck);
+		that.discarded.addAll(this.discarded);
+		that.missions.addAll(this.missions);
+		that.game_over = this.game_over;
+		that.last_player = this.last_player;
 		return that;
+	}
+
+	public void setup() {
+		for (Color c: Color.values())
+			deck.addAll(Collections.nCopies(NCARDS_PER_COLOR, c));
+
+		missions.addAll(Mission.missions);
+		Collections.shuffle(missions);
+
+		for (PlayerState p: players_by_name.values())
+			for (int i = 0; i < INITIAL_HAND_SIZE; i++)
+				p.hand.add(deck.draw());
+
+		// TODO: not initially dealing destination ticket cards yet, because it
+		// requires players to choose at least two to keep, instead of the one
+		// when they draw these cards themselves.  fuck these moronic rules.
 	}
 
 	public void switchTurns() {
@@ -36,7 +64,7 @@ public class State implements Cloneable {
 		return players_by_name.get(player_sequence.getFirst());
 	}
 
-	// TODO: move this into railway
+	// TODO: maybe move this into railway
 	private Map<Railway,String> owner_by_railway = new HashMap<Railway,String>();
 
 	public boolean isClaimed(Railway r) {
@@ -44,7 +72,7 @@ public class State implements Cloneable {
 	}
 
 	private CardBag deck      = new CardBag();
-	private CardBag openDeck  = new CardBag();
+	private CardBag open_deck = new CardBag();
 	private CardBag discarded = new CardBag();
 
 	// deck of destination tickets
@@ -111,8 +139,8 @@ public class State implements Cloneable {
 				discarded = deck;
 			}
 		} else {
-			illegalUnless(openDeck.contains(d.color));
-			p.drawn_card = openDeck.draw(d.color);
+			illegalUnless(open_deck.contains(d.color));
+			p.drawn_card = open_deck.draw(d.color);
 
 			// TODO: drawing a grey card from the open deck means you don't get to draw another one
 			if (p.drawn_card == Color.GREY)

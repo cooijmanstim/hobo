@@ -24,6 +24,13 @@ public class PlayerState implements Cloneable {
 	}
    
 	public PlayerState clone() {
-		return new PlayerState(name);
+		PlayerState that = new PlayerState(name);
+		that.ncars = this.ncars;
+		that.score = this.score;
+		that.hand.addAll(this.hand);
+		that.missions.addAll(this.missions);
+		that.railways.addAll(this.railways);
+		that.drawn_card = this.drawn_card;
+		that.drawn_missions = this.drawn_missions;
 	}
 }

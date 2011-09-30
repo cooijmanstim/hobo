@@ -20,6 +20,9 @@ public class Game {
 	}
 
 	public void play() {
+		state.setup();
+		// maybe notify observers here
+
 		while (true) {
 			advance();
 		

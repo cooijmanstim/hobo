@@ -3,7 +3,7 @@ package hobo;
 import java.util.HashSet;
 import java.util.Set;
 
-public class Mission { //aka routekaart
+public class Mission {
 	private final City source, destination;
 	private final int value;
 	
@@ -14,8 +14,7 @@ public class Mission { //aka routekaart
 	}
 	
 	public static Set<Mission> missions = new HashSet<Mission>();
-	
-	public void init(){
+	static {
 		missions.add(new Mission(City.LOS_ANGELES, City.NEW_YORK, 21));
 		missions.add(new Mission(City.SEATTLE, City.NEW_YORK, 22));
 		missions.add(new Mission(City.VANCOUVER, City.SANTA_FE, 13));

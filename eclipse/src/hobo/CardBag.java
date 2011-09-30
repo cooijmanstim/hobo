@@ -77,7 +77,6 @@ public class CardBag implements Cloneable {
 		return c;
 	}
 
-
 	public void addAll(Collection<Color> cs) {
 		for (Color c: cs)
 			add(c);
