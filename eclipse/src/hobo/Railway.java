@@ -1,6 +1,5 @@
 package hobo;
 
-import java.awt.Color;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -67,7 +66,7 @@ public class Railway {
 	
 	// is the given collection of cards enough to claim this route?
 	public boolean costs(CardBag cards) {
-		return cards.size() == tracks && cards.count(Card.values()[color1]) + cards.count(Card.GREY) == tracks;
+		return cards.size() == tracks && cards.count(Color.values()[color]) + cards.count(Color.GREY) == tracks;
 	}
 
 	private static final int[] score_by_length = new int[]{ 0, 1, 2, 4, 7, 10, 15 };

@@ -102,7 +102,7 @@ public class State implements Cloneable {
 		// if drew a card last time, then can draw one more
 		boolean last_draw = p.drawn_card != null;
 
-		if (d.card == null) {
+		if (d.color == null) {
 			illegalIf(deck.isEmpty());
 			p.drawn_card = deck.draw();
 
@@ -111,11 +111,11 @@ public class State implements Cloneable {
 				discarded = deck;
 			}
 		} else {
-			illegalUnless(openDeck.contains(d.card));
-			p.drawn_card = openDeck.draw(d.card);
+			illegalUnless(openDeck.contains(d.color));
+			p.drawn_card = openDeck.draw(d.color);
 
 			// TODO: drawing a grey card from the open deck means you don't get to draw another one
-			if (p.drawn_card == Card.GREY)
+			if (p.drawn_card == Color.GREY)
 				last_draw = true;
 
 			// TODO: if the replacement is grey, you can't pick that one after this

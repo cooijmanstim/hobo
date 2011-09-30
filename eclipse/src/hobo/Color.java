@@ -1,5 +1,5 @@
 package hobo;
 
-public enum Card {
+public enum Color {
 	BLACK, GREY, WHITE, YELLOW, GREEN, RED, BLUE, BROWN, PINK;
 }
