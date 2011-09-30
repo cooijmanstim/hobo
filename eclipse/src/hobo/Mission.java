@@ -39,7 +39,7 @@ public class Mission { //aka routekaart
 		missions.add(new Mission(City.VANCOUVER, City.MONTREAL, 20));
 		missions.add(new Mission(City.HELENA, City.LOS_ANGELES, 8));
 		missions.add(new Mission(City.SEATTLE, City.LOS_ANGELES, 9));
-		missions.add(new Mission(City.SAULT_ST_MARIE, City.OKLAHAMA_CITY, 9));
+		missions.add(new Mission(City.SAULT_ST_MARIE, City.OKLAHOMA_CITY, 9));
 		missions.add(new Mission(City.SAULT_ST_MARIE, City.NASHVILLE, 8));
 		missions.add(new Mission(City.CHIGACO, City.NEW_ORLEANS, 7));
 		missions.add(new Mission(City.TORONTO, City.MIAMI, 10));

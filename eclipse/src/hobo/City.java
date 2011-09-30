@@ -1,5 +1,8 @@
 package hobo;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class City {
 	private final String name;
 	private final double x,y;
@@ -8,6 +11,7 @@ public class City {
 		this.name= name;
 		this.x = x;
 		this.y = y;
+		init();
 	}
 	
 	public String name(){
@@ -18,6 +22,45 @@ public class City {
 		return new double[]{x,y};
 	}
 	
+	public static Set<City> cities = new HashSet<City>();
+	public void init(){
+		cities.add(VANCOUVER);
+		cities.add(CALGARY);
+		cities.add(WINNIPEG);
+		cities.add(SAULT_ST_MARIE);
+		cities.add(MONTREAL);
+		cities.add(SEATTLE);
+		cities.add(HELENA);
+		cities.add(DULUTH);
+		cities.add(TORONTO);
+		cities.add(BOSTON);
+		cities.add(PORTLAND);
+		cities.add(NEW_YORK);
+		cities.add(OMAHA);
+		cities.add(CHIGACO);
+		cities.add(PITTSBURGH);
+		cities.add(SALT_LAKE_CITY);
+		cities.add(DENVER);
+		cities.add(KANSAS_CITY);
+		cities.add(SAINT_LOUIS);
+		cities.add(NASHVILLE);
+		cities.add(RALEIGH);
+		cities.add(WASHINGTON);
+		cities.add(SAN_FRANCISCO);
+		cities.add(LAS_VEGAS);
+		cities.add(SANTA_FE);
+		cities.add(OKLAHOMA_CITY);
+		cities.add(LITTLE_ROCK);
+		cities.add(ATLANTA);
+		cities.add(CHARLESTON);
+		cities.add(LOS_ANGELES);
+		cities.add(PHOENIX);
+		cities.add(EL_PASO);
+		cities.add(DALLAS);
+		cities.add(HOUSTON);
+		cities.add(NEW_ORLEANS);
+		cities.add(MIAMI);
+	}
 	// the locations are pulled from the map, 
 	//so they are like ratio's to each other.
 	//where x is distance from left, and y is distance from top.
@@ -46,7 +89,7 @@ public class City {
 	public static City SAN_FRANCISCO = new City("San Francisco", 1, 10.8);
 	public static City LAS_VEGAS = new City("Las Vegas", 4.8, 12);
 	public static City SANTA_FE = new City("Santa Fe", 8.4, 12.3);
-	public static City OKLAHAMA_CITY = new City("Oklahama City", 13.7, 11.5);
+	public static City OKLAHOMA_CITY = new City("Oklahama City", 13.7, 11.5);
 	public static City LITTLE_ROCK = new City("Little Rock", 16.1, 11.6);
 	public static City ATLANTA = new City("Atlanta", 20.3, 11.3);
 	public static City CHARLESTON = new City("Charleston", 22.1, 11.5);
