@@ -10,8 +10,10 @@ public class PlayerState implements Cloneable {
 	public Set<Mission> missions = new HashSet<Mission>();
 	public Set<Railway> railways = new HashSet<Railway>();
 
+	private Set<Mission> completed_missions = new HashSet<Mission>();
+
 	// when ncars drops below this at the end of a player's turn, the game
-	// goes one for one last round.
+	// goes on for one last round.
 	public static final int MIN_NCARS = 3;
 
 	// choosing to draw a card or to draw missions are stateful actions that require
@@ -29,8 +31,80 @@ public class PlayerState implements Cloneable {
 		that.score = this.score;
 		that.hand.addAll(this.hand);
 		that.missions.addAll(this.missions);
+		that.completed_missions.addAll(this.completed_missions);
 		that.railways.addAll(this.railways);
 		that.drawn_card = this.drawn_card;
 		that.drawn_missions = this.drawn_missions;
+	}
+
+	public int finalScore() {
+		int score = this.score;
+		for (Mission m: missions)
+			score += m.value * (completed_missions.contains(m) ? 1 : -1);
+		return score;
+	}
+
+	public void claim(Railway r) {
+		ncars -= r.length;
+		score += r.score();
+
+		railways.add(r);
+
+		detectMissionCompletion(r);
+	}
+
+	public void detectMissionCompletion(Railway r) {
+		// if this railway completes a mission, add that mission to
+		// completed_missions
+		// NOTE: can complete multiple missions at once
+		
+		Set<City> explored = new HashSet<City>();
+		explored.add(r.destination);
+		explored.add(r.source);
+
+		// all cities on the source side
+		Set<City> cities1 = cities_connected_to(r.source,      explored);
+		// all cities on the destination side
+		Set<City> cities2 = cities_connected_to(r.destination, explored);
+
+		// for each uncompleted mission, try to find a pair of cities, one in
+		// cities1, the other in cities2, that match the mission.
+		// (note that cities1 and cities2 are disjoint: a mission m that has
+		// one city c1 in the intersection of what's reachable from r.source
+		// and r.destination, and the other city c2 in the union, would already
+		// have been connected by some other railway.)
+		findMissions: for (Mission m: missions) {
+			if (completed_missions.contains(m))
+				continue;
+			for (City c1: cities1) {
+				if (m.source != c1 && m.destination != c1)
+					continue;
+				for (City c2: cities2) {
+					if (m.source == c1 && m.destination == c2 ||
+					    m.source == c2 && m.destination == c1) {
+						completed_missions.add(m);
+						continue findMissions;
+					}
+				}
+			}
+		}
+	}
+
+	// NOTE: explored is modified
+	public Set<City> cities_connected_to(City c, Set<City> explored) {
+		Set<City> cities = new HashSet<City>();
+		for (Railway r: c.railways) {
+			if (railways.contains(r)) {
+				c = null;
+				if (!explored.contains(r.source))      c = r.source;
+				if (!explored.contains(r.destination)) c = r.destination;
+				if (c != null) {
+					explored.add(c);
+					cities.add(c);
+					cities.addAll(cities_connected_to(c, explored));
+				}
+			}
+		}
+		return cities;
 	}
 }

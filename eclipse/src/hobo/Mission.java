@@ -4,15 +4,15 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class Mission {
-	private final City source, destination;
-	private final int value;
-	
+	public final City source, destination;
+	public final int value;
+
 	public Mission(City source, City destination, int value){
 		this.source = source;
 		this.destination = destination;
 		this.value = value;
 	}
-	
+
 	public static Set<Mission> missions = new HashSet<Mission>();
 	static {
 		missions.add(new Mission(City.LOS_ANGELES, City.NEW_YORK, 21));

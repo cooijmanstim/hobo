@@ -60,8 +60,35 @@ public class State implements Cloneable {
 		Collections.rotate(player_sequence, 1);
 	}
 
+	public String currentPlayer() {
+		return player_sequence.getFirst();
+	}
+
 	public PlayerState currentPlayerState() {
-		return players_by_name.get(player_sequence.getFirst());
+		return players_by_name.get(currentPlayer());
+	}
+
+	public boolean gameOver() {
+		return game_over;
+	}
+
+	public boolean isDraw() {
+		String winner = winner();
+		for (String p: player_sequence) {
+			if (p != winner && players_by_name.get(winner).finalScore() == players_by_name.get(p).finalScore())
+				return true;
+		}
+	}
+
+	public String winner() {
+		List<String> players = new ArrayList<String>(player_sequence);
+		Collections.sort(players, new Comparator<String>() {
+				public int compare(String a, String b) {
+					// fuck you, java
+					return -((Integer)players_by_name.get(a).finalScore()).compareTo(players_by_name.get(b).finalScore());
+				}
+			});
+		return players.get(0);
 	}
 
 	// TODO: maybe move this into railway
@@ -103,10 +130,8 @@ public class State implements Cloneable {
 		p.hand.removeAll(d.cards);
 		discarded.addAll(d.cards);
 
-		p.ncars -= d.railway.length;
-		p.score += d.railway.score();
+		p.claim(d.railway);
 
-		p.railways.add(d.railway);
 		owner_by_railway.put(d.railway, p.name);
 
 		// impending doom?
