@@ -15,6 +15,9 @@ public class Railway {
 		this.destination = destination;
 		this.length = length;
 		this.color = color;
+
+		source.registerRailway(this);
+		destination.registerRailway(this);
 	}	
 	
 	// is the given collection of cards enough to claim this route?
