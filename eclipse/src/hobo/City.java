@@ -11,7 +11,6 @@ public class City {
 		this.name= name;
 		this.x = x;
 		this.y = y;
-		init();
 	}
 	
 	public String name(){

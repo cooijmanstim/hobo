@@ -24,7 +24,6 @@ public class Railway {
 		this.destination = destination;
 		this.tracks = tracks;
 		this.color = color;
-		init();
 	}	
 	
 	public City source(){

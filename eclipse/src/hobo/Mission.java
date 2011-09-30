@@ -11,7 +11,6 @@ public class Mission { //aka routekaart
 		this.source = source;
 		this.destination = destination;
 		this.value = value;
-		init();
 	}
 	
 	public static Set<Mission> missions = new HashSet<Mission>();
