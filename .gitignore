@@ -2,3 +2,4 @@ eclipse/bin
 eclipse/.classpath
 *~
 .*
+*.class
