@@ -4,8 +4,8 @@ import java.util.*;
 
 public class State implements Cloneable {
 	public static final int NCARDS_PER_COLOR = 12,
-		                    INITIAL_HAND_SIZE = 4,
-                            OPEN_DECK_SIZE = 5;
+	                        INITIAL_HAND_SIZE = 4,
+	                        OPEN_DECK_SIZE = 5;
 
 	// store all playerstates in one place, keyed by player name.
 	// players are referred to by name in most other places.
