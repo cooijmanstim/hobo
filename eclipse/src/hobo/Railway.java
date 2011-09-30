@@ -8,9 +8,7 @@ public class Railway {
 	public final City source, destination;
 	public final int length;
 	public final Color color;
-
-	// TODO: for double railways, we need the individual railways to have
-	// references to eachother, in order to be able to enforce some rules.
+	public /* pretend final */ Railway dual;
 
 	public Railway(City source, City destination, int length, Color color){
 		this.source = source;
@@ -156,5 +154,16 @@ public class Railway {
 		railways.add(new Railway(City.DALLAS,			City.HOUSTON,			2, Color.GREY));
 		railways.add(new Railway(City.HOUSTON,			City.NEW_ORLEANS,		2, Color.GREY));
 		railways.add(new Railway(City.NEW_ORLEANS,		City.MIAMI,				6, Color.RED));
+
+		// find and couple double railways
+		for (Railway r: railways) {
+			for (Railway s: railways) {
+				if (r.source == s.source && r.destination == s.destination) {
+					assert(s.dual == null); // otherwise more than two railways between a pair of cities
+					r.dual = s;
+					s.dual = r;
+				}
+			}
+		}
 	}	
 }
