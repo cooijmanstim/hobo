@@ -13,6 +13,15 @@ public class Mission {
 		this.value = value;
 	}
 
+	public boolean connects(City c) {
+		return this.source == c || this.destination == c;
+	}
+
+	public boolean connects(City c, City d) {
+		return this.source == c && this.destination == d ||
+		       this.source == d && this.destination == c;
+	}
+	
 	public static Set<Mission> missions = new HashSet<Mission>();
 	static {
 		missions.add(new Mission(City.LOS_ANGELES, City.NEW_YORK, 21));

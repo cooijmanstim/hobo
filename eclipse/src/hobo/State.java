@@ -40,9 +40,20 @@ public class State implements Cloneable {
 		return that;
 	}
 
+	// don't ask
+	public void makeSureStaticsAreMotherfuckingInitialized() {
+		City c = City.NEW_YORK;
+		int i = Railway.railways.size();
+		int j = Mission.missions.size();
+	}
+
 	public void setup() {
+		makeSureStaticsAreMotherfuckingInitialized();
+
 		for (Color c: Color.values())
 			deck.addAll(Collections.nCopies(NCARDS_PER_COLOR, c));
+		// two more grey cards than other colors (FIXME: do this some other way)
+		deck.add(Color.GREY); deck.add(Color.GREY);
 
 		missions.addAll(Mission.missions);
 		Collections.shuffle(missions);
@@ -78,6 +89,7 @@ public class State implements Cloneable {
 			if (p != winner && players_by_name.get(winner).finalScore() == players_by_name.get(p).finalScore())
 				return true;
 		}
+		return false;
 	}
 
 	public String winner() {
@@ -173,6 +185,9 @@ public class State implements Cloneable {
 
 			// TODO: if the replacement is grey, you can't pick that one after this
 			// (these rules are motherfucking stoopid!)
+			if (!deck.isEmpty()) {
+				open_deck.add(deck.draw());
+			}
 		}
 
 		p.hand.add(p.drawn_card);
@@ -211,5 +226,32 @@ public class State implements Cloneable {
 		p.drawn_missions = null;
 
 		switchTurns();
+	}
+
+
+	public static void main(String[] args) {
+		// do some automated testing
+		List<String> players = Arrays.asList("alice bob charlie".split("\\s+"));
+		State s = new State(players);
+		s.setup();
+
+		for (String name: players) {
+			PlayerState p = s.players_by_name.get(name);
+			assert(!p.hand.isEmpty());
+		}
+
+		PlayerState p = s.currentPlayerState();
+		// make sure a has enough yellow cards to claim some particular route later
+		while (s.deck.contains(Color.YELLOW))
+			p.hand.add(s.deck.draw(Color.YELLOW));
+
+		int k = p.hand.count(Color.YELLOW);
+		assert(k >= 2);
+		Railway r = City.NEW_YORK.railwayTo(City.BOSTON, Color.YELLOW);
+		s.applyDecision(new ClaimRailwayDecision(r, new CardBag(Color.YELLOW, Color.YELLOW)));
+		assert(p.railways.contains(r));
+		assert(p.hand.count(Color.YELLOW) == k - 2);
+
+		assert(p.score == 2);
 	}
 }

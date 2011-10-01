@@ -1,10 +1,8 @@
 package hobo;
 
 public class DrawCardDecision extends Decision {
-	public final Color color;
-
 	// if color is not null, draw from open deck
-	public DrawCardDecision(Color color) {
-		this.color = color;
-	}
+	public final Color color;
+	public DrawCardDecision()            { this.color = null; }
+	public DrawCardDecision(Color color) { this.color = color; }
 }

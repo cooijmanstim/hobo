@@ -7,6 +7,12 @@ public class CardBag implements Cloneable {
 	private int[] ks = new int[ncolors]; // multiplicities
 	private int size = 0;
 
+	public CardBag() {}
+	public CardBag(Color... cs) {
+		for (Color c: cs)
+			add(c);
+	}
+
 	public int size() { return size; }
 	public boolean isEmpty() { return size == 0; }
 
@@ -67,6 +73,7 @@ public class CardBag implements Cloneable {
 				return Color.values()[i];
 			}
 		}
+		throw new RuntimeException();
 	}
 
 	// draw a card of the given color
@@ -80,5 +87,20 @@ public class CardBag implements Cloneable {
 	public void addAll(Collection<Color> cs) {
 		for (Color c: cs)
 			add(c);
+	}
+
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("CardBag: ");
+		for (int i = 0; i < ncolors; i++) {
+			if (ks[i] == 0)
+				continue;
+			sb.append(ks[i]);
+			sb.append(" ");
+			sb.append(Color.values()[i]);
+			if (i < ncolors - 1)
+				sb.append(", ");
+		}
+		return sb.toString();
 	}
 }

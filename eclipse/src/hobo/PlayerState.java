@@ -35,6 +35,7 @@ public class PlayerState implements Cloneable {
 		that.railways.addAll(this.railways);
 		that.drawn_card = this.drawn_card;
 		that.drawn_missions = this.drawn_missions;
+		return that;
 	}
 
 	public int finalScore() {
@@ -77,11 +78,10 @@ public class PlayerState implements Cloneable {
 			if (completed_missions.contains(m))
 				continue;
 			for (City c1: cities1) {
-				if (m.source != c1 && m.destination != c1)
+				if (!m.connects(c1))
 					continue;
 				for (City c2: cities2) {
-					if (m.source == c1 && m.destination == c2 ||
-					    m.source == c2 && m.destination == c1) {
+					if (m.connects(c1, c2)) {
 						completed_missions.add(m);
 						continue findMissions;
 					}

@@ -19,6 +19,11 @@ public class Railway {
 		source.registerRailway(this);
 		destination.registerRailway(this);
 	}	
+
+	public boolean connects(City c, City d) {
+		return this.source == c && this.destination == d ||
+		       this.source == d && this.destination == c;
+	}
 	
 	// is the given collection of cards enough to claim this route?
 	public boolean costs(CardBag cards) {
@@ -161,8 +166,7 @@ public class Railway {
 		// find and couple double railways
 		for (Railway r: railways) {
 			for (Railway s: railways) {
-				if (r.source == s.source && r.destination == s.destination) {
-					assert(s.dual == null); // otherwise more than two railways between a pair of cities
+				if (s.connects(r.source, r.destination)) {
 					r.dual = s;
 					s.dual = r;
 				}

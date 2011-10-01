@@ -18,6 +18,19 @@ public class City {
 		railways.add(r);
 	}
 
+	// get a railway that connects this city to that one, possible constrained by color
+	public Railway railwayTo(City that, Color c) {
+		for (Railway r: railways) {
+			if (r.connects(this, that) && (c == null || r.color == c))
+				return r;
+		}
+		return null;
+	}
+
+	public Railway railwayTo(City that) {
+		return railwayTo(that, null);
+	}
+
 	// the locations are pulled from the map, 
 	//so they are like ratio's to each other.
 	//where x is distance from left, and y is distance from top.
