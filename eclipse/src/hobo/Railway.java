@@ -1,5 +1,6 @@
 package hobo;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -35,7 +36,7 @@ public class Railway {
 		return score_by_length[length];
 	}
 
-	public static final Set<Railway> railways = new HashSet<Railway>();
+	public static final ArrayList<Railway> railways = new ArrayList<Railway>();
 	static {
 		railways.add(new Railway(City.VANCOUVER,      City.CALGARY,            3, Color.GREY));
 		railways.add(new Railway(City.VANCOUVER,      City.SEATTLE,            1, Color.GREY));
