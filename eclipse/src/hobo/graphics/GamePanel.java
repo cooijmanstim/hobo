@@ -1,6 +1,7 @@
 package hobo.graphics;
 
 import hobo.City;
+import hobo.Railway;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -38,7 +39,7 @@ public class GamePanel extends JPanel {
 		for(int i = 0; i < cityPanels.size(); i++) {
 			cityPanels.get(i).paint(g);
 		}
-		RailwayPanel railways = new RailwayPanel(City.VANCOUVER, City.CALGARY);
+		RailwayPanel railways = new RailwayPanel(Railway.railways.get(0));
 		railways.paint(g2);
 	}
 	

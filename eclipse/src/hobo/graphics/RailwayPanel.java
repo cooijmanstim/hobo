@@ -9,20 +9,23 @@ import java.awt.Stroke;
 import java.awt.geom.Line2D;
 
 import hobo.City;
+import hobo.Railway;
+
 import javax.swing.JPanel;
 
 public class RailwayPanel extends JPanel {
 
 	private City city1, city2;
 	
-	public RailwayPanel(City city1, City city2) {
-		this.city1 = city1;
-		this.city2 = city2;
+	public RailwayPanel(Railway railway) {
+		this.city1 = railway.source;
+		this.city2 = railway.destination;
 	}
 	
 	@Override
 	public void paint(Graphics g) {
 		Graphics2D g2 = (Graphics2D) g;
+		
 		Stroke stroke = new BasicStroke(10);
 		g2.setStroke(stroke);
 		int[] xCord = new int[] {123,156,157,125};
