@@ -7,7 +7,7 @@ import java.util.Set;
 public class City {
 	public final String name;
 	public final double x, y;
-	public final Set<Railway> railways = new HashSet<Railway>();
+	public final ArrayList<Railway> railways = new ArrayList<Railway>();
 
 	public City(String name, double x, double y) {
 		this.name = name;
@@ -50,7 +50,7 @@ public class City {
 	public static City OMAHA          = new City("Omaha",           547, 306);
 	public static City CHIGACO        = new City("Chigaco",         699, 275);
 	public static City PITTSBURGH     = new City("Pittsburgh",      830, 260);
-	public static City SALT_LAKE_CITY = new City("Salt Lake City",  269, 343);
+	public static City SALT_LAKE_CITY = new City("SaltLakeCity",  269, 343);
 	public static City DENVER         = new City("Denver",          399, 374);
 	public static City KANSAS_CITY    = new City("Kansas City",     567, 357);
 	public static City SAINT_LOUIS    = new City("Saint Louis",     654, 358);
