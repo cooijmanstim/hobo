@@ -85,10 +85,10 @@ public class Railway {
 		railways.add(new Railway(City.DULUTH,         City.HELENA,             6, Color.BROWN,	"1_Helena_Duluth_"));
 		railways.add(new Railway(City.DULUTH,         City.OMAHA,              2, Color.GREY,	"1_Omaha_Duluth_"));
 		railways.add(new Railway(City.DULUTH,         City.OMAHA,              2, Color.GREY,	"2_Omaha_Duluth_"));
-		railways.add(new Railway(City.DULUTH,         City.CHIGACO,            3, Color.RED,	"1_Duluth_Chicago_"));
+		railways.add(new Railway(City.DULUTH,         City.CHICAGO,            3, Color.RED,	"1_Duluth_Chicago_"));
 		railways.add(new Railway(City.DULUTH,         City.TORONTO,            6, Color.PINK,	"1_Duluth_Toronto_"));
 		
-		railways.add(new Railway(City.TORONTO,        City.CHIGACO,            4, Color.WHITE,	"1_Chicago_Toronto_"));
+		railways.add(new Railway(City.TORONTO,        City.CHICAGO,            4, Color.WHITE,	"1_Chicago_Toronto_"));
 		railways.add(new Railway(City.TORONTO,        City.PITTSBURGH,         2, Color.GREY,	"1_Toronto_Pittsburgh_"));
 		
 		railways.add(new Railway(City.NEW_YORK,       City.PITTSBURGH,         2, Color.WHITE,	"1_Pittsburgh_NewYork_"));
@@ -117,12 +117,12 @@ public class Railway {
 		
 		railways.add(new Railway(City.OMAHA,          City.KANSAS_CITY,        1, Color.GREY,	"1_Omaha_KansasCity_"));
 		railways.add(new Railway(City.OMAHA,          City.KANSAS_CITY,        1, Color.GREY,	"2_Omaha_KansasCity_"));
-		railways.add(new Railway(City.OMAHA,          City.CHIGACO,            4, Color.BLUE,	"1_Omaha_Chicago_"));
+		railways.add(new Railway(City.OMAHA,          City.CHICAGO,            4, Color.BLUE,	"1_Omaha_Chicago_"));
 		
-		railways.add(new Railway(City.CHIGACO,        City.SAINT_LOUIS,        2, Color.GREEN,	"1_StLouis_Chicago_"));
-		railways.add(new Railway(City.CHIGACO,        City.SAINT_LOUIS,        2, Color.WHITE,	"2_StLouis_Chicago_"));
-		railways.add(new Railway(City.CHIGACO,        City.PITTSBURGH,         3, Color.BLACK,	"2_Chicago_Pittsburgh_"));
-		railways.add(new Railway(City.CHIGACO,        City.PITTSBURGH,         3, Color.BROWN,	"1_Chicago_Pittsburgh_"));
+		railways.add(new Railway(City.CHICAGO,        City.SAINT_LOUIS,        2, Color.GREEN,	"1_StLouis_Chicago_"));
+		railways.add(new Railway(City.CHICAGO,        City.SAINT_LOUIS,        2, Color.WHITE,	"2_StLouis_Chicago_"));
+		railways.add(new Railway(City.CHICAGO,        City.PITTSBURGH,         3, Color.BLACK,	"2_Chicago_Pittsburgh_"));
+		railways.add(new Railway(City.CHICAGO,        City.PITTSBURGH,         3, Color.BROWN,	"1_Chicago_Pittsburgh_"));
 		
 		railways.add(new Railway(City.PITTSBURGH,     City.SAINT_LOUIS,        5, Color.GREEN,	"1_StLouis_Pittsburgh_"));
 		railways.add(new Railway(City.PITTSBURGH,     City.NASHVILLE,          4, Color.YELLOW,	"1_Nashville_Pittsburgh_"));

@@ -59,7 +59,7 @@ public class City {
 	public static City PORTLAND       = new City("Portland",        85, 210);
 	public static City NEW_YORK       = new City("New York",        916, 215);
 	public static City OMAHA          = new City("Omaha",           547, 306);
-	public static City CHIGACO        = new City("Chigaco",         699, 275);
+	public static City CHICAGO        = new City("Chicago",         699, 275);
 	public static City PITTSBURGH     = new City("Pittsburgh",      830, 260);
 	public static City SALT_LAKE_CITY = new City("SaltLakeCity",  269, 343);
 	public static City DENVER         = new City("Denver",          399, 374);

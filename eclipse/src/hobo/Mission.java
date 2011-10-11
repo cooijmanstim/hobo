@@ -42,14 +42,14 @@ public class Mission {
 		missions.add(new Mission(City.SEATTLE, City.NEW_YORK, 22, "Seattle_NewYork.png"));
 		missions.add(new Mission(City.VANCOUVER, City.SANTA_FE, 13, "Vancouver_SantaFe.png"));
 		missions.add(new Mission(City.LOS_ANGELES, City.MIAMI, 20, "LosAngeles_Miami.png"));
-		missions.add(new Mission(City.LOS_ANGELES, City.CHIGACO, 16, "LosAngeles_Chicago.png"));
+		missions.add(new Mission(City.LOS_ANGELES, City.CHICAGO, 16, "LosAngeles_Chicago.png"));
 		missions.add(new Mission(City.MONTREAL, City.ATLANTA, 9, "Montreal_Atlanta.png"));
 		missions.add(new Mission(City.DALLAS, City.NEW_YORK, 11, "Dallas_NewYork.png"));
 		missions.add(new Mission(City.CALGARY, City.PHOENIX, 13, "Calgary_Phoenix.png"));
 		missions.add(new Mission(City.DENVER, City.EL_PASO, 4, "Denver_ElPaso.png"));
 		missions.add(new Mission(City.WINNIPEG, City.LITTLE_ROCK, 11, "Winnipeg_LittleRock.png"));
 		missions.add(new Mission(City.NEW_YORK, City.ATLANTA, 6, "NewYork_Atlanta.png"));
-		missions.add(new Mission(City.CHIGACO, City.SANTA_FE, 9, "Chicago_SantaFe.png"));
+		missions.add(new Mission(City.CHICAGO, City.SANTA_FE, 9, "Chicago_SantaFe.png"));
 		missions.add(new Mission(City.DULUTH, City.EL_PASO, 10, "Duluth_ElPaso.png"));
 		missions.add(new Mission(City.BOSTON, City.MIAMI, 12, "Boston_Miami.png"));
 		missions.add(new Mission(City.CALGARY, City.SALT_LAKE_CITY, 7, "Calgary_SaltLakeCity.png"));
@@ -62,7 +62,7 @@ public class Mission {
 		missions.add(new Mission(City.SEATTLE, City.LOS_ANGELES, 9, "Seattle_LosAngeles.png"));
 		missions.add(new Mission(City.SAULT_ST_MARIE, City.OKLAHOMA_CITY, 9, "SaultStMarie_Oklahoma.png"));
 		missions.add(new Mission(City.SAULT_ST_MARIE, City.NASHVILLE, 8, "SaultStMarie_Nashville.png"));
-		missions.add(new Mission(City.CHIGACO, City.NEW_ORLEANS, 7, "Chicago_NewOrleans.png"));
+		missions.add(new Mission(City.CHICAGO, City.NEW_ORLEANS, 7, "Chicago_NewOrleans.png"));
 		missions.add(new Mission(City.TORONTO, City.MIAMI, 10, "Toronto_Miami.png"));
 		missions.add(new Mission(City.SAN_FRANCISCO, City.ATLANTA, 17, "SanFrancisco_Atlanta.png"));
 		missions.add(new Mission(City.WINNIPEG, City.HOUSTON, 12, "Winnipeg_Houston.png"));
