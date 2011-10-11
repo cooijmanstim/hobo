@@ -24,24 +24,28 @@ public class Game {
 		// maybe notify observers here
 
 		while (true) {
-			advance();
-		
-			if (aborted)
-				return;
-
-			if (state.gameOver()) {
-				if (state.isDraw()) {
-					for (Player p: players_by_name.values())
-						p.draw(state);
-				} else {
-					Player w = players_by_name.get(state.winner());
-					for (Player l: players_by_name.values()) {
-						if (l != w)
-							l.loss(state);
+			try {
+				advance();
+				
+				if (aborted)
+					return;
+				
+				if (state.gameOver()) {
+					if (state.isDraw()) {
+						for (Player p: players_by_name.values())
+							p.draw(state);
+					} else {
+						Player w = players_by_name.get(state.winner());
+						for (Player l: players_by_name.values()) {
+							if (l != w)
+								l.loss(state);
+						}
+						w.win(state);
 					}
-					w.win(state);
+					break;
 				}
-				break;
+			} catch (Throwable t) {
+				t.printStackTrace();
 			}
 		}
 	}
@@ -60,7 +64,7 @@ public class Game {
 				state.applyDecision(d);
 				break;
 			} catch (IllegalDecisionException e) {
-				p.illegal(state, d);
+				p.illegal(state, d, e.reason);
 			}
 		}
 	

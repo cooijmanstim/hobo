@@ -10,7 +10,7 @@ public class PlayerState implements Cloneable {
 	public Set<Mission> missions = new HashSet<Mission>();
 	public Set<Railway> railways = new HashSet<Railway>();
 
-	private Set<Mission> completed_missions = new HashSet<Mission>();
+	public Set<Mission> completed_missions = new HashSet<Mission>();
 
 	// when ncars drops below this at the end of a player's turn, the game
 	// goes on for one last round.

@@ -55,10 +55,26 @@ public class CardBag implements Cloneable {
 		return true;
 	}
 
+	public Color arbitraryNonGrey() {
+		for (int i = 0; i < ncolors; i++) {
+			if (ks[i] > 0 && i != Color.GREY.ordinal())
+				return Color.values()[i];
+		}
+		return null;
+	}
+
 	public int count(Color c) {
 		return ks[c.ordinal()];
 	}
 
+	public int countEquivalent(Color c) {
+		assert(c != Color.GREY); // ambiguous case
+		return count(c) + count(Color.GREY);
+	}
+
+	public boolean allEquivalent() {
+		return count(Color.GREY) == size || countEquivalent(arbitraryNonGrey()) == size;
+	}
 
 	// weighted but otherwise uniformly random selection
 	public Color draw() {
@@ -91,16 +107,19 @@ public class CardBag implements Cloneable {
 
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("CardBag: ");
+		sb.append("CardBag(");
 		for (int i = 0; i < ncolors; i++) {
 			if (ks[i] == 0)
 				continue;
 			sb.append(ks[i]);
 			sb.append(" ");
 			sb.append(Color.values()[i]);
-			if (i < ncolors - 1)
-				sb.append(", ");
+			sb.append(", ");
 		}
+		int j = sb.lastIndexOf(", ");
+		if (j >= 0)
+			sb.delete(j, sb.length());
+		sb.append(")");
 		return sb.toString();
 	}
 }

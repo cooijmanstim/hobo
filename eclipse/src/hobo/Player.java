@@ -9,5 +9,5 @@ public interface Player {
 	public void loss(State s);
 	public void win(State s);
 	public void draw(State s);
-	public void illegal(State s, Decision d);
+	public void illegal(State s, Decision d, String reason);
 }

@@ -27,12 +27,22 @@ public class Railway {
 	
 	// is the given collection of cards enough to claim this route?
 	public boolean costs(CardBag cards) {
-		return cards.size() == length && cards.count(color) + cards.count(Color.GREY) == length;
+		if (cards.size() != length)
+			return false;
+
+		if (color == Color.GREY)
+			return cards.allEquivalent();
+		else
+			return cards.countEquivalent(color) == length;
 	}
 
 	private static final int[] score_by_length = new int[]{ 0, 1, 2, 4, 7, 10, 15 };
 	public int score() {
 		return score_by_length[length];
+	}
+
+	public String toString() {
+		return "Railway(source: "+source+", destination: "+destination+", color: "+color+")";
 	}
 
 	public static final Set<Railway> railways = new HashSet<Railway>();
@@ -69,10 +79,10 @@ public class Railway {
 		railways.add(new Railway(City.DULUTH,         City.HELENA,             6, Color.BROWN));
 		railways.add(new Railway(City.DULUTH,         City.OMAHA,              2, Color.GREY));
 		railways.add(new Railway(City.DULUTH,         City.OMAHA,              2, Color.GREY));
-		railways.add(new Railway(City.DULUTH,         City.CHIGACO,            3, Color.RED));
+		railways.add(new Railway(City.DULUTH,         City.CHICAGO,            3, Color.RED));
 		railways.add(new Railway(City.DULUTH,         City.TORONTO,            6, Color.PINK));
 		
-		railways.add(new Railway(City.TORONTO,        City.CHIGACO,            4, Color.WHITE));
+		railways.add(new Railway(City.TORONTO,        City.CHICAGO,            4, Color.WHITE));
 		railways.add(new Railway(City.TORONTO,        City.PITTSBURGH,         2, Color.GREY));
 		
 		railways.add(new Railway(City.NEW_YORK,       City.PITTSBURGH,         2, Color.WHITE));
@@ -101,12 +111,12 @@ public class Railway {
 		
 		railways.add(new Railway(City.OMAHA,          City.KANSAS_CITY,        1, Color.GREY));
 		railways.add(new Railway(City.OMAHA,          City.KANSAS_CITY,        1, Color.GREY));
-		railways.add(new Railway(City.OMAHA,          City.CHIGACO,            4, Color.BLUE));
+		railways.add(new Railway(City.OMAHA,          City.CHICAGO,            4, Color.BLUE));
 		
-		railways.add(new Railway(City.CHIGACO,        City.SAINT_LOUIS,        2, Color.GREEN));
-		railways.add(new Railway(City.CHIGACO,        City.SAINT_LOUIS,        2, Color.WHITE));
-		railways.add(new Railway(City.CHIGACO,        City.PITTSBURGH,         3, Color.BLACK));
-		railways.add(new Railway(City.CHIGACO,        City.PITTSBURGH,         3, Color.BROWN));
+		railways.add(new Railway(City.CHICAGO,        City.SAINT_LOUIS,        2, Color.GREEN));
+		railways.add(new Railway(City.CHICAGO,        City.SAINT_LOUIS,        2, Color.WHITE));
+		railways.add(new Railway(City.CHICAGO,        City.PITTSBURGH,         3, Color.BLACK));
+		railways.add(new Railway(City.CHICAGO,        City.PITTSBURGH,         3, Color.BROWN));
 		
 		railways.add(new Railway(City.PITTSBURGH,     City.SAINT_LOUIS,        5, Color.GREEN));
 		railways.add(new Railway(City.PITTSBURGH,     City.NASHVILLE,          4, Color.YELLOW));

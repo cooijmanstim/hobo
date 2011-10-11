@@ -14,8 +14,19 @@ public class City {
 		this.y = y;
 	}
 
+	public static City designated_by(String name) {
+		for (City c: cities)
+			if (c.name.toLowerCase().replaceAll(" ", "_").equals(name.toLowerCase().replaceAll(" ", "_")))
+				return c;
+		return null;
+	}
+
 	public void registerRailway(Railway r) {
 		railways.add(r);
+	}
+
+	public String toString() {
+		return name;
 	}
 
 	// get a railway that connects this city to that one, possible constrained by color
@@ -47,7 +58,7 @@ public class City {
 	public static City PORTLAND       = new City("Portland",        1.2, 4.6);
 	public static City NEW_YORK       = new City("New York",        23, 5.7);
 	public static City OMAHA          = new City("Omaha",           13.5, 8);
-	public static City CHIGACO        = new City("Chigaco",         17.2, 19.2);
+	public static City CHICAGO        = new City("Chicago",         17.2, 19.2);
 	public static City PITTSBURGH     = new City("Pittsburgh",      21, 19);
 	public static City SALT_LAKE_CITY = new City("Salt Lake City",  6.2, 9.1);
 	public static City DENVER         = new City("Denver",          8.7, 9.9);
@@ -59,7 +70,7 @@ public class City {
 	public static City SAN_FRANCISCO  = new City("San Francisco",   1, 10.8);
 	public static City LAS_VEGAS      = new City("Las Vegas",       4.8, 12);
 	public static City SANTA_FE       = new City("Santa Fe",        8.4, 12.3);
-	public static City OKLAHOMA_CITY  = new City("Oklahama City",   13.7, 11.5);
+	public static City OKLAHOMA_CITY  = new City("Oklahoma City",   13.7, 11.5);
 	public static City LITTLE_ROCK    = new City("Little Rock",     16.1, 11.6);
 	public static City ATLANTA        = new City("Atlanta",         20.3, 11.3);
 	public static City CHARLESTON     = new City("Charleston",      22.1, 11.5);
@@ -86,7 +97,7 @@ public class City {
 		cities.add(PORTLAND);
 		cities.add(NEW_YORK);
 		cities.add(OMAHA);
-		cities.add(CHIGACO);
+		cities.add(CHICAGO);
 		cities.add(PITTSBURGH);
 		cities.add(SALT_LAKE_CITY);
 		cities.add(DENVER);

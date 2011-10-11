@@ -62,6 +62,9 @@ public class State implements Cloneable {
 			for (int i = 0; i < INITIAL_HAND_SIZE; i++)
 				p.hand.add(deck.draw());
 
+		for (int i = 0; i < OPEN_DECK_SIZE; i++)
+			open_deck.add(deck.draw());
+
 		// TODO: not initially dealing destination ticket cards yet, because it
 		// requires players to choose at least two to keep, instead of the one
 		// when they draw these cards themselves.  fuck these moronic rules.
@@ -76,7 +79,11 @@ public class State implements Cloneable {
 	}
 
 	public PlayerState currentPlayerState() {
-		return players_by_name.get(currentPlayer());
+		return playerState(currentPlayer());
+	}
+
+	public PlayerState playerState(String name) {
+		return players_by_name.get(name);
 	}
 
 	public boolean gameOver() {
@@ -117,27 +124,38 @@ public class State implements Cloneable {
 	// deck of destination tickets
 	private LinkedList<Mission> missions = new LinkedList<Mission>();
 
+	public CardBag openCards() {
+		return open_deck;
+	}
+
 	// TODO: don't use exceptions, instead define an isLegal(d) method
 	// expectation that that will be faster
-	private void illegalIf(boolean condition) { if (condition) throw new IllegalDecisionException(); }
-	private void illegalUnless(boolean condition) { illegalIf(!condition); }
+	private void illegalIf(boolean condition, String reason) {
+		if (condition)
+			throw new IllegalDecisionException(reason);
+	}
+	private void illegalUnless(boolean condition, String reason) {
+		illegalIf(!condition, reason);
+	}
 
 	public void applyDecision(Decision d) throws IllegalDecisionException {
 		if      (d instanceof ClaimRailwayDecision) applyDecision((ClaimRailwayDecision)d);
 		else if (d instanceof     DrawCardDecision) applyDecision((    DrawCardDecision)d);
 		else if (d instanceof DrawMissionsDecision) applyDecision((DrawMissionsDecision)d);
 		else if (d instanceof KeepMissionsDecision) applyDecision((KeepMissionsDecision)d);
-		else throw new IllegalDecisionException();
+		else throw new IllegalDecisionException("unknown decision type: "+d);
 	}
 
 	public void applyDecision(ClaimRailwayDecision d) throws IllegalDecisionException {
 		PlayerState p = currentPlayerState();
 
-		illegalIf(p.drawn_card != null || p.drawn_missions != null);
-		illegalUnless(p.ncars >= d.railway.length);
-		illegalIf(isClaimed(d.railway)); // TODO: do the more complicated dance with double railways
-		illegalUnless(p.hand.containsAll(d.cards));
-		illegalUnless(d.railway.costs(d.cards));
+		illegalIf(p.drawn_card != null, "you drew a card and now must decide what other card to draw");
+		illegalIf(p.drawn_missions != null, "you drew mission cards and now must decide which to keep");
+		illegalUnless(p.ncars >= d.railway.length, "you do not have enough cars");
+		// TODO: do the more complicated dance with double railways
+		illegalIf(isClaimed(d.railway), "that railway has already been claimed");
+		illegalUnless(p.hand.containsAll(d.cards), "you do not have these cards you claim to have");
+		illegalUnless(d.railway.costs(d.cards), "the railway costs more than that");
 
 		p.hand.removeAll(d.cards);
 		discarded.addAll(d.cards);
@@ -162,13 +180,13 @@ public class State implements Cloneable {
 	public void applyDecision(DrawCardDecision d) throws IllegalDecisionException {
 		PlayerState p = currentPlayerState();
 
-		illegalIf(p.drawn_missions != null);
+		illegalIf(p.drawn_missions != null, "you drew mission cards and now must decide which to keep");
 
 		// if drew a card last time, then can draw one more
 		boolean last_draw = p.drawn_card != null;
 
 		if (d.color == null) {
-			illegalIf(deck.isEmpty());
+			illegalIf(deck.isEmpty(), "deck is empty");
 			p.drawn_card = deck.draw();
 
 			if (deck.isEmpty()) {
@@ -176,7 +194,7 @@ public class State implements Cloneable {
 				discarded = deck;
 			}
 		} else {
-			illegalUnless(open_deck.contains(d.color));
+			illegalUnless(open_deck.contains(d.color), "no such card in the open deck");
 			p.drawn_card = open_deck.draw(d.color);
 
 			// TODO: drawing a grey card from the open deck means you don't get to draw another one
@@ -185,9 +203,8 @@ public class State implements Cloneable {
 
 			// TODO: if the replacement is grey, you can't pick that one after this
 			// (these rules are motherfucking stoopid!)
-			if (!deck.isEmpty()) {
+			if (!deck.isEmpty())
 				open_deck.add(deck.draw());
-			}
 		}
 
 		p.hand.add(p.drawn_card);
@@ -201,7 +218,8 @@ public class State implements Cloneable {
 	public void applyDecision(DrawMissionsDecision d) throws IllegalDecisionException {
 		PlayerState p = currentPlayerState();
 
-		illegalIf(p.drawn_card != null || p.drawn_missions != null);
+		illegalIf(p.drawn_card != null, "you drew a card and now must decide which other card to draw");
+		illegalIf(p.drawn_missions != null, "you drew mission cards and now must decide which to keep");
 		// NOTE: the rules don't forbid deciding to draw mission cards if the mission deck is empty
 
 		p.drawn_missions = new HashSet<Mission>();
@@ -214,8 +232,9 @@ public class State implements Cloneable {
 	public void applyDecision(KeepMissionsDecision d) throws IllegalDecisionException {
 		PlayerState p = currentPlayerState();
 
-		illegalIf(p.drawn_card != null || p.drawn_missions == null);
-		illegalIf(d.missions.isEmpty());
+		illegalIf(p.drawn_card != null, "you drew a card and now must decide which other card to draw");
+		illegalIf(p.drawn_missions == null, "you did not draw mission cards");
+		illegalIf(d.missions.isEmpty(), "you must keep at least one of the mission cards");
 
 		for (Mission m: p.drawn_missions) {
 			if (d.missions.contains(m))
@@ -241,7 +260,7 @@ public class State implements Cloneable {
 		}
 
 		PlayerState p = s.currentPlayerState();
-		// make sure a has enough yellow cards to claim some particular route later
+		// make sure p has enough yellow cards to claim some particular route later
 		while (s.deck.contains(Color.YELLOW))
 			p.hand.add(s.deck.draw(Color.YELLOW));
 
@@ -253,5 +272,8 @@ public class State implements Cloneable {
 		assert(p.hand.count(Color.YELLOW) == k - 2);
 
 		assert(p.score == 2);
+
+		assert(s.currentPlayerState() != p);
+		p = s.currentPlayerState();
 	}
 }

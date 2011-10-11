@@ -28,7 +28,7 @@ public class GameVisualization extends JPanel implements GameObserver {
 	
 	public PlayerInteraction getUserInterface() {
 		return new PlayerInteraction() {
-			@Override public Decision askDecision(Player p) {
+			@Override public Decision askDecision(Player p, State s) {
 				try {
 					Decision d = null;
 					while (d == null) {
@@ -44,10 +44,10 @@ public class GameVisualization extends JPanel implements GameObserver {
 				}
 			}
 
-			@Override public void tellDraw    (Player p) { message("draw game"   ); }
-			@Override public void tellIllegal (Player p) { message("illegal move"); }
-			@Override public void tellLoss    (Player p) { message(p+", you lose"); }
-			@Override public void tellWin     (Player p) { message(p+", you win" ); }
+			@Override public void tellIllegal (Player p, State s, Decision d, String reason) { message("illegal move"); }
+			@Override public void tellDraw    (Player p, State s) { message("draw game"   ); }
+			@Override public void tellLoss    (Player p, State s) { message(p+", you lose"); }
+			@Override public void tellWin     (Player p, State s) { message(p+", you win" ); }
 			
 			@Override public void observe(Event e) {}
 		};
