@@ -19,17 +19,9 @@ public class MainFrame extends JFrame {
 	
 	public MainFrame() {
 		gamePanel = new GamePanel();
-		
-		ArrayList<Mission> mis = new ArrayList<Mission>();
-		mis.add(Mission.missions.get(0));
-		mis.add(Mission.missions.get(1));
-		mis.add(Mission.missions.get(2));
-		this.mission = new MissionPanel(mis);
-
+		mission = new MissionPanel();
 		players = new PlayersPanel();
-
 		decks = new DecksPanel();
-		
 		hand = new HandPanel();
 		
 		panel2 = new JPanel();

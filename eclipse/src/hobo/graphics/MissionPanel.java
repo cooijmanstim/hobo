@@ -22,7 +22,12 @@ public class MissionPanel extends JPanel {
 	private JComboBox missionsCombo;
 	private MissionPanel mp;
 	
-	public MissionPanel(ArrayList<Mission> missions) {
+	public MissionPanel() {
+		ArrayList<Mission> missions = new ArrayList<Mission>();
+		missions.add(Mission.missions.get(0));
+		missions.add(Mission.missions.get(1));
+		missions.add(Mission.missions.get(2));
+		
 		missionsImage = new ArrayList<Image>();
 		setLayout(new GridLayout(missions.size(), 1));
 		String[] str = new String[missions.size()];
