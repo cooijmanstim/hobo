@@ -9,9 +9,9 @@ import javax.swing.JPanel;
 
 public class CityPanel extends JPanel{
 	private City city;
-	private GamePanel panel;
+	private MapPanel panel;
 	
-	public CityPanel(City city, GamePanel panel) {
+	public CityPanel(City city, MapPanel panel) {
 		this.city = city;
 		addMouseListener(new listener());
 		setBounds((int)city.x-5, (int)city.y-5, 10, 10);
@@ -34,14 +34,14 @@ public class CityPanel extends JPanel{
 		public void mouseEntered(MouseEvent e) {
 			Railway.railways.size();
 			for(Railway rail : city.railways) {
-				GamePanel.connections.add(new RailwayPanel(rail, 0));
+				MapPanel.connections.add(new RailwayPanel(rail, 0));
 			}
 			panel.repaint();
 		}
 
 		@Override
 		public void mouseExited(MouseEvent e) {
-			GamePanel.connections.clear();
+			MapPanel.connections.clear();
 			panel.repaint();
 		}
 

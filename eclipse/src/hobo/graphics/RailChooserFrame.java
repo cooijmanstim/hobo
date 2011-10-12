@@ -11,10 +11,10 @@ import javax.swing.JFrame;
 public class RailChooserFrame extends JFrame {
 	public static ArrayList<JButton> buttonArray;
 	public static ArrayList<Railway> rail;
-	private GamePanel panel;
+	private MapPanel panel;
 	private JFrame f;
 	
-	public RailChooserFrame(ArrayList<Railway> railways, GamePanel panel) {
+	public RailChooserFrame(ArrayList<Railway> railways, MapPanel panel) {
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		
 		f = this;
@@ -44,7 +44,7 @@ public class RailChooserFrame extends JFrame {
 		public void actionPerformed(ActionEvent arg0) {
 			String s = ((JButton)(arg0.getSource())).getText().substring(0, 1);
 			int number = Integer.parseInt(s);
-			GamePanel.railsways.add(new RailwayPanel(rail.get(number-1),1));
+			MapPanel.railsways.add(new RailwayPanel(rail.get(number-1),1));
 			
 			Railway.railways.remove(rail.get(number-1));
 			rail.remove(number-1);

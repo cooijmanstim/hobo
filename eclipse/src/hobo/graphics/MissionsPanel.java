@@ -17,12 +17,12 @@ import java.util.ArrayList;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 
-public class MissionPanel extends JPanel {
+public class MissionsPanel extends JPanel {
 	public static ArrayList<Image> missionsImage;
 	private JComboBox missionsCombo;
-	private MissionPanel mp;
+	private MissionsPanel mp;
 	
-	public MissionPanel() {
+	public MissionsPanel() {
 		ArrayList<Mission> missions = new ArrayList<Mission>();
 		missions.add(Mission.missions.get(0));
 		missions.add(Mission.missions.get(1));

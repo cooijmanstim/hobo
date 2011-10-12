@@ -15,13 +15,13 @@ import java.util.ArrayList;
 
 import javax.swing.JPanel;
 
-public class GamePanel extends JPanel {
+public class MapPanel extends JPanel {
 	private Image map;
 	private ArrayList<CityPanel> cityPanels;
 	public static ArrayList<RailwayPanel> connections;
 	public static ArrayList<RailwayPanel> railsways;
 	
-	public GamePanel() {
+	public MapPanel() {
 		map = getToolkit().getImage("src/railways/background.jpg");
 		setPreferredSize(new Dimension(1024, 683));
 		connections = new ArrayList<RailwayPanel>();
