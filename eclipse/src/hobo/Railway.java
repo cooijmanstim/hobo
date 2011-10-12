@@ -42,10 +42,6 @@ public class Railway {
 	public int score() {
 		return score_by_length[length];
 	}
-	
-	public String toString() {
-		return source.name+"-"+destination.name;
-	}
 
 	public String toString() {
 		return "Railway(source: "+source+", destination: "+destination+", color: "+color+")";
