@@ -5,6 +5,7 @@ import java.util.*;
 public class State implements Cloneable {
 	public static final int NCARDS_PER_COLOR = 12,
 	                        INITIAL_HAND_SIZE = 4,
+	                        INITIAL_MISSION_COUNT = 3,
 	                        OPEN_DECK_SIZE = 5;
 
 	// store all playerstates in one place, keyed by player name.
@@ -40,16 +41,7 @@ public class State implements Cloneable {
 		return that;
 	}
 
-	// don't ask
-	public void makeSureStaticsAreMotherfuckingInitialized() {
-		City c = City.NEW_YORK;
-		int i = Railway.railways.size();
-		int j = Mission.missions.size();
-	}
-
 	public void setup() {
-		makeSureStaticsAreMotherfuckingInitialized();
-
 		for (Color c: Color.values())
 			deck.addAll(Collections.nCopies(NCARDS_PER_COLOR, c));
 		// two more grey cards than other colors (FIXME: do this some other way)
@@ -58,16 +50,17 @@ public class State implements Cloneable {
 		missions.addAll(Mission.missions);
 		Collections.shuffle(missions);
 
-		for (PlayerState p: players_by_name.values())
+		for (PlayerState p: players_by_name.values()) {
 			for (int i = 0; i < INITIAL_HAND_SIZE; i++)
 				p.hand.add(deck.draw());
+			// XXX: officially, players can choose to discard one
+			// of the missions dealt.
+			for (int i = 0; i < INITIAL_MISSION_COUNT; i++)
+				p.missions.add(missions.removeFirst());
+		}
 
 		for (int i = 0; i < OPEN_DECK_SIZE; i++)
 			open_deck.add(deck.draw());
-
-		// TODO: not initially dealing destination ticket cards yet, because it
-		// requires players to choose at least two to keep, instead of the one
-		// when they draw these cards themselves.  fuck these moronic rules.
 	}
 
 	public void switchTurns() {

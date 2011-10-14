@@ -32,7 +32,7 @@ public class Mission {
 		       this.source == d && this.destination == c;
 	}
 
-	public String inspect() {
+	public String toString() {
 		return "Mission(source: "+source+", destination: "+destination+", value: "+value+")";
 	}
 	

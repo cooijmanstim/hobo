@@ -33,7 +33,7 @@ public class TrainCardPanel extends JPanel {
 	}
 	
 	public static String imagePath(Color c) {
-		return "src/trains/Train_" + (c == null ? "empty" : c.toAWTColor());
+		return "src/trains/Train_"+c+".png";
 	}
 	
 	public void paintComponent(Graphics g) {

@@ -39,13 +39,12 @@ public class MissionsPanel extends JPanel implements Visualization {
 		super.paintComponent(arg0);
 		Graphics2D g2 = (Graphics2D) arg0;
 		int i = missionsCombo.getSelectedIndex();
-		if (i > 0)
+		if (i >= 0)
 			g2.drawImage(missionsImage.get(i), 0, 50, this);
 	}
 
 	@Override public void reflect(State s) {
 		PlayerState ps = s.currentPlayerState();
-		// recreating all these image objects is highly inefficient
 		missionsImage = new ArrayList<Image>();
 		missionsCombo.removeAllItems();
 		for (Mission m: ps.missions) {

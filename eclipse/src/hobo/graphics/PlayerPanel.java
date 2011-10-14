@@ -34,7 +34,6 @@ public class PlayerPanel extends JPanel implements Visualization {
 		setBackground(ps.color.toAWTColor());
 		
 		points.setText(ps.score+" points");
-		if (s.currentPlayerState() == ps)
-			turn.setText("Currently his/her move");
+		turn.setText(s.currentPlayerState() == ps ? "Currently his/her move" : "");
 	}
 }

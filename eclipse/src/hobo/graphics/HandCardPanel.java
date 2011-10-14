@@ -22,7 +22,7 @@ public class HandCardPanel extends JPanel {
 	}
 
 	private static String imagePath(Color color) {
-		return "src/trains/Train_"+color.toString();
+		return "src/trains/Train_"+color+".png";
 	}
 	
 	public void setQuantity(int quantity) {
