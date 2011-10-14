@@ -9,12 +9,14 @@ import hobo.State;
 import hobo.Visualization;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 
 public class GameVisualization extends JPanel implements Visualization {
 	private MapPanel map;
@@ -25,6 +27,8 @@ public class GameVisualization extends JPanel implements Visualization {
 	private MissionsPanel missions;
 	
 	public GameVisualization() {
+		setLayout(new BorderLayout());
+		
 		map = new MapPanel(this);
 		missions = new MissionsPanel(this);
 		players = new PlayersPanel(this);
@@ -34,7 +38,7 @@ public class GameVisualization extends JPanel implements Visualization {
 		panel2 = new JPanel();
 		panel2.setLayout(new BorderLayout());
 		panel2.add(decks, BorderLayout.WEST);
-		panel2.add(map, BorderLayout.CENTER);
+		panel2.add(new JScrollPane(map), BorderLayout.CENTER);
 
 		panel3 = new JPanel();		
 		panel3.setLayout(new BorderLayout());

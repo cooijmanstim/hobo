@@ -36,8 +36,9 @@ public class Main {
 					public void actionPerformed(ActionEvent e) {
 						final GameVisualization gv = new GameVisualization();
 						List<Player> ps = new ArrayList<Player>();
-						ps.add(new HumanPlayer("happiness", gv.getUserInterface()));
-						ps.add(new HumanPlayer("existence", gv.getUserInterface()));
+						ps.add(new HumanPlayer("fuck", gv.getUserInterface()));
+						ps.add(new HumanPlayer("my", gv.getUserInterface()));
+						ps.add(new HumanPlayer("life", gv.getUserInterface()));
 						final Game g = new Game(ps);
 						g.registerObserver(new GameObserver() {
 							@Override public void observe(Event e) {
@@ -63,6 +64,8 @@ public class Main {
 				});
 				
 				f.add(b, BorderLayout.PAGE_END);
+				
+				b.doClick();
 				
 				f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 				f.pack();
