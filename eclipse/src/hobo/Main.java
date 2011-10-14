@@ -16,9 +16,7 @@ public class Main {
 	
 	public static void textual() {
 		PlayerInteraction ui = new TextualPlayerInteraction();
-		List<Player> ps = new ArrayList<Player>();
-		ps.add(new HumanPlayer("x", ui));
-		Game g = new Game(ps);
+		Game g = new Game(new HumanPlayer("x", ui));
 		g.registerObserver(ui);
 		g.play();
 	}
@@ -35,11 +33,10 @@ public class Main {
 
 					public void actionPerformed(ActionEvent e) {
 						final GameVisualization gv = new GameVisualization();
-						List<Player> ps = new ArrayList<Player>();
-						ps.add(new HumanPlayer("fuck", gv.getUserInterface()));
-						ps.add(new HumanPlayer("my", gv.getUserInterface()));
-						ps.add(new HumanPlayer("life", gv.getUserInterface()));
-						final Game g = new Game(ps);
+						final Game g = new Game(new HumanPlayer("fuck", gv.getUserInterface()),
+						                        new HumanPlayer("my",   gv.getUserInterface()),
+						                        new HumanPlayer("life", gv.getUserInterface()));
+
 						g.registerObserver(new GameObserver() {
 							@Override public void observe(Event e) {
 								gv.reflect(e.state);

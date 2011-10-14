@@ -9,13 +9,13 @@ public class PlayerState implements Cloneable {
 	                                                   Color.YELLOW, Color.BLACK };
 	public static int next_color_index = 0;
 
+	public final int handle;
 	public final String name;
 	public final Color color = colors[next_color_index++]; // will throw when out of colors
 	public int ncars = 45, score = 0;
 	public CardBag hand = new CardBag();
 	public Set<Mission> missions = new HashSet<Mission>();
 	public Set<Railway> railways = new HashSet<Railway>();
-
 	public Set<Mission> completed_missions = new HashSet<Mission>();
 
 	// when ncars drops below this at the end of a player's turn, the game
@@ -28,7 +28,7 @@ public class PlayerState implements Cloneable {
 	public Set<Mission> drawn_missions = null;
 
 	public PlayerState clone() {
-		PlayerState that = new PlayerState(name);
+		PlayerState that = new PlayerState(handle, name);
 		that.ncars = this.ncars;
 		that.score = this.score;
 		that.hand.addAll(this.hand);
@@ -40,7 +40,8 @@ public class PlayerState implements Cloneable {
 		return that;
 	}
 
-	public PlayerState(String name) {
+	public PlayerState(int handle, String name) {
+		this.handle = handle;
 		this.name = name;
 	}
    

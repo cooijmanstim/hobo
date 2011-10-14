@@ -13,10 +13,10 @@ import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
 
 public class PlayerPanel extends JPanel implements Visualization {
-	public final String handle;
+	public final int handle;
 	public JLabel name = new JLabel(), points = new JLabel(), turn = new JLabel();
 	
-	public PlayerPanel(String handle) {
+	public PlayerPanel(int handle) {
 		this.handle = handle;
 
 		setLayout(new GridLayout(3, 1));

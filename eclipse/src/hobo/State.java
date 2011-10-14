@@ -8,15 +8,13 @@ public class State implements Cloneable {
 	                        INITIAL_MISSION_COUNT = 3,
 	                        OPEN_DECK_SIZE = 5;
 
-	// store all playerstates in one place, keyed by player name.
-	// players are referred to by name in most other places.
-	private Map<String,PlayerState> players_by_name = new HashMap<String,PlayerState>();
+	// the index into this array is used to refer to a player in many places here.
+	private PlayerState[] players;
 
 	// keep track of player order
-	private LinkedList<String> player_sequence = new LinkedList<String>();
+	private int[] player_order;
 
-	// TODO: maybe move this into railway
-	private Map<Railway,String> owner_by_railway = new HashMap<Railway,String>();
+	private Map<Railway,Integer> owner_by_railway = new HashMap<Railway,Integer>();
 
 	private CardBag deck      = new CardBag();
 	private CardBag open_deck = new CardBag();
@@ -26,13 +24,14 @@ public class State implements Cloneable {
 	private LinkedList<Mission> missions = new LinkedList<Mission>();
 
 	private boolean game_over = false;
-	private String last_player = null;
+	private int last_player = -1;
 	
 	public State clone() {
 		State that = new State();
-		for (PlayerState ps: this.players_by_name.values())
-			that.players_by_name.put(ps.name, ps.clone());
-		that.player_sequence.addAll(this.player_sequence);
+		that.players = this.players.clone();
+		for (int i = 0; i < players.length; i++)
+			that.players[i] = that.players[i].clone();
+		that.player_order = this.player_order.clone();
 		that.owner_by_railway.putAll(this.owner_by_railway);
 		that.deck.addAll(this.deck);
 		that.open_deck.addAll(this.deck);
@@ -45,10 +44,14 @@ public class State implements Cloneable {
 
 	public State() {}
 	
-	public State(List<String> players) {
-		for (String pn: players)
-			players_by_name.put(pn, new PlayerState(pn));
-		player_sequence.addAll(players);
+	public State(String... player_names) {
+		int ni = player_names.length;
+		players = new PlayerState[ni];
+		player_order = new int[ni];
+		for (int i = 0; i < ni; i++) {
+			players[i] = new PlayerState(i, player_names[i]);
+			player_order[i] = i;
+		}
 	}
 
 	public void setup() {
@@ -60,7 +63,7 @@ public class State implements Cloneable {
 		missions.addAll(Mission.missions);
 		Collections.shuffle(missions);
 
-		for (PlayerState p: players_by_name.values()) {
+		for (PlayerState p: players) {
 			for (int i = 0; i < INITIAL_HAND_SIZE; i++)
 				p.hand.add(deck.draw());
 			// XXX: officially, players can choose to discard one
@@ -74,30 +77,35 @@ public class State implements Cloneable {
 	}
 
 	public void switchTurns() {
-		Collections.rotate(player_sequence, 1);
+		// shifts all elements forward, puts the first element in the back
+		int x = player_order[0];
+		int ni = player_order.length;
+		for (int i = 1; i < ni; i++)
+			player_order[i-1] = player_order[i];
+		player_order[ni-1] = x;
 	}
 
-	public List<String> players() {
-		return Collections.unmodifiableList(player_sequence);
+	public int[] players() {
+		return player_order.clone();
 	}
 	
 	public List<PlayerState> playerStates() {
 		List<PlayerState> playerStates = new ArrayList<PlayerState>();
-		for (String name: player_sequence)
-			playerStates.add(players_by_name.get(name));
+		for (int i: player_order)
+			playerStates.add(players[i]);
 		return playerStates;
 	}
 	
-	public String currentPlayer() {
-		return player_sequence.getFirst();
+	public int currentPlayer() {
+		return player_order[0];
 	}
 
 	public PlayerState currentPlayerState() {
 		return playerState(currentPlayer());
 	}
 
-	public PlayerState playerState(String name) {
-		return players_by_name.get(name);
+	public PlayerState playerState(int handle) {
+		return players[handle];
 	}
 
 	public boolean gameOver() {
@@ -105,23 +113,26 @@ public class State implements Cloneable {
 	}
 
 	public boolean isDraw() {
-		String winner = winner();
-		for (String p: player_sequence) {
-			if (p != winner && players_by_name.get(winner).finalScore() == players_by_name.get(p).finalScore())
+		int winner = winner();
+		for (int handle: player_order) {
+			if (handle != winner && players[winner].finalScore() == players[handle].finalScore())
 				return true;
 		}
 		return false;
 	}
 
-	public String winner() {
-		List<String> players = new ArrayList<String>(player_sequence);
-		Collections.sort(players, new Comparator<String>() {
-				public int compare(String a, String b) {
-					// fuck you, java
-					return -((Integer)players_by_name.get(a).finalScore()).compareTo(players_by_name.get(b).finalScore());
-				}
-			});
-		return players.get(0);
+	public int winner() {
+		int xmax = Integer.MIN_VALUE;
+		int winner = -1;
+		int ni = players.length;
+		for (int i = 0; i < ni; i++) {
+			int x = players[i].finalScore();
+			if (x > xmax) {
+				xmax = x;
+				winner = i;
+			}
+		}
+		return winner;
 	}
 
 	public boolean isClaimed(Railway r) {
@@ -166,13 +177,13 @@ public class State implements Cloneable {
 
 		p.claim(d.railway);
 
-		owner_by_railway.put(d.railway, p.name);
+		owner_by_railway.put(d.railway, p.handle);
 
 		// impending doom?
 		if (p.ncars < PlayerState.MIN_NCARS) {
-			if (last_player == null) {
-				last_player = p.name;
-			} else if (last_player == p.name) {
+			if (last_player < 0) {
+				last_player = p.handle;
+			} else if (last_player == p.handle) {
 				game_over = true;
 			}
 		}
@@ -253,12 +264,12 @@ public class State implements Cloneable {
 
 	public static void main(String[] args) {
 		// do some automated testing
-		List<String> players = Arrays.asList("alice bob charlie".split("\\s+"));
+		String[] players = "alice bob charlie".split("\\s+");
 		State s = new State(players);
 		s.setup();
 
-		for (String name: players) {
-			PlayerState p = s.players_by_name.get(name);
+		for (int i = 0; i < players.length; i++) {
+			PlayerState p = s.players[i];
 			assert(!p.hand.isEmpty());
 		}
 

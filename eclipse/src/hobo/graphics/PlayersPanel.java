@@ -1,5 +1,6 @@
 package hobo.graphics;
 
+import hobo.PlayerState;
 import hobo.Visualization;
 import hobo.State;
 
@@ -19,7 +20,7 @@ public class PlayersPanel extends JPanel implements Visualization {
 	@Override public void reflect(State s) {
 		if (children == null) {
 			children = new HashSet<PlayerPanel>();
-			for (String handle: s.players()) {
+			for (int handle: s.players()) {
 				PlayerPanel pp = new PlayerPanel(handle);
 				children.add(pp);
 				add(pp);

@@ -4,18 +4,16 @@ import java.util.*;
 
 public class Game {
 	private final State state;
-	private final Map<String,Player> players_by_name;
+	private final Player[] players;
 	private final List<GameObserver> observers = new ArrayList<GameObserver>();
 
-	public Game(List<Player> ps) {
-		Map<String,Player> players_by_name = new HashMap<String,Player>();
-		for (Player p: ps)
-			players_by_name.put(p.name(), p);
-		this.players_by_name = Collections.unmodifiableMap(players_by_name);
+	public Game(Player... players) {
+		this.players = players;
 
-		List<String> names = new ArrayList<String>();
-		for (Player p: ps)
-			names.add(p.name());
+		int ni = players.length;
+		String[] names = new String[ni];
+		for (int i = 0; i < ni; i++)
+			names[i] = players[i].name();
 		state = new State(names);
 	}
 
@@ -32,11 +30,11 @@ public class Game {
 				
 				if (state.gameOver()) {
 					if (state.isDraw()) {
-						for (Player p: players_by_name.values())
+						for (Player p: players)
 							p.draw(state);
 					} else {
-						Player w = players_by_name.get(state.winner());
-						for (Player l: players_by_name.values()) {
+						Player w = players[state.winner()];
+						for (Player l: players) {
 							if (l != w)
 								l.loss(state);
 						}
@@ -51,7 +49,7 @@ public class Game {
 	}
 
 	public void advance() {
-		Player p = players_by_name.get(state.currentPlayer());
+		Player p = players[state.currentPlayer()];
 	
 		Decision d;
 		while (true) {
@@ -79,7 +77,7 @@ public class Game {
 	}
 
 	public void notifyPlayers(Event e) {
-		for (Player p: players_by_name.values())
+		for (Player p: players)
 			p.perceive(e);
 	}
 
