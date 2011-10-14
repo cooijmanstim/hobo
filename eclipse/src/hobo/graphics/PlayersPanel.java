@@ -13,7 +13,7 @@ import javax.swing.JPanel;
 public class PlayersPanel extends JPanel implements Visualization {
 	private Set<PlayerPanel> children = null;
 	
-	public PlayersPanel(GameVisualization gv) {
+	public PlayersPanel(GamePanel gv) {
 		setLayout(new GridLayout(1, 4));		
 	}
 	

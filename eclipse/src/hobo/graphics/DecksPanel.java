@@ -11,10 +11,10 @@ import java.util.ArrayList;
 import javax.swing.JPanel;
 
 public class DecksPanel extends JPanel implements Visualization {
-	private final GameVisualization visualization;
+	private final GamePanel gamePanel;
 	
-	public DecksPanel(GameVisualization gv) {
-		visualization = gv;
+	public DecksPanel(GamePanel gamePanel) {
+		this.gamePanel = gamePanel;
 		int size = State.OPEN_DECK_SIZE + 1;
 		setLayout(new GridLayout(size, 1));
 		setPreferredSize(new Dimension(200,100*size));
@@ -27,9 +27,9 @@ public class DecksPanel extends JPanel implements Visualization {
 
 		// open deck
 		for (Color c: s.openCards())
-			add(new TrainCardPanel(visualization, c));
+			add(new TrainCardPanel(gamePanel, c));
 		
 		// closed deck
-		add(new TrainCardPanel(visualization, null));
+		add(new TrainCardPanel(gamePanel, null));
 	}
 }

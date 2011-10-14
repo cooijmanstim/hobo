@@ -18,7 +18,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
-public class GameVisualization extends JPanel implements Visualization {
+public class GamePanel extends JPanel implements Visualization {
 	private MapPanel map;
 	private PlayersPanel players;
 	private DecksPanel decks;
@@ -26,7 +26,7 @@ public class GameVisualization extends JPanel implements Visualization {
 	private JPanel panel2, panel3;
 	private MissionsPanel missions;
 	
-	public GameVisualization() {
+	public GamePanel() {
 		setLayout(new BorderLayout());
 		
 		map = new MapPanel(this);

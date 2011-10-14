@@ -13,10 +13,10 @@ import javax.swing.JPanel;
 
 public class HandPanel extends JPanel implements Visualization {
 	private ArrayList<HandCardPanel> children;
-	private final GameVisualization visualization;
+	private final GamePanel gamePanel;
 
-	public HandPanel(GameVisualization gv) {
-		visualization = gv;
+	public HandPanel(GamePanel gamePanel) {
+		this.gamePanel = gamePanel;
 		setLayout(new GridLayout(1, Color.values().length));
 		setPreferredSize(new Dimension(200*Color.values().length, 100));
 	}

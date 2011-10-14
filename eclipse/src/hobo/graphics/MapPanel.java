@@ -24,7 +24,7 @@ public class MapPanel extends JPanel implements Visualization {
 	private List<Image> claimedRailways = new ArrayList<Image>();
     private List<Image> visibleRailways = new ArrayList<Image>(); // when hovering over a city
 	
-	public MapPanel(GameVisualization gv) {
+	public MapPanel(GamePanel gv) {
 		map = getToolkit().getImage("src/railways/background.jpg");
 		setPreferredSize(new Dimension(1024, 683));
 		for(City city: City.cities)

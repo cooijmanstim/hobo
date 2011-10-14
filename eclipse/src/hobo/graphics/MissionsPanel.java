@@ -22,7 +22,7 @@ public class MissionsPanel extends JPanel implements Visualization {
 	private ArrayList<Image> missionsImage;
 	private final JComboBox missionsCombo;
 
-	public MissionsPanel(GameVisualization gv) {
+	public MissionsPanel(GamePanel gv) {
 		final MissionsPanel mp = this;
 		missionsCombo = new JComboBox();
 		missionsCombo.addActionListener(new ActionListener() {

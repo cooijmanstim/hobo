@@ -17,17 +17,17 @@ import javax.swing.JPanel;
 
 public class TrainCardPanel extends JPanel {
 	private final Color color;
-	private final GameVisualization visualization;
+	private final GamePanel gamePanel;
 	private final Image image;
 
-	public TrainCardPanel(final GameVisualization gv, final Color color) {
+	public TrainCardPanel(final GamePanel gamePanel, final Color color) {
 		this.color = color;
-		this.visualization = gv;
+		this.gamePanel = gamePanel;
 		this.image = getToolkit().getImage(imagePath(color));
 		setPreferredSize(new Dimension(200, 100));
 		addMouseListener(new MouseAdapter() {
 			@Override public void mouseClicked(MouseEvent e) {
-				gv.registerDecision(new DrawCardDecision(color));
+				gamePanel.registerDecision(new DrawCardDecision(color));
 			}
 		});
 	}

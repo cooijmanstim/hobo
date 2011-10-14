@@ -1,6 +1,6 @@
 package hobo;
 
-import hobo.graphics.GameVisualization;
+import hobo.graphics.GamePanel;
 
 import java.util.*;
 import java.awt.BorderLayout;
@@ -29,10 +29,10 @@ public class Main {
 				JButton b = new JButton("new game...");
 				b.addActionListener(new ActionListener() {
 					private Thread gameThread = null;
-					private GameVisualization gameVisualization = null; // hate hate hate
+					private GamePanel gameVisualization = null; // hate hate hate
 
 					public void actionPerformed(ActionEvent e) {
-						final GameVisualization gv = new GameVisualization();
+						final GamePanel gv = new GamePanel();
 						final Game g = new Game(new HumanPlayer("fuck", gv.getUserInterface()),
 						                        new HumanPlayer("my",   gv.getUserInterface()),
 						                        new HumanPlayer("life", gv.getUserInterface()));

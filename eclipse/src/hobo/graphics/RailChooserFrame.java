@@ -1,6 +1,9 @@
 package hobo.graphics;
 
 import hobo.Railway;
+import hobo.ClaimRailwayDecision;
+import hobo.CardBag;
+
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -11,19 +14,20 @@ import javax.swing.JFrame;
 public class RailChooserFrame extends JFrame {
 	public static ArrayList<JButton> buttonArray;
 	public static ArrayList<Railway> rail;
-	private MapPanel panel;
-	private JFrame f;
-	private final GameVisualization visualization;
+	private MapPanel mapPanel;
+	private JFrame frame;
+	private final GamePanel gamePanel;
 	
-	public RailChooserFrame(GameVisualization gv, ArrayList<Railway> railways, MapPanel panel) {
+	public RailChooserFrame(ArrayList<Railway> railways, GamePanel gamePanel, MapPanel mapPanel) {
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		
-		visualization = gv;
-		f = this;
+		frame = this;
 		
+		this.gamePanel = gamePanel;
+		this.mapPanel = mapPanel;
+
 		buttonArray = new ArrayList<JButton>();
 		rail = railways;
-		this.panel = panel;
 		
 		for(int i = 0; i < railways.size(); i++) {
 			buttonArray.add(new JButton(i+1+". "+railways.get(i).source.name+" - "+railways.get(i).destination.name+" ("+railways.get(i).color+")"));
@@ -44,14 +48,14 @@ public class RailChooserFrame extends JFrame {
 		@Override public void actionPerformed(ActionEvent arg0) {
 			String s = ((JButton)(arg0.getSource())).getText().substring(0, 1);
 			int number = Integer.parseInt(s);
-			visualization.registerDecision(new ClaimRailwayDecision(new RailwayPanel(rail.get(number-1),1)));
+			gamePanel.registerDecision(new ClaimRailwayDecision(rail.get(number-1), new CardBag()));
 			
 			Railway.railways.remove(rail.get(number-1));
 			rail.remove(number-1);
 			
-			panel.repaint();
-			f.setVisible(false);
-			f.dispose();
+			mapPanel.repaint();
+			frame.setVisible(false);
+			frame.dispose();
 		}
 		
 	}
