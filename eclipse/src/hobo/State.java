@@ -15,17 +15,19 @@ public class State implements Cloneable {
 	// keep track of player order
 	private LinkedList<String> player_sequence = new LinkedList<String>();
 
+	// TODO: maybe move this into railway
+	private Map<Railway,String> owner_by_railway = new HashMap<Railway,String>();
+
+	private CardBag deck      = new CardBag();
+	private CardBag open_deck = new CardBag();
+	private CardBag discarded = new CardBag();
+
+	// deck of destination tickets
+	private LinkedList<Mission> missions = new LinkedList<Mission>();
+
 	private boolean game_over = false;
 	private String last_player = null;
 	
-	public State() {}
-	
-	public State(List<String> players) {
-		for (String pn: players)
-			players_by_name.put(pn, new PlayerState(pn));
-		player_sequence.addAll(players);
-	}
-
 	public State clone() {
 		State that = new State();
 		for (PlayerState ps: this.players_by_name.values())
@@ -39,6 +41,14 @@ public class State implements Cloneable {
 		that.game_over = this.game_over;
 		that.last_player = this.last_player;
 		return that;
+	}
+
+	public State() {}
+	
+	public State(List<String> players) {
+		for (String pn: players)
+			players_by_name.put(pn, new PlayerState(pn));
+		player_sequence.addAll(players);
 	}
 
 	public void setup() {
@@ -114,19 +124,9 @@ public class State implements Cloneable {
 		return players.get(0);
 	}
 
-	// TODO: maybe move this into railway
-	private Map<Railway,String> owner_by_railway = new HashMap<Railway,String>();
-
 	public boolean isClaimed(Railway r) {
 		return owner_by_railway.containsKey(r);
 	}
-
-	private CardBag deck      = new CardBag();
-	private CardBag open_deck = new CardBag();
-	private CardBag discarded = new CardBag();
-
-	// deck of destination tickets
-	private LinkedList<Mission> missions = new LinkedList<Mission>();
 
 	public CardBag openCards() {
 		return open_deck;
@@ -201,7 +201,6 @@ public class State implements Cloneable {
 			illegalUnless(open_deck.contains(d.color), "no such card in the open deck");
 			p.drawn_card = open_deck.draw(d.color);
 
-			// TODO: drawing a grey card from the open deck means you don't get to draw another one
 			if (p.drawn_card == Color.GREY)
 				last_draw = true;
 

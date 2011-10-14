@@ -27,10 +27,6 @@ public class PlayerState implements Cloneable {
 	public Color drawn_card = null;
 	public Set<Mission> drawn_missions = null;
 
-	public PlayerState(String name) {
-		this.name = name;
-	}
-   
 	public PlayerState clone() {
 		PlayerState that = new PlayerState(name);
 		that.ncars = this.ncars;
@@ -44,6 +40,10 @@ public class PlayerState implements Cloneable {
 		return that;
 	}
 
+	public PlayerState(String name) {
+		this.name = name;
+	}
+   
 	public int finalScore() {
 		int score = this.score;
 		for (Mission m: missions)

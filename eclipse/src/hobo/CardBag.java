@@ -55,9 +55,11 @@ public class CardBag implements Cloneable, Iterable<Color> {
 		return true;
 	}
 
+	// get a non-grey color of which at least one card is present
 	public Color arbitraryNonGrey() {
+		int j = Color.GREY.ordinal();
 		for (int i = 0; i < ncolors; i++) {
-			if (ks[i] > 0 && i != Color.GREY.ordinal())
+			if (ks[i] > 0 && i != j)
 				return Color.values()[i];
 		}
 		return null;
@@ -65,15 +67,6 @@ public class CardBag implements Cloneable, Iterable<Color> {
 
 	public int count(Color c) {
 		return ks[c.ordinal()];
-	}
-
-	public int countEquivalent(Color c) {
-		assert(c != Color.GREY); // ambiguous case
-		return count(c) + count(Color.GREY);
-	}
-
-	public boolean allEquivalent() {
-		return count(Color.GREY) == size || countEquivalent(arbitraryNonGrey()) == size;
 	}
 
 	// weighted but otherwise uniformly random selection
@@ -171,6 +164,21 @@ public class CardBag implements Cloneable, Iterable<Color> {
 		};
 	}
 	
+	// two cards are "equivalent" if they can be used in place of eachother.
+	// e.g., grey can be used in place of blue.
+	public int countEquivalent(Color c) {
+		// grey is a problematic case.  all cards that are individually
+		// equivalent to grey may not be mutually equivalent.
+		// (i.e., equivalence is symmetric but not transitive)
+		if (c == Color.GREY)
+			throw new IllegalArgumentException();
+		return count(c) + count(Color.GREY);
+	}
+
+	public boolean allEquivalent() {
+		return count(Color.GREY) == size || countEquivalent(arbitraryNonGrey()) == size;
+	}
+
 
 	// tests below here
 	public static void requireIteratorFinitude() {
