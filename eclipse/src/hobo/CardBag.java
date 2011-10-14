@@ -2,7 +2,7 @@ package hobo;
 
 import java.util.*;
 
-public class CardBag implements Cloneable {
+public class CardBag implements Cloneable, Iterable<Color> {
 	private static final int ncolors = Color.values().length;
 	private int[] ks = new int[ncolors]; // multiplicities
 	private int size = 0;
@@ -122,4 +122,71 @@ public class CardBag implements Cloneable {
 		sb.append(")");
 		return sb.toString();
 	}
+	
+	@Override public Iterator<Color> iterator() {
+		return new Iterator<Color>() {
+			private int[] cs = null;
+			private boolean finalized = false;
+			private int[] next_coordinates(int[] cs) {
+				if (finalized)
+					return null;
+
+				if (cs == null) {
+					cs = new int[]{ 0, 0 };
+				} else {
+					cs = cs.clone();
+					if (cs[1] < ks[cs[0]] - 1) {
+						// more of the same color
+						cs[1]++;
+						return cs;
+					} else {
+						// next color
+						cs[1] = 0;
+						cs[0]++;
+					}
+				}
+
+				// next color until we get to a color for which cards are present
+				while (cs[0] < ncolors && ks[cs[0]] == 0)
+					cs[0]++;
+				
+				if (cs[0] >= ncolors) {
+					finalized = true;
+					return null;
+				}
+				return cs;
+			}
+			@Override public boolean hasNext() {
+				return next_coordinates(cs) != null;
+			}
+			@Override public Color next() {
+				cs = next_coordinates(cs);
+				if (cs == null)
+					throw new NoSuchElementException();
+				return Color.values()[cs[0]];
+			}
+			@Override public void remove() {
+				throw new UnsupportedOperationException(); // YAGNI
+			}
+		};
+	}
+	
+
+	// tests below here
+	public static void requireIteratorFinitude() {
+		Color[] colors = new Color[]{ Color.RED, Color.RED, Color.GREEN, Color.BLUE, Color.GREEN };
+		CardBag cb = new CardBag(colors);
+		Iterator<Color> i = cb.iterator();
+		for (Color c: colors) {
+			if (!i.hasNext()) throw new RuntimeException("iterator yields too few");
+			i.next();
+		}
+		if (i.hasNext()) throw new RuntimeException("iterator yields too many");
+	}
+	
+	static {
+		requireIteratorFinitude();
+	}
+	
+	public static void main(String[] args) {}
 }

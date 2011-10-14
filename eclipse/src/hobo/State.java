@@ -74,6 +74,17 @@ public class State implements Cloneable {
 		Collections.rotate(player_sequence, 1);
 	}
 
+	public List<String> players() {
+		return Collections.unmodifiableList(player_sequence);
+	}
+	
+	public List<PlayerState> playerStates() {
+		List<PlayerState> playerStates = new ArrayList<PlayerState>();
+		for (String name: player_sequence)
+			playerStates.add(players_by_name.get(name));
+		return playerStates;
+	}
+	
 	public String currentPlayer() {
 		return player_sequence.getFirst();
 	}

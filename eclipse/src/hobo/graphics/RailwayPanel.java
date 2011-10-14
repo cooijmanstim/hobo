@@ -10,14 +10,13 @@ import hobo.Railway;
 import javax.swing.JPanel;
 
 public class RailwayPanel extends JPanel {
-
-	public City city1, city2;
-	public Image railway_img;
+	public final City city1, city2;
+	public final Image railway_img;
 	
 	public RailwayPanel(Railway railway, int color) {
 		this.city1 = railway.source;
 		this.city2 = railway.destination;
-		String str = "src/railways/"+railway.picString+color+".png";
+		String str = "src/railways/"+railway.imagePath+color+".png";
 		railway_img = getToolkit().getImage(str);
 	}
 }

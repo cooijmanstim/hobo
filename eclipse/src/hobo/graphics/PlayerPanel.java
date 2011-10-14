@@ -3,35 +3,38 @@ package hobo.graphics;
 import java.awt.Color;
 import java.awt.GridLayout;
 
-import hobo.HumanPlayer;
+import hobo.State;
+import hobo.PlayerState;
+import hobo.Visualization;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.border.EtchedBorder;
+import javax.swing.border.TitledBorder;
 
-public class PlayerPanel extends JPanel {
-	public HumanPlayer player;
-	public JLabel name;
-	public static JLabel points;
-	public static JLabel turn;
+public class PlayerPanel extends JPanel implements Visualization {
+	public final String handle;
+	public JLabel name = new JLabel(), points = new JLabel(), turn = new JLabel();
 	
-	public PlayerPanel(HumanPlayer player, boolean turnBol, Color color) {
-		this.player = player;
-		name = new JLabel(player.name());
-		points = new JLabel("0 Pts.");
-		if(turnBol) {
-			turn = new JLabel("Currently his/her move");
-		} else {
-			turn = new JLabel();
-		}
-		
-		
+	public PlayerPanel(String handle) {
+		this.handle = handle;
+
 		setLayout(new GridLayout(3, 1));
+		setBorder(new TitledBorder(new EtchedBorder(), "Player "+handle));
 		add(name);
 		add(points);
 		add(turn);
-		
-		setBackground(color);
 	}
 
-	
+	@Override public void reflect(State s) {
+		PlayerState ps = s.playerState(handle);
+
+		// this really only needs to be done once, but who cares
+		name.setText(ps.name);
+		setBackground(ps.color.toAWTColor());
+		
+		points.setText(ps.score+" points");
+		if (s.currentPlayerState() == ps)
+			turn.setText("Currently his/her move");
+	}
 }

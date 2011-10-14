@@ -7,13 +7,13 @@ import java.util.Set;
 public class Mission {
 	public final City source, destination;
 	public final int value;
-	public String str;
+	public final String imagePath;
 
-	public Mission(City source, City destination, int value, String str){
+	public Mission(City source, City destination, int value, String imagePath){
 		this.source = source;
 		this.destination = destination;
 		this.value = value;
-		this.str = str;
+		this.imagePath = imagePath;
 	}
 
 	public static Mission connecting(City c, City d) {

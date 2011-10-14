@@ -10,14 +10,14 @@ public class Railway {
 	public final int length;
 	public final Color color;
 	public /* pretend final */ Railway dual;
-	public String picString;
+	public String imagePath;
 
 	public Railway(City source, City destination, int length, Color color, String picString){
 		this.source = source;
 		this.destination = destination;
 		this.length = length;
 		this.color = color;
-		this.picString = picString;
+		this.imagePath = picString;
 		source.registerRailway(this);
 		destination.registerRailway(this);
 	}	

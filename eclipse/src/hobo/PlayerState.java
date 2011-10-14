@@ -4,7 +4,13 @@ import java.util.Set;
 import java.util.HashSet;
 
 public class PlayerState implements Cloneable {
+	// for assigning colors to players
+	private static final Color[] colors = new Color[]{ Color.BLUE, Color.RED, Color.GREEN,
+	                                                   Color.YELLOW, Color.BLACK };
+	public static int next_color_index = 0;
+
 	public final String name;
+	public final Color color = colors[next_color_index++]; // will throw when out of colors
 	public int ncars = 45, score = 0;
 	public CardBag hand = new CardBag();
 	public Set<Mission> missions = new HashSet<Mission>();

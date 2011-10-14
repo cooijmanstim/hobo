@@ -13,10 +13,12 @@ public class RailChooserFrame extends JFrame {
 	public static ArrayList<Railway> rail;
 	private MapPanel panel;
 	private JFrame f;
+	private final GameVisualization visualization;
 	
-	public RailChooserFrame(ArrayList<Railway> railways, MapPanel panel) {
+	public RailChooserFrame(GameVisualization gv, ArrayList<Railway> railways, MapPanel panel) {
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		
+		visualization = gv;
 		f = this;
 		
 		buttonArray = new ArrayList<JButton>();
@@ -39,12 +41,10 @@ public class RailChooserFrame extends JFrame {
 	}
 	
 	private class addRail implements ActionListener {
-
-		@Override
-		public void actionPerformed(ActionEvent arg0) {
+		@Override public void actionPerformed(ActionEvent arg0) {
 			String s = ((JButton)(arg0.getSource())).getText().substring(0, 1);
 			int number = Integer.parseInt(s);
-			MapPanel.railsways.add(new RailwayPanel(rail.get(number-1),1));
+			visualization.registerDecision(new ClaimRailwayDecision(new RailwayPanel(rail.get(number-1),1)));
 			
 			Railway.railways.remove(rail.get(number-1));
 			rail.remove(number-1);

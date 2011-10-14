@@ -1,5 +1,7 @@
 package hobo.graphics;
 
+import hobo.Color;
+
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -9,21 +11,28 @@ import java.util.ArrayList;
 import javax.swing.JPanel;
 
 public class HandCardPanel extends JPanel {
-	public String str;
-	public int amount;
+	public final Color color;
+	private final Image image;
+	private int quantity;
 	
-	public HandCardPanel(String string, int amount) {
-		this.amount = amount;
-		str = "src/trains/"+string;
+	public HandCardPanel(Color color) {
+		this.color = color;
+		image = getToolkit().getImage(imagePath(color));
 		setPreferredSize(new Dimension(200, 100));
+	}
+
+	private static String imagePath(Color color) {
+		return "src/trains/Train_"+color.toString();
+	}
+	
+	public void setQuantity(int quantity) {
+		this.quantity = quantity;
 	}
 	
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		Graphics2D g2 = (Graphics2D) g;
-			Image img = getToolkit().getImage(str);
-			g2.drawImage(img, 0, 0, this);
-			if(amount != 1)
-				g2.drawString(amount+"", 180, 20);
+		g2.drawImage(image, 0, 0, this);
+		g2.drawString(quantity+"", 180, 20);
 	}
 }

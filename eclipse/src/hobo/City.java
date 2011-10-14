@@ -122,4 +122,9 @@ public class City {
 		cities.add(NEW_ORLEANS);
 		cities.add(MIAMI);
 	}
+	
+	static {
+		// make sure railways are initialized also
+		Railway.railways.size();
+	}
 }
