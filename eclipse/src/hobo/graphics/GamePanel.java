@@ -61,6 +61,7 @@ public class GamePanel extends JPanel implements Visualization {
 	public PlayerInteraction getUserInterface() {
 		return new PlayerInteraction() {
 			@Override public Decision askDecision(Player p, State s) {
+				System.out.println(s.openCards());
 				reflect(s);
 				return getDecision();
 			}

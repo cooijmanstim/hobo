@@ -155,8 +155,8 @@ public class TextualPlayerInteraction implements PlayerInteraction {
 			case 'g': d = Color.GREEN;  break;
 			case 'r': d = Color.RED;    break;
 			case 'b': d = Color.BLUE;   break;
-			case 'o': d = Color.BROWN;  break;
-			case 'p': d = Color.PINK;   break;
+			case 'o': d = Color.ORANGE;  break;
+			case 'p': d = Color.PURPLE;   break;
 			default: return null;
 			}
 			cards.add(d);

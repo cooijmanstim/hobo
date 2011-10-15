@@ -3,7 +3,8 @@ package hobo;
 // this is used for card color as well as player color, which are
 // two very different concepts, so pay attention.
 public enum Color {
-	BLACK, GREY, WHITE, YELLOW, GREEN, RED, BLUE, BROWN, PINK, ORANGE;
+	// NOTE: grey is used for wildcards
+	BLACK, WHITE, YELLOW, GREEN, RED, BLUE, ORANGE, PURPLE, GREY;
 
 	private final java.awt.Color awtColor;
 
