@@ -43,8 +43,6 @@ public class TextualPlayerInteraction implements PlayerInteraction {
 		 * keep_missions <<city1> <city2>> <<city1> <city2>>
 		 */
 		if (words[0].equals("claim")) {
-			String error = null;
-
 			CardBag cards = cards_designated_by(words[1]);
 			if (cards == null) {
 				System.out.println("invalid cards designator: "+words[1]);

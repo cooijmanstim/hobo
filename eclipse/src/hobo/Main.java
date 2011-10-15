@@ -33,9 +33,9 @@ public class Main {
 
 					public void actionPerformed(ActionEvent e) {
 						final GamePanel gv = new GamePanel();
-						final Game g = new Game(new HumanPlayer("fuck", gv.getUserInterface()),
-						                        new HumanPlayer("my",   gv.getUserInterface()),
-						                        new HumanPlayer("life", gv.getUserInterface()));
+						final Game g = new Game(new HumanPlayer("woop", gv.getUserInterface()),
+						                        new HumanPlayer("dee",  gv.getUserInterface()),
+						                        new HumanPlayer("doo",  gv.getUserInterface()));
 
 						g.registerObserver(new GameObserver() {
 							@Override public void observe(Event e) {

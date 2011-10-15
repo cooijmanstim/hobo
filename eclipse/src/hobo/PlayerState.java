@@ -55,32 +55,39 @@ public class PlayerState implements Cloneable {
 	public void claim(Railway r) {
 		ncars -= r.length;
 		score += r.score();
-
+		completed_missions.addAll(missions_completed_by(r));
 		railways.add(r);
-
-		detectMissionCompletion(r);
 	}
 
-	public void detectMissionCompletion(Railway r) {
-		// if this railway completes a mission, add that mission to
-		// completed_missions
-		// NOTE: can complete multiple missions at once
-		
+	/** Finds the currently incomplete missions that would be completed by
+	 * acquiring the railway r.
+	 * 
+	 * For this to work correctly, r should not be contained by this.railways.
+	 * The algorithm first builds two sets of cities, one containing all cities
+	 * reachable from the source of r, and the other containing all cities
+	 * reachable from the destination of r.  These two sets are disjoint.
+	 *
+	 * Whichever of these two sets is built last may be empty; this indicates
+	 * that the cities connected by r were already connected, and hence this
+	 * railway will not complete any missions.
+	 * 
+	 * Otherwise, the algorithm tries to find missions with one city in each
+	 * of the two sets.  Missions with both cities in one set were already
+	 * completed.  Missions with one city in neither set will not be completed.
+	 */
+	public Set<Mission> missions_completed_by(Railway r) {
+		// cities already visited
 		Set<City> explored = new HashSet<City>();
-		explored.add(r.destination);
-		explored.add(r.source);
 
 		// all cities on the source side
 		Set<City> cities1 = cities_connected_to(r.source,      explored);
 		// all cities on the destination side
 		Set<City> cities2 = cities_connected_to(r.destination, explored);
 
-		// for each uncompleted mission, try to find a pair of cities, one in
-		// cities1, the other in cities2, that match the mission.
-		// (note that cities1 and cities2 are disjoint: a mission m that has
-		// one city c1 in the intersection of what's reachable from r.source
-		// and r.destination, and the other city c2 in the union, would already
-		// have been connected by some other railway.)
+		Set<Mission> newly_completed_missions = new HashSet<Mission>();
+		if (cities2.isEmpty())
+			return newly_completed_missions;
+
 		findMissions: for (Mission m: missions) {
 			if (completed_missions.contains(m))
 				continue;
@@ -89,27 +96,28 @@ public class PlayerState implements Cloneable {
 					continue;
 				for (City c2: cities2) {
 					if (m.connects(c1, c2)) {
-						completed_missions.add(m);
+						newly_completed_missions.add(m);
 						continue findMissions;
 					}
 				}
 			}
 		}
+
+		return newly_completed_missions;
 	}
 
 	// NOTE: explored is modified
 	public Set<City> cities_connected_to(City c, Set<City> explored) {
 		Set<City> cities = new HashSet<City>();
+		cities.add(c);
+		explored.add(c);
 		for (Railway r: c.railways) {
 			if (railways.contains(r)) {
 				c = null;
 				if (!explored.contains(r.source))      c = r.source;
 				if (!explored.contains(r.destination)) c = r.destination;
-				if (c != null) {
-					explored.add(c);
-					cities.add(c);
+				if (c != null)
 					cities.addAll(cities_connected_to(c, explored));
-				}
 			}
 		}
 		return cities;

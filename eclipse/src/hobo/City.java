@@ -61,7 +61,7 @@ public class City {
 	public static City OMAHA          = new City("Omaha",           547, 306);
 	public static City CHICAGO        = new City("Chicago",         699, 275);
 	public static City PITTSBURGH     = new City("Pittsburgh",      830, 260);
-	public static City SALT_LAKE_CITY = new City("SaltLakeCity",  269, 343);
+	public static City SALT_LAKE_CITY = new City("Salt Lake City",  269, 343);
 	public static City DENVER         = new City("Denver",          399, 374);
 	public static City KANSAS_CITY    = new City("Kansas City",     567, 357);
 	public static City SAINT_LOUIS    = new City("Saint Louis",     654, 358);
@@ -71,7 +71,7 @@ public class City {
 	public static City SAN_FRANCISCO  = new City("San Francisco",   70, 407);
 	public static City LAS_VEGAS      = new City("Las Vegas",       213, 453);
 	public static City SANTA_FE       = new City("Santa Fe",        392, 465);
-	public static City OKLAHOMA_CITY  = new City("Oklahama City",   548, 443);
+	public static City OKLAHOMA_CITY  = new City("Oklahoma City",   548, 443);
 	public static City LITTLE_ROCK    = new City("Little Rock",     639, 447);
 	public static City ATLANTA        = new City("Atlanta",         799, 431);
 	public static City CHARLESTON     = new City("Charleston",      892, 439);

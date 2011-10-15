@@ -57,7 +57,7 @@ public class State implements Cloneable {
 	public void setup() {
 		for (Color c: Color.values())
 			deck.addAll(Collections.nCopies(NCARDS_PER_COLOR, c));
-		// two more grey cards than other colors (FIXME: do this some other way)
+		// two more grey cards than other colors
 		deck.add(Color.GREY); deck.add(Color.GREY);
 
 		missions.addAll(Mission.missions);
@@ -77,7 +77,7 @@ public class State implements Cloneable {
 	}
 
 	public void switchTurns() {
-		// shifts all elements forward, puts the first element in the back
+		// shifts all elements forward, putting the first element in the back
 		int x = player_order[0];
 		int ni = player_order.length;
 		for (int i = 1; i < ni; i++)
@@ -167,10 +167,10 @@ public class State implements Cloneable {
 		illegalIf(p.drawn_card != null, "you drew a card and now must decide what other card to draw");
 		illegalIf(p.drawn_missions != null, "you drew mission cards and now must decide which to keep");
 		illegalUnless(p.ncars >= d.railway.length, "you do not have enough cars");
-		// TODO: do the more complicated dance with double railways
 		illegalIf(isClaimed(d.railway), "that railway has already been claimed");
+		illegalIf(d.railway.dual != null && owner_by_railway.get(d.railway.dual) == (Integer)p.handle, "you already own the other railway between these cities");
 		illegalUnless(p.hand.containsAll(d.cards), "you do not have these cards you claim to have");
-		illegalUnless(d.railway.costs(d.cards), "the railway costs more than that");
+		illegalUnless(d.railway.costs(d.cards), "the cards offered do not correspond to the railway cost");
 
 		p.hand.removeAll(d.cards);
 		discarded.addAll(d.cards);
@@ -210,11 +210,10 @@ public class State implements Cloneable {
 			}
 		} else {
 			illegalUnless(open_deck.contains(d.color), "no such card in the open deck");
-			p.drawn_card = open_deck.draw(d.color);
 
+			p.drawn_card = open_deck.draw(d.color);
 			if (p.drawn_card == Color.GREY)
 				last_draw = true;
-
 			// TODO: if the replacement is grey, you can't pick that one after this
 			// (these rules are motherfucking stoopid!)
 			if (!deck.isEmpty())
@@ -289,5 +288,42 @@ public class State implements Cloneable {
 
 		assert(s.currentPlayerState() != p);
 		p = s.currentPlayerState();
+
+		CardBag oldhand = p.hand.clone();
+
+		// test mission completion: two missions will be completed simultaneously
+		p.missions.add(Mission.connecting(City.PORTLAND,      City.NASHVILLE));
+		p.missions.add(Mission.connecting(City.SAN_FRANCISCO, City.ATLANTA));
+		
+		ClaimRailwayDecision[] decisions = new ClaimRailwayDecision[]{
+			new ClaimRailwayDecision(City.PORTLAND.railwayTo(City.SALT_LAKE_CITY),
+			                         new CardBag(Color.BLUE, Color.BLUE, Color.BLUE,
+			                                     Color.BLUE, Color.BLUE, Color.BLUE)),
+			new ClaimRailwayDecision(City.SAN_FRANCISCO.railwayTo(City.SALT_LAKE_CITY, Color.WHITE),
+			                         new CardBag(Color.WHITE, Color.WHITE, Color.WHITE,
+			                                     Color.WHITE, Color.WHITE)),
+			new ClaimRailwayDecision(City.ATLANTA.railwayTo(City.NASHVILLE),
+			                         new CardBag(Color.YELLOW)),
+			new ClaimRailwayDecision(City.NASHVILLE.railwayTo(City.SAINT_LOUIS),
+			                         new CardBag(Color.GREEN, Color.GREEN)),
+			new ClaimRailwayDecision(City.SALT_LAKE_CITY.railwayTo(City.DENVER, Color.RED),
+			                         new CardBag(Color.RED, Color.RED, Color.RED)),
+			new ClaimRailwayDecision(City.SAINT_LOUIS.railwayTo(City.KANSAS_CITY, Color.PINK),
+			                         new CardBag(Color.PINK, Color.PINK)),
+			new ClaimRailwayDecision(City.KANSAS_CITY.railwayTo(City.DENVER, Color.BLACK),
+			                         new CardBag(Color.BLACK, Color.GREY, Color.GREY, Color.BLACK)),
+			new ClaimRailwayDecision(City.SEATTLE.railwayTo(City.PORTLAND),
+			                         new CardBag(Color.GREY)),
+		};
+		
+		for (ClaimRailwayDecision d: decisions) {
+			// make sure the player has the cards he needs
+			p.hand.addAll(d.cards);
+			s.applyDecision(d);
+			s.switchTurns(); s.switchTurns();
+		}
+		
+		assert(oldhand.equals(p.hand));
+		assert(p.completed_missions.size() == 2);
 	}
 }

@@ -5,4 +5,7 @@ public class IllegalDecisionException extends RuntimeException {
 	public IllegalDecisionException(String reason) {
 		this.reason = reason;
 	}
+	public String toString() {
+		return super.toString()+": "+reason;
+	}
 }

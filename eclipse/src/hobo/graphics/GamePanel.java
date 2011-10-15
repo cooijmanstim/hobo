@@ -65,7 +65,7 @@ public class GamePanel extends JPanel implements Visualization {
 				return getDecision();
 			}
 
-			@Override public void tellIllegal (Player p, State s, Decision d, String reason) { message("illegal move"); }
+			@Override public void tellIllegal (Player p, State s, Decision d, String reason) { message("illegal move: "+reason); }
 			@Override public void tellDraw    (Player p, State s) { message("draw game"   ); }
 			@Override public void tellLoss    (Player p, State s) { message(p+", you lose"); }
 			@Override public void tellWin     (Player p, State s) { message(p+", you win" ); }

@@ -12,10 +12,17 @@ public class CardBag implements Cloneable, Iterable<Color> {
 		for (Color c: cs)
 			add(c);
 	}
+	public CardBag(CardBag that) {
+		this.addAll(that);
+	}
+
+	public CardBag clone() {
+		return new CardBag(this);
+	}
 
 	public int size() { return size; }
 	public boolean isEmpty() { return size == 0; }
-
+	
 	public void add(Color c) {
 		ks[c.ordinal()]++;
 		size++;
@@ -50,6 +57,14 @@ public class CardBag implements Cloneable, Iterable<Color> {
 	public boolean containsAll(CardBag that) {
 		for (int i = 0; i < ncolors; i++) {
 			if (this.ks[i] < that.ks[i])
+				return false;
+		}
+		return true;
+	}
+	
+	public boolean equals(CardBag that) {
+		for (int i = 0; i < ncolors; i++) {
+			if (this.ks[i] != that.ks[i])
 				return false;
 		}
 		return true;
