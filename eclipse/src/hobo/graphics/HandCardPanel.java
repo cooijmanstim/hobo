@@ -33,6 +33,6 @@ public class HandCardPanel extends JPanel {
 		super.paintComponent(g);
 		Graphics2D g2 = (Graphics2D) g;
 		g2.drawImage(image, 0, 0, this);
-		g2.drawString(quantity+"", 180, 20);
+		g2.drawString(quantity+"", 15, 15);
 	}
 }
