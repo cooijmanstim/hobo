@@ -4,23 +4,23 @@ package hobo;
 // two very different concepts, so pay attention.
 public enum Color {
 	// NOTE: grey is used for wildcards
-	BLACK, WHITE, YELLOW, GREEN, RED, BLUE, ORANGE, PURPLE, GREY;
+	BLACK(119, 119, 119),
+	WHITE(255, 255, 255),
+	YELLOW(255, 245, 23),
+	GREEN(141, 203, 141),
+	RED(227, 115, 115),
+	BLUE(121, 124, 222),
+	ORANGE(236, 191, 108),
+	PURPLE(191, 152, 193),
+	GREY(223, 223, 223);
 
-	private final java.awt.Color awtColor;
+	public final java.awt.Color awtColor;
 
-	private Color() {
-		java.awt.Color c = null;
-		try {
-			c = (java.awt.Color)Class.forName("java.awt.Color").getField(this.name()).get(null);
-		} catch (Throwable t) {}
-		awtColor = c;
+	private Color(int r, int g, int b) {
+		awtColor = new java.awt.Color(r, g, b);
 	}
 	
 	public static Color designated_by(String name) {
 		return valueOf(name.toUpperCase());
-	}
-	
-	public java.awt.Color toAWTColor() {
-		return awtColor;
 	}
 }

@@ -31,7 +31,7 @@ public class PlayerPanel extends JPanel implements Visualization {
 
 		// this really only needs to be done once, but who cares
 		name.setText(ps.name);
-		setBackground(ps.color.toAWTColor());
+		setBackground(ps.color.awtColor);
 		
 		points.setText(ps.score+" points");
 		turn.setText(s.currentPlayerState() == ps ? "Currently his/her move" : "");
