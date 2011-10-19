@@ -27,6 +27,12 @@ public class Railway {
 		       this.source == d && this.destination == c;
 	}
 	
+	public City otherCity(City c) {
+		return (this.source      == c) ? this.destination
+		     : (this.destination == c) ? this.source
+		     : null;
+	}
+	
 	// is the given collection of cards enough to claim this route?
 	public boolean costs(CardBag cards) {
 		if (cards.size() != length)

@@ -27,7 +27,7 @@ public class CityPanel extends JPanel implements Visualization {
 			@Override public void mouseClicked(MouseEvent e) {
 				// this is decision-making stuff
 				if(!railways.isEmpty())
-					new RailChooserFrame(railways, gamePanel, mapPanel);
+					new RailChooserFrame(city, railways, gamePanel, mapPanel);
 			}
 
 			@Override public void mouseEntered(MouseEvent e) {

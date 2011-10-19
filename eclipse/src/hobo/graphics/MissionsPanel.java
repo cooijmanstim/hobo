@@ -49,7 +49,7 @@ public class MissionsPanel extends JPanel implements Visualization {
 		missionsCombo.removeAllItems();
 		for (Mission m: ps.missions) {
 			missionsImage.add(getToolkit().getImage("src/missions/"+m.imagePath));
-			missionsCombo.addItem(m.toString());
+			missionsCombo.addItem(m.source + " - " + m.destination + " ("+m.value+")");
 		}
 	}
 }

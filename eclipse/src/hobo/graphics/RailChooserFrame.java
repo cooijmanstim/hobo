@@ -5,6 +5,7 @@ import hobo.ClaimRailwayDecision;
 import hobo.CardBag;
 import hobo.Color;
 import hobo.PlayerState;
+import hobo.City;
 
 import java.util.Collection;
 
@@ -15,9 +16,10 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 
 public class RailChooserFrame extends JFrame {
-	public RailChooserFrame(Collection<Railway> railways, final GamePanel gamePanel, final MapPanel mapPanel) {
+	public RailChooserFrame(City source, Collection<Railway> railways, final GamePanel gamePanel, final MapPanel mapPanel) {
 		for (final Railway r: railways) {
-			JButton b = new JButton(r.toString());
+			City destination = r.otherCity(source);
+			JButton b = new JButton(source.name+" - "+destination.name+" ("+r.color+")");
 			b.addActionListener(new ActionListener() {
 				@Override public void actionPerformed(ActionEvent e) {
 					gamePanel.claim(r);

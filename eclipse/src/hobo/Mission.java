@@ -35,7 +35,7 @@ public class Mission {
 	public String toString() {
 		return "Mission(source: "+source+", destination: "+destination+", value: "+value+")";
 	}
-	
+		
 	public static ArrayList<Mission> missions = new ArrayList<Mission>();
 	static {
 		missions.add(new Mission(City.LOS_ANGELES, City.NEW_YORK, 21, "LosAngeles_NewYork.png"));
