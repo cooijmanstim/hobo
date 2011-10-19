@@ -27,6 +27,11 @@ public class CardBag implements Cloneable, Iterable<Color> {
 		ks[c.ordinal()]++;
 		size++;
 	}
+	
+	public void add(Color c, int k) {
+		ks[c.ordinal()] += k;
+		size += k;
+	}
 
 	public void addAll(CardBag that) {
 		for (int i = 0; i < ncolors; i++) {
@@ -192,6 +197,26 @@ public class CardBag implements Cloneable, Iterable<Color> {
 
 	public boolean allEquivalent() {
 		return count(Color.GREY) == size || countEquivalent(arbitraryNonGrey()) == size;
+	}
+	
+	public CardBag cardsToClaim(Railway r, Color c) {
+		int n = r.length;
+		CardBag cards = new CardBag();
+		int k = Math.min(count(c), n);
+		cards.add(c, k);
+		if (count(Color.GREY) < n-k)
+			return null; // not enough wildcards
+		cards.add(Color.GREY, n-k);
+		return cards;
+	}
+	
+	public boolean canAfford(Railway r) {
+		if (r.color != Color.GREY)
+			return cardsToClaim(r, r.color) != null;
+		for (Color c: Color.values())
+			if (cardsToClaim(r, c) != null)
+				return true;
+		return false;
 	}
 
 

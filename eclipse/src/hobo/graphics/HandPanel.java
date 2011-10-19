@@ -5,15 +5,19 @@ import hobo.Visualization;
 import hobo.State;
 import hobo.Color;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import java.awt.Dimension;
 import java.awt.GridLayout;
-import java.util.ArrayList;
-
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import javax.swing.JPanel;
 
 public class HandPanel extends JPanel implements Visualization {
-	private ArrayList<HandCardPanel> children;
+	private List<HandCardPanel> children;
 	private final GamePanel gamePanel;
+	private Color selection = null;
 
 	public HandPanel(GamePanel gamePanel) {
 		this.gamePanel = gamePanel;
@@ -24,10 +28,24 @@ public class HandPanel extends JPanel implements Visualization {
 	@Override public void reflect(State s) {
 		if (children == null) {
 			children = new ArrayList<HandCardPanel>();
-			for (Color c: Color.values()) {
-				HandCardPanel hcp = new HandCardPanel(c);
+			for (final Color c: Color.values()) {
+				final HandCardPanel hcp = new HandCardPanel(c);
+				hcp.addMouseListener(new MouseAdapter() {
+					@Override public void mouseClicked(MouseEvent e) {
+						selection = c;
+						for (HandCardPanel hcp: children)
+							hcp.markNotSelected();
+						hcp.markSelected();
+					}
+				});
 				children.add(hcp);
 				add(hcp);
+
+				// make sure there is a selection
+				if (selection == null)
+					hcp.dispatchEvent(new MouseEvent(hcp, MouseEvent.MOUSE_CLICKED,
+					                                 System.currentTimeMillis(), 0,
+					         /* fuck you, java */    10, 10, 1, false));
 			}
 		}
 
@@ -35,4 +53,6 @@ public class HandPanel extends JPanel implements Visualization {
 		for (HandCardPanel hcp: children)
 			hcp.setQuantity(cards.count(hcp.color));
 	}
+	
+	public Color selection() { return selection; }
 }

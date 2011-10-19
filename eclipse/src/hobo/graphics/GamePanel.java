@@ -1,8 +1,12 @@
 package hobo.graphics;
 
+import hobo.CardBag;
+import hobo.ClaimRailwayDecision;
+import hobo.Color;
 import hobo.Decision;
 import hobo.Event;
 import hobo.Mission;
+import hobo.Railway;
 import hobo.Player;
 import hobo.PlayerInteraction;
 import hobo.State;
@@ -25,6 +29,8 @@ public class GamePanel extends JPanel implements Visualization {
 	private HandPanel hand;
 	private JPanel panel2, panel3;
 	private MissionsPanel missions;
+	
+	private State state = null;
 	
 	public GamePanel() {
 		setLayout(new BorderLayout());
@@ -51,6 +57,7 @@ public class GamePanel extends JPanel implements Visualization {
 	}
 	
 	@Override public void reflect(State s) {
+		state = s;
 		players.reflect(s);
 		decks.reflect(s);
 		map.reflect(s);
@@ -72,6 +79,15 @@ public class GamePanel extends JPanel implements Visualization {
 			
 			@Override public void observe(Event e) {}
 		};
+	}
+	
+	public void claim(Railway r) {
+		Color selection = hand.selection();
+		CardBag cards = state.currentPlayerState().hand.cardsToClaim(r, selection);
+		// if couldn't afford it, just let the move be illegal so the user will be notified
+		if (cards == null)
+			cards = new CardBag();
+		registerDecision(new ClaimRailwayDecision(r, cards));
 	}
 
 	// TODO: show this in the UI somewhere, somehow.

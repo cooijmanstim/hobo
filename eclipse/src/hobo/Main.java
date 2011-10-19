@@ -60,10 +60,9 @@ public class Main {
 					}
 				});
 				
-				f.add(b, BorderLayout.PAGE_END);
-				
 				b.doClick();
-				
+
+				f.add(b, BorderLayout.PAGE_END);
 				f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 				f.pack();
 				f.setVisible(true);

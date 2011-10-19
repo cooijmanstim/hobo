@@ -8,6 +8,7 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.util.ArrayList;
 
+import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 
 public class HandCardPanel extends JPanel {
@@ -27,6 +28,14 @@ public class HandCardPanel extends JPanel {
 	
 	public void setQuantity(int quantity) {
 		this.quantity = quantity;
+	}
+	
+	public void markSelected() {
+		setBorder(BorderFactory.createLineBorder(java.awt.Color.black));
+	}
+	
+	public void markNotSelected() {
+		setBorder(null);
 	}
 	
 	public void paintComponent(Graphics g) {

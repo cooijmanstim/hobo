@@ -23,12 +23,16 @@ public class MapPanel extends JPanel implements Visualization {
 	private final Image map;
 	private List<Image> claimedRailways = new ArrayList<Image>();
     private List<Image> visibleRailways = new ArrayList<Image>(); // when hovering over a city
+    private final Set<CityPanel> cityPanels = new HashSet<CityPanel>();
 	
 	public MapPanel(GamePanel gv) {
 		map = getToolkit().getImage("src/railways/background.jpg");
+		for(City city: City.cities) {
+			CityPanel cp = new CityPanel(city, gv, this); 
+			add(cp);
+			cityPanels.add(cp);
+		}
 		setPreferredSize(new Dimension(1024, 683));
-		for(City city: City.cities)
-			add(new CityPanel(city, gv, this));
 		setLayout(null);
 	}
 	
@@ -58,5 +62,7 @@ public class MapPanel extends JPanel implements Visualization {
 			for (Railway r: ps.railways)
 				claimedRailways.add(getToolkit().getImage("src/railways/"+r.imagePath+ps.color+".png"));
 		}
+		for (CityPanel cp: cityPanels)
+			cp.reflect(s);
 	}
 }

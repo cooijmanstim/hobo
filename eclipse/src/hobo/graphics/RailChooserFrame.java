@@ -3,61 +3,34 @@ package hobo.graphics;
 import hobo.Railway;
 import hobo.ClaimRailwayDecision;
 import hobo.CardBag;
+import hobo.Color;
+import hobo.PlayerState;
+
+import java.util.Collection;
 
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 
 public class RailChooserFrame extends JFrame {
-	public static ArrayList<JButton> buttonArray;
-	public static ArrayList<Railway> rail;
-	private MapPanel mapPanel;
-	private JFrame frame;
-	private final GamePanel gamePanel;
-	
-	public RailChooserFrame(ArrayList<Railway> railways, GamePanel gamePanel, MapPanel mapPanel) {
-		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		
-		frame = this;
-		
-		this.gamePanel = gamePanel;
-		this.mapPanel = mapPanel;
-
-		buttonArray = new ArrayList<JButton>();
-		rail = railways;
-		
-		for(int i = 0; i < railways.size(); i++) {
-			buttonArray.add(new JButton(i+1+". "+railways.get(i).source.name+" - "+railways.get(i).destination.name+" ("+railways.get(i).color+")"));
+	public RailChooserFrame(Collection<Railway> railways, final GamePanel gamePanel, final MapPanel mapPanel) {
+		for (final Railway r: railways) {
+			JButton b = new JButton(r.toString());
+			b.addActionListener(new ActionListener() {
+				@Override public void actionPerformed(ActionEvent e) {
+					gamePanel.claim(r);
+					setVisible(false);
+					dispose();
+				}
+			});
+			add(b);
 		}
 		
-		setLayout(new GridLayout(railways.size(), 1));
-		
-		for(int i = 0; i < railways.size(); i++) {
-			buttonArray.get(i).addActionListener(new addRail());
-			add(buttonArray.get(i));
-		}
-		
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);		
+		setLayout(new GridLayout(railways.size(), 1));		
 		pack();
 		setVisible(true);
 	}
-	
-	private class addRail implements ActionListener {
-		@Override public void actionPerformed(ActionEvent arg0) {
-			String s = ((JButton)(arg0.getSource())).getText().substring(0, 1);
-			int number = Integer.parseInt(s);
-			gamePanel.registerDecision(new ClaimRailwayDecision(rail.get(number-1), new CardBag()));
-			
-			Railway.railways.remove(rail.get(number-1));
-			rail.remove(number-1);
-			
-			mapPanel.repaint();
-			frame.setVisible(false);
-			frame.dispose();
-		}
-		
-	}
-	
 }
