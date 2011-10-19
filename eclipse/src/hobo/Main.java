@@ -29,25 +29,25 @@ public class Main {
 				JButton b = new JButton("new game...");
 				b.addActionListener(new ActionListener() {
 					private Thread gameThread = null;
-					private GamePanel gameVisualization = null; // hate hate hate
+					private GamePanel gamePanel = null; // hate hate hate
 
 					public void actionPerformed(ActionEvent e) {
-						final GamePanel gv = new GamePanel();
-						final Game g = new Game(new HumanPlayer("woop", gv.getUserInterface()),
-						                        new HumanPlayer("dee",  gv.getUserInterface()),
-						                        new HumanPlayer("doo",  gv.getUserInterface()));
+						final GamePanel gp = new GamePanel();
+						final Game g = new Game(new HumanPlayer("woop", gp.getUserInterface()),
+						                        new HumanPlayer("dee",  gp.getUserInterface()),
+						                        new HumanPlayer("doo",  gp.getUserInterface()));
 
 						g.registerObserver(new GameObserver() {
 							@Override public void observe(Event e) {
-								gv.reflect(e.state);
-								gv.repaint();
+								gp.reflect(e.state);
+								gp.repaint();
 							}
 						});
 						
-						if (gameVisualization != null)
-							f.remove(gameVisualization);
-						gameVisualization = gv;
-						f.add(gameVisualization, BorderLayout.CENTER);
+						if (gamePanel != null)
+							f.remove(gamePanel);
+						gamePanel = gp;
+						f.add(gamePanel, BorderLayout.CENTER);
 						
 						f.validate();
 
