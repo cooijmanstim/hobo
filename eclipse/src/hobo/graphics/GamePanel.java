@@ -14,60 +14,78 @@ import hobo.Visualization;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.OverlayLayout;
 
-public class GamePanel extends JPanel implements Visualization {
+public class GamePanel extends JLayeredPane implements Visualization {
 	private MapPanel map;
 	private PlayersPanel players;
 	private DecksPanel decks;
 	private HandPanel hand;
-	private JPanel panel2, panel3;
 	private MissionsPanel missions;
 	
 	private State state = null;
 	
 	public GamePanel() {
-		setLayout(new BorderLayout());
-		
 		map = new MapPanel(this);
 		missions = new MissionsPanel(this);
 		players = new PlayersPanel(this);
 		decks = new DecksPanel(this);
 		hand = new HandPanel(this);
-		
-		panel2 = new JPanel();
+
+		JPanel panel2 = new JPanel();
 		panel2.setLayout(new BorderLayout());
 		panel2.add(decks, BorderLayout.WEST);
 		panel2.add(new JScrollPane(map), BorderLayout.CENTER);
 
-		panel3 = new JPanel();		
+		JPanel panel3 = new JPanel();		
 		panel3.setLayout(new BorderLayout());
 		panel3.add(missions, BorderLayout.WEST);
 		panel3.add(hand, BorderLayout.CENTER);
 		
-		add(players, BorderLayout.NORTH);
-		add(panel2, BorderLayout.CENTER);
-		add(panel3, BorderLayout.SOUTH);
+		JPanel panel1 = new JPanel();
+		panel1.setLayout(new BorderLayout());
+		panel1.add(players, BorderLayout.NORTH);
+		panel1.add(panel2, BorderLayout.CENTER);
+		panel1.add(panel3, BorderLayout.SOUTH);
+
+		setLayout(new OverlayLayout(this));
+		add(panel1, JLayeredPane.DEFAULT_LAYER);
 	}
 	
 	@Override public void reflect(State s) {
 		state = s;
-		players.reflect(s);
-		decks.reflect(s);
-		map.reflect(s);
-		missions.reflect(s);
-		hand.reflect(s);
+		
+		if (s.gameOver()) {
+			// show end state, overlaid with scores and shit
+			JPanel p = new JPanel();
+			p.setBackground(new java.awt.Color(1f, 0f, 1f, 0.5f));
+			add(p, JLayeredPane.POPUP_LAYER);
+		} else {
+			players.reflect(s);
+			decks.reflect(s);
+			map.reflect(s);
+			missions.reflect(s);
+			hand.reflect(s);
+		}
+		
+		repaint();
 	}
 	
 	public PlayerInteraction getUserInterface() {
 		return new PlayerInteraction() {
 			@Override public Decision askDecision(Player p, State s) {
+				message(p+" to move");
 				reflect(s);
 				return getDecision();
 			}
@@ -90,9 +108,9 @@ public class GamePanel extends JPanel implements Visualization {
 		registerDecision(new ClaimRailwayDecision(r, cards));
 	}
 
-	// TODO: show this in the UI somewhere, somehow.
 	public void message(String s) {
 		System.out.println(s);
+		add(new Toast(s), JLayeredPane.POPUP_LAYER);
 	}
 
 	// here be the thread-hackery that is required to make

@@ -9,6 +9,7 @@ import hobo.Visualization;
 import java.util.Set;
 import java.util.HashSet;
 
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;

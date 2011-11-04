@@ -179,8 +179,8 @@ public class Railway {
 		railways.add(new Railway(City.EL_PASO,        City.DALLAS,             4, Color.RED,	"1_ElPaso_Dallas_"));
 		railways.add(new Railway(City.EL_PASO,        City.HOUSTON,            6, Color.GREEN,	"1_ElPaso_Houston_"));
 		
-		railways.add(new Railway(City.DALLAS,         City.HOUSTON,            2, Color.GREY,	"1_Dallas_Houston_"));
-		railways.add(new Railway(City.DALLAS,         City.HOUSTON,            2, Color.GREY,	"2_Dallas_Houston_"));
+		railways.add(new Railway(City.DALLAS,         City.HOUSTON,            1, Color.GREY,	"1_Dallas_Houston_"));
+		railways.add(new Railway(City.DALLAS,         City.HOUSTON,            1, Color.GREY,	"2_Dallas_Houston_"));
 		railways.add(new Railway(City.HOUSTON,        City.NEW_ORLEANS,        2, Color.GREY,	"1_Houston_NewOrleans_"));
 		railways.add(new Railway(City.NEW_ORLEANS,    City.MIAMI,              6, Color.RED,	"1_Miami_NewOrleans_"));
 
