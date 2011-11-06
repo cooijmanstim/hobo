@@ -201,12 +201,21 @@ public class CardBag implements Cloneable, Iterable<Color> {
 	
 	public CardBag cardsToClaim(Railway r, Color c) {
 		int n = r.length;
-		CardBag cards = new CardBag();
-		int k = Math.min(count(c), n);
-		cards.add(c, k);
-		if (count(Color.GREY) < n-k)
-			return null; // not enough wildcards
-		cards.add(Color.GREY, n-k);
+		CardBag cards = new CardBag();		
+		if (c == Color.GREY) {
+			if (count(c) < n)
+				return null;
+			cards.add(c, n);
+		} else {
+			// use as many cards of color c as possible
+			int k = Math.min(count(c), n);
+			cards.add(c, k);
+			
+			// add wildcards as necessary
+			if (count(Color.GREY) < n-k)
+				return null;
+			cards.add(Color.GREY, n-k);
+		}
 		return cards;
 	}
 	
