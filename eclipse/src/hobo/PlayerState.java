@@ -44,18 +44,26 @@ public class PlayerState implements Cloneable {
 		this.handle = handle;
 		this.name = name;
 	}
+	
+	public boolean missionCompleted(Mission m) {
+		return completed_missions.contains(m);
+	}
+	
+	public boolean almostOutOfCars() {
+		return ncars < PlayerState.MIN_NCARS;
+	}
    
 	public int finalScore() {
 		int score = this.score;
 		for (Mission m: missions)
-			score += m.value * (completed_missions.contains(m) ? 1 : -1);
+			score += m.value * (missionCompleted(m) ? 1 : -1);
 		return score;
 	}
 
 	public void claim(Railway r) {
 		ncars -= r.length;
 		score += r.score();
-		completed_missions.addAll(missions_completed_by(r));
+		completed_missions.addAll(missionsCompletedBy(r));
 		railways.add(r);
 	}
 
@@ -75,21 +83,21 @@ public class PlayerState implements Cloneable {
 	 * of the two sets.  Missions with both cities in one set were already
 	 * completed.  Missions with one city in neither set will not be completed.
 	 */
-	public Set<Mission> missions_completed_by(Railway r) {
+	public Set<Mission> missionsCompletedBy(Railway r) {
 		// cities already visited
 		Set<City> explored = new HashSet<City>();
 
 		// all cities on the source side
-		Set<City> cities1 = cities_connected_to(r.source,      explored);
+		Set<City> cities1 = citiesConnectedTo(r.source,      explored);
 		// all cities on the destination side
-		Set<City> cities2 = cities_connected_to(r.destination, explored);
+		Set<City> cities2 = citiesConnectedTo(r.destination, explored);
 
 		Set<Mission> newly_completed_missions = new HashSet<Mission>();
 		if (cities2.isEmpty())
 			return newly_completed_missions;
 
 		findMissions: for (Mission m: missions) {
-			if (completed_missions.contains(m))
+			if (missionCompleted(m))
 				continue;
 			for (City c1: cities1) {
 				if (!m.connects(c1))
@@ -107,7 +115,7 @@ public class PlayerState implements Cloneable {
 	}
 
 	// NOTE: explored is modified
-	public Set<City> cities_connected_to(City c, Set<City> explored) {
+	public Set<City> citiesConnectedTo(City c, Set<City> explored) {
 		Set<City> cities = new HashSet<City>();
 		cities.add(c);
 		explored.add(c);
@@ -117,7 +125,7 @@ public class PlayerState implements Cloneable {
 				if (!explored.contains(r.source))      c = r.source;
 				if (!explored.contains(r.destination)) c = r.destination;
 				if (c != null)
-					cities.addAll(cities_connected_to(c, explored));
+					cities.addAll(citiesConnectedTo(c, explored));
 			}
 		}
 		return cities;

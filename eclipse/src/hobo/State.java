@@ -77,12 +77,23 @@ public class State implements Cloneable {
 	}
 
 	public void switchTurns() {
+		int curr = player_order[0];
+
+		if (currentPlayerState().almostOutOfCars()) {
+			if (last_player < 0) {
+				last_player = curr;
+			} else if (last_player == curr) {
+				System.out.println("game over");
+				game_over = true;
+				return;
+			}
+		}
+		
 		// shifts all elements forward, putting the first element in the back
-		int x = player_order[0];
 		int ni = player_order.length;
 		for (int i = 1; i < ni; i++)
 			player_order[i-1] = player_order[i];
-		player_order[ni-1] = x;
+		player_order[ni-1] = curr;
 	}
 
 	public int[] players() {
@@ -174,22 +185,12 @@ public class State implements Cloneable {
 
 		p.hand.removeAll(d.cards);
 		discarded.addAll(d.cards);
-
+		
 		p.claim(d.railway);
 
 		owner_by_railway.put(d.railway, p.handle);
 
-		// impending doom?
-		if (p.ncars < PlayerState.MIN_NCARS) {
-			if (last_player < 0) {
-				last_player = p.handle;
-			} else if (last_player == p.handle) {
-				game_over = true;
-			}
-		}
-
-		if (!game_over)
-			switchTurns();
+		switchTurns();
 	}
 
 	public void applyDecision(DrawCardDecision d) throws IllegalDecisionException {
