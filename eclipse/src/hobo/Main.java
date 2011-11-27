@@ -33,9 +33,8 @@ public class Main {
 
 					public void actionPerformed(ActionEvent e) {
 						final GamePanel gp = new GamePanel();
-						final Game g = new Game(new HumanPlayer("woop", gp.getUserInterface()),
-						                        new HumanPlayer("dee",  gp.getUserInterface()),
-						                        new HumanPlayer("doo",  gp.getUserInterface()));
+						final Game g = new Game(new HumanPlayer("tim", gp.getUserInterface()),
+						                        new RandomPlayer("joshua"));
 
 						g.registerObserver(new GameObserver() {
 							@Override public void observe(Event e) {

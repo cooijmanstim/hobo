@@ -199,6 +199,14 @@ public class CardBag implements Cloneable, Iterable<Color> {
 		return count(Color.GREY) == size || countEquivalent(arbitraryNonGrey()) == size;
 	}
 	
+	// A bag of cards that can be used to claim the railway
+	// If the railway is grey, the caller must specify the
+	// color of cards to use as a second argument.
+	public CardBag cardsToClaim(Railway r) {
+		assert(r.color != Color.GREY);
+		return cardsToClaim(r, r.color);
+	}
+
 	public CardBag cardsToClaim(Railway r, Color c) {
 		int n = r.length;
 		CardBag cards = new CardBag();		
@@ -208,9 +216,13 @@ public class CardBag implements Cloneable, Iterable<Color> {
 			cards.add(c, n);
 		} else {
 			// use as many cards of color c as possible
-			int k = Math.min(count(c), n);
+			int k;
+			if (c != r.color && r.color != Color.GREY)
+				k = 0; // can't use cards of color c at all
+			else
+				k = Math.min(count(c), n);
 			cards.add(c, k);
-			
+
 			// add wildcards as necessary
 			if (count(Color.GREY) < n-k)
 				return null;
@@ -221,7 +233,7 @@ public class CardBag implements Cloneable, Iterable<Color> {
 	
 	public boolean canAfford(Railway r) {
 		if (r.color != Color.GREY)
-			return cardsToClaim(r, r.color) != null;
+			return cardsToClaim(r) != null;
 		for (Color c: Color.values())
 			if (cardsToClaim(r, c) != null)
 				return true;

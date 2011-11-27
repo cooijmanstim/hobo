@@ -54,7 +54,8 @@ public class Game {
 		Decision d;
 		while (true) {
 			d = p.decide(state);
-			if (state == null) {
+			System.out.println(p.name()+" decided "+d);
+			if (d == null) {
 				abort();
 				return;
 			}

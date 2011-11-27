@@ -16,9 +16,9 @@ public class State implements Cloneable {
 
 	private Map<Railway,Integer> owner_by_railway = new HashMap<Railway,Integer>();
 
-	private CardBag deck      = new CardBag();
-	private CardBag open_deck = new CardBag();
-	private CardBag discarded = new CardBag();
+	public CardBag deck      = new CardBag();
+	public CardBag open_deck = new CardBag();
+	public CardBag discarded = new CardBag();
 
 	// deck of destination tickets
 	private LinkedList<Mission> missions = new LinkedList<Mission>();
@@ -207,7 +207,7 @@ public class State implements Cloneable {
 
 			if (deck.isEmpty()) {
 				deck = discarded;
-				discarded = deck;
+				discarded = new CardBag();
 			}
 		} else {
 			illegalUnless(open_deck.contains(d.color), "no such card in the open deck");
@@ -236,7 +236,7 @@ public class State implements Cloneable {
 		illegalIf(p.drawn_missions != null, "you drew mission cards and now must decide which to keep");
 		// NOTE: the rules don't forbid deciding to draw mission cards if the mission deck is empty
 
-		p.drawn_missions = new HashSet<Mission>();
+		p.drawn_missions = new ArrayList<Mission>();
 		for (int i = 0; i < 3; i++) {
 			if (!missions.isEmpty())
 				p.drawn_missions.add(missions.removeFirst());
