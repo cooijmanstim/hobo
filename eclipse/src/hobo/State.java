@@ -26,6 +26,11 @@ public class State implements Cloneable {
 	private boolean game_over = false;
 	private int last_player = -1;
 	
+	// for assigning colors to players
+	private static final Color[] colors = new Color[]{ Color.BLUE, Color.RED, Color.GREEN,
+	                                                   Color.YELLOW, Color.BLACK };
+	private int next_color_index = 0;
+
 	public State clone() {
 		State that = new State();
 		that.players = this.players.clone();
@@ -39,6 +44,7 @@ public class State implements Cloneable {
 		that.missions.addAll(this.missions);
 		that.game_over = this.game_over;
 		that.last_player = this.last_player;
+		that.next_color_index = this.next_color_index;
 		return that;
 	}
 
@@ -49,7 +55,7 @@ public class State implements Cloneable {
 		players = new PlayerState[ni];
 		player_order = new int[ni];
 		for (int i = 0; i < ni; i++) {
-			players[i] = new PlayerState(i, player_names[i]);
+			players[i] = new PlayerState(i, player_names[i], colors[next_color_index++]);
 			player_order[i] = i;
 		}
 	}
@@ -113,6 +119,15 @@ public class State implements Cloneable {
 
 	public PlayerState currentPlayerState() {
 		return playerState(currentPlayer());
+	}
+
+	// TODO: this shouldn't be necessary
+	public int playerHandleByName(String name) {
+		for (PlayerState ps: players) {
+			if (ps.name.equals(name))
+				return ps.handle;
+		}
+		throw new RuntimeException("no player with name "+name);
 	}
 
 	public PlayerState playerState(int handle) {

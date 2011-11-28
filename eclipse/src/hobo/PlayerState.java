@@ -5,14 +5,11 @@ import java.util.List;
 import java.util.HashSet;
 
 public class PlayerState implements Cloneable {
-	// for assigning colors to players
-	private static final Color[] colors = new Color[]{ Color.BLUE, Color.RED, Color.GREEN,
-	                                                   Color.YELLOW, Color.BLACK };
 	public static int next_color_index = 0;
 
 	public final int handle;
 	public final String name;
-	public final Color color = colors[next_color_index++]; // will throw when out of colors
+	public final Color color;
 	public int ncars = 45, score = 0;
 	public CardBag hand = new CardBag();
 	public Set<Mission> missions = new HashSet<Mission>();
@@ -29,7 +26,7 @@ public class PlayerState implements Cloneable {
 	public Set<Mission> drawn_missions = null;
 
 	public PlayerState clone() {
-		PlayerState that = new PlayerState(handle, name);
+		PlayerState that = new PlayerState(handle, name, color);
 		that.ncars = this.ncars;
 		that.score = this.score;
 		that.hand.addAll(this.hand);
@@ -41,7 +38,8 @@ public class PlayerState implements Cloneable {
 		return that;
 	}
 
-	public PlayerState(int handle, String name) {
+	public PlayerState(int handle, String name, Color color) {
+		this.color = color;
 		this.handle = handle;
 		this.name = name;
 	}
