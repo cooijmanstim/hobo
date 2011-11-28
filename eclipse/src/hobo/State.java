@@ -261,6 +261,46 @@ public class State implements Cloneable {
 		switchTurns();
 	}
 
+	public List<Decision> allPossibleDecisions() {
+		PlayerState ps = currentPlayerState();
+		List<Decision> ds = new ArrayList<Decision>();
+
+		if (ps.drawn_missions == null) {
+			for (Color c: Color.values())
+				if (open_deck.contains(c))
+					ds.add(new DrawCardDecision(c));
+			ds.add(new DrawCardDecision(null));
+
+			if (ps.drawn_card == null) {
+				ds.add(new DrawMissionsDecision());
+
+				// claim
+				for (Railway r: Railway.railways) {
+					if (!isClaimed(r) && r.length <= ps.ncars &&
+							// doesn't already own the dual to this railway
+							(r.dual == null || owner_by_railway.get(r.dual) == (Integer)ps.handle)) {						
+						for (Color c: Color.values()) {
+							CardBag cs = ps.hand.cardsToClaim(r, c);
+							if (cs != null)
+								ds.add(new ClaimRailwayDecision(r, cs));
+						}
+					}
+				}
+			}
+		} else {
+			// keep
+			for (int[] is: new int[][]{ { 0 }, { 1 }, { 2 },
+			                            { 0, 1 }, { 1, 2 }, { 2, 0 },
+			                            { 0, 1, 2 } }) {
+				List<Mission> ms = new ArrayList<Mission>();
+				for (int i: is)
+					ms.add(ps.drawn_missions.get(i));
+				ds.add(new KeepMissionsDecision(ms));
+			}
+		}
+
+		return ds;
+	}
 
 	public static void main(String[] args) {
 		// do some automated testing
