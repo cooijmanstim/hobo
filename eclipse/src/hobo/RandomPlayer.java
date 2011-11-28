@@ -16,6 +16,8 @@ public class RandomPlayer implements Player {
 	public void perceive(Event e) {}
 	public Decision decide(State s) {
 		List<Decision> ds = s.allPossibleDecisions();
+		if (ds.isEmpty())
+				return null;
 		return ds.get(random.nextInt(ds.size()));
 	}
 

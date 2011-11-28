@@ -276,7 +276,7 @@ public class State implements Cloneable {
 				for (Railway r: Railway.railways) {
 					if (!isClaimed(r) && r.length <= ps.ncars &&
 							// doesn't already own the dual to this railway
-							(r.dual == null || owner_by_railway.get(r.dual) == (Integer)ps.handle)) {						
+							(r.dual == null || owner_by_railway.get(r.dual) != (Integer)ps.handle)) {						
 						for (Color c: Color.values()) {
 							CardBag cs = ps.hand.cardsToClaim(r, c);
 							if (cs != null)
