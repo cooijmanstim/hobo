@@ -154,8 +154,6 @@ public class State implements Cloneable {
 		return open_deck;
 	}
 
-	// TODO: don't use exceptions, instead define an isLegal(d) method
-	// expectation that that will be faster
 	private void illegalIf(boolean condition, String reason) {
 		if (condition)
 			throw new IllegalDecisionException(reason);
@@ -236,7 +234,7 @@ public class State implements Cloneable {
 		illegalIf(p.drawn_missions != null, "you drew mission cards and now must decide which to keep");
 		// NOTE: the rules don't forbid deciding to draw mission cards if the mission deck is empty
 
-		p.drawn_missions = new ArrayList<Mission>();
+		p.drawn_missions = new HashSet<Mission>();
 		for (int i = 0; i < 3; i++) {
 			if (!missions.isEmpty())
 				p.drawn_missions.add(missions.removeFirst());
@@ -289,12 +287,9 @@ public class State implements Cloneable {
 			}
 		} else {
 			// keep
-			for (int[] is: new int[][]{ { 0 }, { 1 }, { 2 },
-			                            { 0, 1 }, { 1, 2 }, { 2, 0 },
-			                            { 0, 1, 2 } }) {
-				List<Mission> ms = new ArrayList<Mission>();
-				for (int i: is)
-					ms.add(ps.drawn_missions.get(i));
+			for (Set<Mission> ms: Util.powerset(ps.drawn_missions)) {
+				if (ms.isEmpty())
+					continue;
 				ds.add(new KeepMissionsDecision(ms));
 			}
 		}

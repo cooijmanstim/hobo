@@ -1,11 +1,11 @@
 package hobo;
 
-import java.util.List;
+import java.util.Set;
 
 public class KeepMissionsDecision extends Decision {
-	public final List<Mission> missions;
+	public final Set<Mission> missions;
 
-	public KeepMissionsDecision(List<Mission> missions) {
+	public KeepMissionsDecision(Set<Mission> missions) {
 		this.missions = missions;
 	}
 }

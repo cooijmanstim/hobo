@@ -26,7 +26,7 @@ public class PlayerState implements Cloneable {
 	// choosing to draw a card or to draw missions are stateful actions that require
 	// an additional decision.  these variables keep track of the state.
 	public Color drawn_card = null;
-	public List<Mission> drawn_missions = null;
+	public Set<Mission> drawn_missions = null;
 
 	public PlayerState clone() {
 		PlayerState that = new PlayerState(handle, name);
