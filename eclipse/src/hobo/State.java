@@ -39,7 +39,7 @@ public class State implements Cloneable {
 		that.player_order = this.player_order.clone();
 		that.owner_by_railway.putAll(this.owner_by_railway);
 		that.deck.addAll(this.deck);
-		that.open_deck.addAll(this.deck);
+		that.open_deck.addAll(this.open_deck);
 		that.discarded.addAll(this.discarded);
 		that.missions.addAll(this.missions);
 		that.game_over = this.game_over;
