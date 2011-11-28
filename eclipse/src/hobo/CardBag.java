@@ -35,8 +35,9 @@ public class CardBag implements Cloneable, Iterable<Color> {
 
 	public void addAll(CardBag that) {
 		for (int i = 0; i < ncolors; i++) {
-			this.ks[i] += that.ks[i];
-			size += that.ks[i];
+			int k = that.ks[i];
+			this.ks[i] += k;
+			size += k;
 		}
 	}
 

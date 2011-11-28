@@ -8,4 +8,8 @@ public class KeepMissionsDecision extends Decision {
 	public KeepMissionsDecision(Set<Mission> missions) {
 		this.missions = missions;
 	}
+	
+	@Override public String toString() {
+		return "KeepMissionsDecision(missions: "+missions+")";
+	}
 }

@@ -5,4 +5,8 @@ public class DrawCardDecision extends Decision {
 	public final Color color;
 	public DrawCardDecision()            { this.color = null; }
 	public DrawCardDecision(Color color) { this.color = color; }
+		
+	@Override public String toString() {
+		return "DrawCardDecision(color: "+color+")";
+	}
 }

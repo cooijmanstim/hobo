@@ -9,4 +9,8 @@ public class ClaimRailwayDecision extends Decision {
 		assert(cards != null);
 		this.railway = railway; this.cards = cards;
 	}
+	
+	@Override public String toString() {
+		return "ClaimRailwayDecision(railway: "+railway+" cards: "+cards+")";
+	}
 }

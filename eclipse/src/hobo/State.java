@@ -89,7 +89,6 @@ public class State implements Cloneable {
 			if (last_player < 0) {
 				last_player = curr;
 			} else if (last_player == curr) {
-				System.out.println("game over");
 				game_over = true;
 				return;
 			}
@@ -203,6 +202,11 @@ public class State implements Cloneable {
 
 		owner_by_railway.put(d.railway, p.handle);
 
+		if (deck.isEmpty()) {
+			deck = discarded;
+			discarded = new CardBag();
+		}
+		
 		switchTurns();
 	}
 
@@ -282,7 +286,8 @@ public class State implements Cloneable {
 			for (Color c: Color.values())
 				if (open_deck.contains(c))
 					ds.add(new DrawCardDecision(c));
-			ds.add(new DrawCardDecision(null));
+			if (!deck.isEmpty())
+				ds.add(new DrawCardDecision(null));
 
 			if (ps.drawn_card == null) {
 				ds.add(new DrawMissionsDecision());
