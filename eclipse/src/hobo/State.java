@@ -70,7 +70,7 @@ public class State implements Cloneable {
 		deck.add(Color.GREY); deck.add(Color.GREY);
 
 		missions.addAll(Mission.missions);
-		Collections.shuffle(missions);
+		Collections.shuffle(missions, new java.util.Random(random.getSeed()));
 
 		for (PlayerState p: players) {
 			for (int i = 0; i < INITIAL_HAND_SIZE; i++)
