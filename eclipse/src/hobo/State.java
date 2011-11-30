@@ -8,6 +8,8 @@ public class State implements Cloneable {
 	                        INITIAL_MISSION_COUNT = 3,
 	                        OPEN_DECK_SIZE = 5;
 
+	public final Random random = new Random(0);
+
 	// the index into this array is used to refer to a player in many places here.
 	private PlayerState[] players;
 
@@ -33,6 +35,7 @@ public class State implements Cloneable {
 
 	public State clone() {
 		State that = new State();
+		that.random.setSeed(this.random.getSeed());
 		that.players = this.players.clone();
 		for (int i = 0; i < players.length; i++)
 			that.players[i] = that.players[i].clone();
@@ -71,7 +74,7 @@ public class State implements Cloneable {
 
 		for (PlayerState p: players) {
 			for (int i = 0; i < INITIAL_HAND_SIZE; i++)
-				p.hand.add(deck.draw());
+				p.hand.add(deck.draw(random));
 			// XXX: officially, players can choose to discard one
 			// of the missions dealt.
 			for (int i = 0; i < INITIAL_MISSION_COUNT; i++)
@@ -79,7 +82,7 @@ public class State implements Cloneable {
 		}
 
 		for (int i = 0; i < OPEN_DECK_SIZE; i++)
-			open_deck.add(deck.draw());
+			open_deck.add(deck.draw(random));
 	}
 
 	public void switchTurns() {
@@ -220,7 +223,7 @@ public class State implements Cloneable {
 
 		if (d.color == null) {
 			illegalIf(deck.isEmpty(), "deck is empty");
-			p.drawn_card = deck.draw();
+			p.drawn_card = deck.draw(random);
 
 			if (deck.isEmpty()) {
 				deck = discarded;
@@ -235,7 +238,7 @@ public class State implements Cloneable {
 			// TODO: if the replacement is grey, you can't pick that one after this
 			// (these rules are motherfucking stoopid!)
 			if (!deck.isEmpty())
-				open_deck.add(deck.draw());
+				open_deck.add(deck.draw(random));
 		}
 
 		p.hand.add(p.drawn_card);

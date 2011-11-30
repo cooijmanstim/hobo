@@ -14,13 +14,13 @@ public class NegamaxPlayer implements Player {
 
 	public void perceive(Event e) {}
 	
-	public static final int MAX_DEPTH = 3;
+	public static final int MAX_DEPTH = 1;
 	public Decision decide(State s) {
 		Decision d = negamax(s, MAX_DEPTH,
 		                     Double.NEGATIVE_INFINITY,
 		                     Double.POSITIVE_INFINITY,
 		                     s.playerHandleByName(name)).decision;
-		System.out.println("average branching factor: "+(total_nbranches * 1.0 / total_nbranches_nterms));
+		System.out.println("negamax average branching factor: "+(total_nbranches * 1.0 / total_nbranches_nterms));
 		return d;
 	}
 
@@ -32,10 +32,9 @@ public class NegamaxPlayer implements Player {
 	private static long total_nbranches = 0;
 	private static long total_nbranches_nterms = 0;
 	
-	// NOTE: this is broken for more than two players
 	public static EvaluatedDecision negamax(State s, int depth, double a, double b, int inquirer) {
 		if (depth <= 0 || s.gameOver())
-			return new EvaluatedDecision(null, (inquirer == s.currentPlayer() ? 1 : -1) * utility(s, inquirer));
+			return new EvaluatedDecision(null, (s.currentPlayer() == inquirer ? 1 : -1) * utility(s, inquirer));
 		Decision pv = null;
 		for (Decision d: s.allPossibleDecisions()) {
 			total_nbranches++;
@@ -43,9 +42,10 @@ public class NegamaxPlayer implements Player {
 			State t = s.clone();
 			t.applyDecision(d);
 
-			double u = t.currentPlayer() == s.currentPlayer()
-					?  negamax(t, depth - 1,  a,  b, inquirer).utility
-					: -negamax(t, depth - 1, -b, -a, inquirer).utility;
+			int tp = t.currentPlayer(), sp = s.currentPlayer();
+			double u = (sp != inquirer && tp == inquirer || sp == inquirer && tp != inquirer)
+			           ? -negamax(t, depth - 1, -b, -a, inquirer).utility
+			           :  negamax(t, depth - 1,  a,  b, inquirer).utility;
 			if (depth == MAX_DEPTH)
 				System.out.println(u + "\t" + d);
 			if (u > a) {
@@ -53,8 +53,6 @@ public class NegamaxPlayer implements Player {
 				pv = d;
 			}
 
-			// NOTE: alpha-beta pruning doesn't actually work for us, because
-			// a player can make multiple decisions per turn.
 			//if (a >= b)
 			//	break;
 		}
@@ -71,12 +69,12 @@ public class NegamaxPlayer implements Player {
 	}
 
 	public static double utility(State s, int inquirer) {
-		// advantage over best other player
-		int maxother = Integer.MIN_VALUE;
+		// advantage over the other players combined
+		int total = 0;
 		for (PlayerState ps: s.playerStates()) {
 			if (ps.handle == inquirer) continue;
-			maxother = Math.max(maxother, ps.finalScore());
+			total += ps.finalScore();
 		}
-		return s.playerState(inquirer).finalScore() - maxother;
+		return s.playerState(inquirer).finalScore() - total;
 	}
 }

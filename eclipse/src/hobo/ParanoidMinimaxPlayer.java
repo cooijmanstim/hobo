@@ -14,10 +14,10 @@ public class ParanoidMinimaxPlayer implements Player {
 
 	public void perceive(Event e) {}
 	
-	public static final int MAX_DEPTH = 3;
+	public static final int MAX_DEPTH = 1;
 	public Decision decide(State s) {
 		Decision d = minimax(s, MAX_DEPTH, s.playerHandleByName(name)).decision;
-		System.out.println("average branching factor: "+(total_nbranches * 1.0 / total_nbranches_nterms));
+		System.out.println("minimax average branching factor: "+(total_nbranches * 1.0 / total_nbranches_nterms));
 		return d;
 	}
 
@@ -31,27 +31,41 @@ public class ParanoidMinimaxPlayer implements Player {
 	
 	public static EvaluatedDecision minimax(State s, int depth, int inquirer) {
 		if (depth <= 0 || s.gameOver())
-			return new EvaluatedDecision(null, (s.currentPlayer() == inquirer ? 1 : -1) * utility(s, inquirer));
-		Decision dmax = null;
-		double umax = Double.NEGATIVE_INFINITY;
+			return new EvaluatedDecision(null, utility(s, inquirer));
+		boolean maximizing = s.currentPlayer() == inquirer;
+		Decision dbest = null;
+		double ubest = 0;
 		for (Decision d: s.allPossibleDecisions()) {
 			total_nbranches++;
 
 			State t = s.clone();
 			t.applyDecision(d);
 
-			int tp = t.currentPlayer(), sp = s.currentPlayer();
-			int valence =  (sp != inquirer && tp == inquirer || sp == inquirer && tp != inquirer) ? -1 : 1;
-			double u = valence * minimax(t, depth - 1, inquirer).utility;
+			double u = minimax(t, depth - 1, inquirer).utility;
+
 			if (depth == MAX_DEPTH)
 				System.out.println(u + "\t" + d);
-			if (u > umax) {
-				umax = u;
-				dmax = d;
+			
+			// first touch
+			if (dbest == null) {
+				ubest = u;
+				dbest = d;
+			}
+
+			if (maximizing) {
+				if (u > ubest) {
+					ubest = u;
+					dbest = d;
+				}
+			} else {
+				if (u < ubest) {
+					ubest = u;
+					dbest = d;
+				}
 			}
 		}
 		total_nbranches_nterms++;
-		return new EvaluatedDecision(dmax, umax);
+		return new EvaluatedDecision(dbest, ubest);
 	}
 
 	private static class EvaluatedDecision {

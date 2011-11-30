@@ -4,7 +4,6 @@ import java.util.*;
 
 public class RandomPlayer implements Player {
 	private final String name;
-	private final Random random = new Random();
 
 	public RandomPlayer(String name) {
 		this.name = name;
@@ -18,7 +17,7 @@ public class RandomPlayer implements Player {
 		List<Decision> ds = s.allPossibleDecisions();
 		if (ds.isEmpty())
 				return null;
-		return ds.get(random.nextInt(ds.size()));
+		return ds.get(s.random.nextInt(ds.size()));
 	}
 
 	public void illegal(State s, Decision d, String reason) {}

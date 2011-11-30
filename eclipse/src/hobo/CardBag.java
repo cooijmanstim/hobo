@@ -91,9 +91,9 @@ public class CardBag implements Cloneable, Iterable<Color> {
 	}
 
 	// weighted but otherwise uniformly random selection
-	public Color draw() {
+	public Color draw(Random random) {
 		assert(!isEmpty());
-		double x = Math.random();
+		double x = random.nextDouble();
 		int m = 0;
 		for (int i = 0; i < ncolors; i++) {
 			m += ks[i];
