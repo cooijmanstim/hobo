@@ -2,10 +2,10 @@ package hobo;
 
 import java.util.*;
 
-public class NegamaxPlayer implements Player {
+public class ParanoidMinimaxPlayer implements Player {
 	private final String name;
 
-	public NegamaxPlayer(String name) {
+	public ParanoidMinimaxPlayer(String name) {
 		this.name = name;
 	}
 	
@@ -16,10 +16,7 @@ public class NegamaxPlayer implements Player {
 	
 	public static final int MAX_DEPTH = 3;
 	public Decision decide(State s) {
-		Decision d = negamax(s, MAX_DEPTH,
-		                     Double.NEGATIVE_INFINITY,
-		                     Double.POSITIVE_INFINITY,
-		                     s.playerHandleByName(name)).decision;
+		Decision d = minimax(s, MAX_DEPTH, s.playerHandleByName(name)).decision;
 		System.out.println("average branching factor: "+(total_nbranches * 1.0 / total_nbranches_nterms));
 		return d;
 	}
@@ -32,34 +29,29 @@ public class NegamaxPlayer implements Player {
 	private static long total_nbranches = 0;
 	private static long total_nbranches_nterms = 0;
 	
-	// NOTE: this is broken for more than two players
-	public static EvaluatedDecision negamax(State s, int depth, double a, double b, int inquirer) {
+	public static EvaluatedDecision minimax(State s, int depth, int inquirer) {
 		if (depth <= 0 || s.gameOver())
-			return new EvaluatedDecision(null, (inquirer == s.currentPlayer() ? 1 : -1) * utility(s, inquirer));
-		Decision pv = null;
+			return new EvaluatedDecision(null, (s.currentPlayer() == inquirer ? 1 : -1) * utility(s, inquirer));
+		Decision dmax = null;
+		double umax = Double.NEGATIVE_INFINITY;
 		for (Decision d: s.allPossibleDecisions()) {
 			total_nbranches++;
 
 			State t = s.clone();
 			t.applyDecision(d);
 
-			double u = t.currentPlayer() == s.currentPlayer()
-					?  negamax(t, depth - 1,  a,  b, inquirer).utility
-					: -negamax(t, depth - 1, -b, -a, inquirer).utility;
+			int tp = t.currentPlayer(), sp = s.currentPlayer();
+			int valence =  (sp != inquirer && tp == inquirer || sp == inquirer && tp != inquirer) ? -1 : 1;
+			double u = valence * minimax(t, depth - 1, inquirer).utility;
 			if (depth == MAX_DEPTH)
 				System.out.println(u + "\t" + d);
-			if (u > a) {
-				a = u;
-				pv = d;
+			if (u > umax) {
+				umax = u;
+				dmax = d;
 			}
-
-			// NOTE: alpha-beta pruning doesn't actually work for us, because
-			// a player can make multiple decisions per turn.
-			//if (a >= b)
-			//	break;
 		}
 		total_nbranches_nterms++;
-		return new EvaluatedDecision(pv, a);
+		return new EvaluatedDecision(dmax, umax);
 	}
 
 	private static class EvaluatedDecision {
