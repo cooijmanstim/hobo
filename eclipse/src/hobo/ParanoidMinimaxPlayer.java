@@ -63,12 +63,12 @@ public class ParanoidMinimaxPlayer implements Player {
 	}
 
 	public static double utility(State s, int inquirer) {
-		// advantage over best other player
-		int maxother = Integer.MIN_VALUE;
+		// advantage over the other players combined
+		int total = 0;
 		for (PlayerState ps: s.playerStates()) {
 			if (ps.handle == inquirer) continue;
-			maxother = Math.max(maxother, ps.finalScore());
+			total += ps.finalScore();
 		}
-		return s.playerState(inquirer).finalScore() - maxother;
+		return s.playerState(inquirer).finalScore() - total;
 	}
 }
