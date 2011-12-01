@@ -3,6 +3,7 @@ package hobo;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.*;
 
 public class Railway {
 	// NOTE: despite these being called source/destination, railways are not directed
@@ -193,5 +194,12 @@ public class Railway {
 				}
 			}
 		}
+
+		// sort by length descendingly; this might give a better move ordering
+		Collections.sort(railways, new Comparator<Railway>() {
+			public int compare(Railway a, Railway b) {
+				return -new Integer(a.length).compareTo(b.length);
+			}
+		});
 	}	
 }

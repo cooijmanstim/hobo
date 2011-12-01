@@ -294,12 +294,11 @@ public class State implements Cloneable {
 			for (Color c: Color.values())
 				if (open_deck.contains(c))
 					ds.add(new DrawCardDecision(c));
+
 			if (!deck.isEmpty())
 				ds.add(new DrawCardDecision(null));
-
+			
 			if (ps.drawn_card == null) {
-				ds.add(new DrawMissionsDecision());
-
 				// claim
 				for (Railway r: Railway.railways) {
 					if (!isClaimed(r) && r.length <= ps.ncars &&
@@ -312,6 +311,8 @@ public class State implements Cloneable {
 						}
 					}
 				}
+				
+				ds.add(new DrawMissionsDecision());
 			}
 		} else {
 			// keep
