@@ -14,10 +14,12 @@ public class ParanoidMinimaxPlayer implements Player {
 
 	public void perceive(Event e) {}
 	
-	public static final int MAX_DEPTH = 1;
+	public static final int MAX_DEPTH = 3;
 	public Decision decide(State s) {
-		Decision d = minimax(s, MAX_DEPTH, s.playerHandleByName(name)).decision;
-		System.out.println("minimax average branching factor: "+(total_nbranches * 1.0 / total_nbranches_nterms));
+		Decision d = minimax(s, MAX_DEPTH,
+		                     Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY,
+		                     s.playerHandleByName(name)).decision;
+		System.out.println("average branching factor: "+(total_nbranches * 1.0 / total_nbranches_nterms));
 		return d;
 	}
 
@@ -29,43 +31,39 @@ public class ParanoidMinimaxPlayer implements Player {
 	private static long total_nbranches = 0;
 	private static long total_nbranches_nterms = 0;
 	
-	public static EvaluatedDecision minimax(State s, int depth, int inquirer) {
+	public static EvaluatedDecision minimax(State s, int depth, double a, double b, int inquirer) {
 		if (depth <= 0 || s.gameOver())
 			return new EvaluatedDecision(null, utility(s, inquirer));
 		boolean maximizing = s.currentPlayer() == inquirer;
 		Decision dbest = null;
-		double ubest = 0;
 		for (Decision d: s.allPossibleDecisions()) {
 			total_nbranches++;
 
 			State t = s.clone();
 			t.applyDecision(d);
 
-			double u = minimax(t, depth - 1, inquirer).utility;
+			double u = minimax(t, depth - 1, a, b, inquirer).utility;
 
 			if (depth == MAX_DEPTH)
 				System.out.println(u + "\t" + d);
 			
-			// first touch
-			if (dbest == null) {
-				ubest = u;
-				dbest = d;
-			}
-
 			if (maximizing) {
-				if (u > ubest) {
-					ubest = u;
+				if (u > a) {
+					a = u;
 					dbest = d;
 				}
 			} else {
-				if (u < ubest) {
-					ubest = u;
+				if (u < b) {
+					b = u;
 					dbest = d;
 				}
 			}
+
+			if (b <= a)
+				break;
 		}
 		total_nbranches_nterms++;
-		return new EvaluatedDecision(dbest, ubest);
+		return new EvaluatedDecision(dbest, maximizing ? a : b);
 	}
 
 	private static class EvaluatedDecision {

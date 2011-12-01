@@ -51,6 +51,11 @@ public class State implements Cloneable {
 		return that;
 	}
 
+	public String toString() {
+		return "State(deck: "+deck+" open_deck: "+open_deck
+		     + " missions: "+missions+" last_player: "+last_player+")";
+	}
+
 	public State() {}
 	
 	public State(String... player_names) {
@@ -319,7 +324,7 @@ public class State implements Cloneable {
 
 		return ds;
 	}
-
+	
 	public static void main(String[] args) {
 		// do some automated testing
 		String[] players = "alice bob charlie".split("\\s+");

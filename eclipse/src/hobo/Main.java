@@ -34,8 +34,8 @@ public class Main {
 					public void actionPerformed(ActionEvent e) {
 						final GamePanel gp = new GamePanel();
 						final Game g = new Game(//new HumanPlayer("tim", gp.getUserInterface()),
-						                        new RandomPlayer("falken"),
-						                        new ComparisonPlayer("joshua"),
+						                        new ParanoidMinimaxPlayer("falken"),
+						                        new ParanoidMinimaxPlayer("joshua"),
 						                        new RandomPlayer("igor"));
 
 						g.registerObserver(new GameObserver() {
