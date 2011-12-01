@@ -54,9 +54,8 @@ public class PlayerState implements Cloneable {
    
 	public int finalScore() {
 		int score = this.score;
-		// temporarily commented out to test minimax
-//		for (Mission m: missions)
-	//		score += m.value * (missionCompleted(m) ? 1 : -1);
+		for (Mission m: missions)
+			score += m.value * (missionCompleted(m) ? 1 : -1);
 		return score;
 	}
 
