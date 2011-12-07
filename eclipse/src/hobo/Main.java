@@ -39,9 +39,13 @@ public class Main {
 						                        new RandomPlayer("igor"));
 
 						g.registerObserver(new GameObserver() {
-							@Override public void observe(Event e) {
-								gp.reflect(e.state);
-								gp.repaint();
+							@Override public void observe(final Event e) {
+								javax.swing.SwingUtilities.invokeLater(new Runnable() {
+									public void run() {
+										gp.reflect(e.state);
+										gp.repaint();
+									}
+								});
 							}
 						});
 						

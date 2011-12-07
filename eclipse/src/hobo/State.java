@@ -175,6 +175,15 @@ public class State implements Cloneable {
 	public CardBag openCards() {
 		return open_deck;
 	}
+	
+	public void restoreDecks() {
+		if (deck.isEmpty()) {
+			deck = discarded;
+			discarded = new CardBag();
+		}
+		while (open_deck.size() < OPEN_DECK_SIZE && !deck.isEmpty())
+			open_deck.add(deck.draw(random));
+	}
 
 	private void illegalIf(boolean condition, String reason) {
 		if (condition)
@@ -199,7 +208,7 @@ public class State implements Cloneable {
 		illegalIf(p.drawn_missions != null, "you drew mission cards and now must decide which to keep");
 		illegalUnless(p.ncars >= d.railway.length, "you do not have enough cars");
 		illegalIf(isClaimed(d.railway), "that railway has already been claimed");
-		illegalIf(d.railway.dual != null && owner_by_railway.get(d.railway.dual) == (Integer)p.handle, "you already own the other railway between these cities");
+		illegalIf(p.railways.contains(d.railway.dual), "you already own the other railway between these cities");
 		illegalUnless(p.hand.containsAll(d.cards), "you do not have these cards you claim to have");
 		illegalUnless(d.railway.costs(d.cards), "the cards offered do not correspond to the railway cost");
 
@@ -210,11 +219,7 @@ public class State implements Cloneable {
 
 		owner_by_railway.put(d.railway, p.handle);
 
-		if (deck.isEmpty()) {
-			deck = discarded;
-			discarded = new CardBag();
-		}
-		
+		restoreDecks();
 		switchTurns();
 	}
 
@@ -229,24 +234,17 @@ public class State implements Cloneable {
 		if (d.color == null) {
 			illegalIf(deck.isEmpty(), "deck is empty");
 			p.drawn_card = deck.draw(random);
-
-			if (deck.isEmpty()) {
-				deck = discarded;
-				discarded = new CardBag();
-			}
 		} else {
 			illegalUnless(open_deck.contains(d.color), "no such card in the open deck");
 
 			p.drawn_card = open_deck.draw(d.color);
 			if (p.drawn_card == Color.GREY)
 				last_draw = true;
-			// TODO: if the replacement is grey, you can't pick that one after this
-			// (these rules are motherfucking stoopid!)
-			if (!deck.isEmpty())
-				open_deck.add(deck.draw(random));
 		}
 
 		p.hand.add(p.drawn_card);
+		
+		restoreDecks();
 
 		if (last_draw) {
 			p.drawn_card = null;
@@ -274,7 +272,9 @@ public class State implements Cloneable {
 		illegalIf(p.drawn_card != null, "you drew a card and now must decide which other card to draw");
 		illegalIf(p.drawn_missions == null, "you did not draw mission cards");
 		illegalIf(d.missions.isEmpty(), "you must keep at least one of the mission cards");
+		illegalUnless(p.drawn_missions.containsAll(d.missions), "you drew different mission cards than the ones you're trying to keep now");
 
+		// don't modify drawn_missions; it isn't cloned along with playerstate
 		for (Mission m: p.drawn_missions) {
 			if (d.missions.contains(m))
 				p.missions.add(m);
@@ -301,9 +301,7 @@ public class State implements Cloneable {
 			if (ps.drawn_card == null) {
 				// claim
 				for (Railway r: Railway.railways) {
-					if (!isClaimed(r) && r.length <= ps.ncars &&
-							// doesn't already own the dual to this railway
-							(r.dual == null || owner_by_railway.get(r.dual) != (Integer)ps.handle)) {						
+					if (!isClaimed(r) && r.length <= ps.ncars && !ps.railways.contains(r.dual)) {
 						for (Color c: Color.values()) {
 							CardBag cs = ps.hand.cardsToClaim(r, c);
 							if (cs != null)
@@ -324,71 +322,5 @@ public class State implements Cloneable {
 		}
 
 		return ds;
-	}
-	
-	public static void main(String[] args) {
-		// do some automated testing
-		String[] players = "alice bob charlie".split("\\s+");
-		State s = new State(players);
-		s.setup();
-
-		for (int i = 0; i < players.length; i++) {
-			PlayerState p = s.players[i];
-			assert(!p.hand.isEmpty());
-		}
-
-		PlayerState p = s.currentPlayerState();
-		// make sure p has enough yellow cards to claim some particular route later
-		while (s.deck.contains(Color.YELLOW))
-			p.hand.add(s.deck.draw(Color.YELLOW));
-
-		int k = p.hand.count(Color.YELLOW);
-		assert(k >= 2);
-		Railway r = City.NEW_YORK.railwayTo(City.BOSTON, Color.YELLOW);
-		s.applyDecision(new ClaimRailwayDecision(r, new CardBag(Color.YELLOW, Color.YELLOW)));
-		assert(p.railways.contains(r));
-		assert(p.hand.count(Color.YELLOW) == k - 2);
-
-		assert(p.score == 2);
-
-		assert(s.currentPlayerState() != p);
-		p = s.currentPlayerState();
-
-		CardBag oldhand = p.hand.clone();
-
-		// test mission completion: two missions will be completed simultaneously
-		p.missions.add(Mission.connecting(City.PORTLAND,      City.NASHVILLE));
-		p.missions.add(Mission.connecting(City.SAN_FRANCISCO, City.ATLANTA));
-		
-		ClaimRailwayDecision[] decisions = new ClaimRailwayDecision[]{
-			new ClaimRailwayDecision(City.PORTLAND.railwayTo(City.SALT_LAKE_CITY),
-			                         new CardBag(Color.BLUE, Color.BLUE, Color.BLUE,
-			                                     Color.BLUE, Color.BLUE, Color.BLUE)),
-			new ClaimRailwayDecision(City.SAN_FRANCISCO.railwayTo(City.SALT_LAKE_CITY, Color.WHITE),
-			                         new CardBag(Color.WHITE, Color.WHITE, Color.WHITE,
-			                                     Color.WHITE, Color.WHITE)),
-			new ClaimRailwayDecision(City.ATLANTA.railwayTo(City.NASHVILLE),
-			                         new CardBag(Color.YELLOW)),
-			new ClaimRailwayDecision(City.NASHVILLE.railwayTo(City.SAINT_LOUIS),
-			                         new CardBag(Color.GREEN, Color.GREEN)),
-			new ClaimRailwayDecision(City.SALT_LAKE_CITY.railwayTo(City.DENVER, Color.RED),
-			                         new CardBag(Color.RED, Color.RED, Color.RED)),
-			new ClaimRailwayDecision(City.SAINT_LOUIS.railwayTo(City.KANSAS_CITY, Color.PURPLE),
-			                         new CardBag(Color.PURPLE, Color.PURPLE)),
-			new ClaimRailwayDecision(City.KANSAS_CITY.railwayTo(City.DENVER, Color.BLACK),
-			                         new CardBag(Color.BLACK, Color.GREY, Color.GREY, Color.BLACK)),
-			new ClaimRailwayDecision(City.SEATTLE.railwayTo(City.PORTLAND),
-			                         new CardBag(Color.GREY)),
-		};
-		
-		for (ClaimRailwayDecision d: decisions) {
-			// make sure the player has the cards he needs
-			p.hand.addAll(d.cards);
-			s.applyDecision(d);
-			s.switchTurns(); s.switchTurns();
-		}
-		
-		assert(oldhand.equals(p.hand));
-		assert(p.completed_missions.size() == 2);
 	}
 }

@@ -188,7 +188,7 @@ public class Railway {
 		// find and couple double railways
 		for (Railway r: railways) {
 			for (Railway s: railways) {
-				if (s.connects(r.source, r.destination)) {
+				if (s != r && s.connects(r.source, r.destination)) {
 					r.dual = s;
 					s.dual = r;
 				}
