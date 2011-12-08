@@ -42,8 +42,8 @@ public class Game {
 					}
 					break;
 				}
-			} catch (Throwable t) {
-				t.printStackTrace();
+			} catch (IllegalDecisionException e) {
+				e.printStackTrace();
 			}
 		}
 	}
