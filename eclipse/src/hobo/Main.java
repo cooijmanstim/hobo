@@ -34,9 +34,11 @@ public class Main {
 					public void actionPerformed(ActionEvent e) {
 						final GamePanel gp = new GamePanel();
 						final Game g = new Game(//new HumanPlayer("tim", gp.getUserInterface()),
-						                        new ParanoidMinimaxPlayer("falken"),
-						                        new ParanoidMinimaxPlayer("joshua"),
-						                        new RandomPlayer("igor"));
+												new RandomPlayer("igor"),
+						                        new BestReplyMinimaxPlayer("maarten"),
+												new CoalitionalMinimaxPlayer("paranoid", 1),
+						                        new CoalitionalMinimaxPlayer("joshua", 0.5),
+						                        new CoalitionalMinimaxPlayer("naive", 0));
 
 						g.registerObserver(new GameObserver() {
 							@Override public void observe(final Event e) {
