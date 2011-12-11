@@ -4,9 +4,11 @@ import java.util.*;
 
 public class MaxNPlayer implements Player {
 	private final String name;
+	private final int max_depth;
 
-	public MaxNPlayer(String name) {
+	public MaxNPlayer(String name, int max_depth) {
 		this.name = name;
+		this.max_depth = max_depth;
 	}
 	
 	public String name() { return name; }
@@ -14,9 +16,8 @@ public class MaxNPlayer implements Player {
 
 	public void perceive(Event e) {}
 	
-	public static final int MAX_DEPTH = 3;
 	public Decision decide(State s) {
-		Decision d = maxn(s, MAX_DEPTH).decision;
+		Decision d = maxn(s, max_depth).decision;
 		System.out.println("average branching factor: "+(total_nbranches * 1.0 / total_nbranches_nterms));
 		return d;
 	}
@@ -29,7 +30,7 @@ public class MaxNPlayer implements Player {
 	private static long total_nbranches = 0;
 	private static long total_nbranches_nterms = 0;
 	
-	public static EvaluatedDecision maxn(State s, int depth) {
+	public EvaluatedDecision maxn(State s, int depth) {
 		if (depth <= 0 || s.gameOver())
 			return new EvaluatedDecision(null, utility(s));
 		Decision dbest = null;
@@ -43,7 +44,7 @@ public class MaxNPlayer implements Player {
 
 			double[] u = maxn(t, depth - 1).utility;
 
-			if (depth == MAX_DEPTH)
+			if (depth == max_depth)
 				System.out.println(Arrays.toString(u) + "\t" + d);
 
 			if (u == null || u[handle] > ubest[handle]) {

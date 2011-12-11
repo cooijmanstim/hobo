@@ -16,14 +16,14 @@ public class State implements Cloneable {
 	// keep track of player order
 	private int[] player_order;
 
-	private Map<Railway,Integer> owner_by_railway = new HashMap<Railway,Integer>();
+	public Map<Railway,Integer> owner_by_railway = new HashMap<Railway,Integer>();
 
 	public CardBag deck      = new CardBag();
 	public CardBag open_deck = new CardBag();
 	public CardBag discarded = new CardBag();
 
 	// deck of destination tickets
-	private LinkedList<Mission> missions = new LinkedList<Mission>();
+	public LinkedList<Mission> missions = new LinkedList<Mission>();
 
 	private boolean game_over = false;
 	private int last_player = -1;
@@ -184,106 +184,10 @@ public class State implements Cloneable {
 		while (open_deck.size() < OPEN_DECK_SIZE && !deck.isEmpty())
 			open_deck.add(deck.draw(random));
 	}
-
-	private void illegalIf(boolean condition, String reason) {
-		if (condition)
-			throw new IllegalDecisionException(reason);
-	}
-	private void illegalUnless(boolean condition, String reason) {
-		illegalIf(!condition, reason);
-	}
-
+	
 	public void applyDecision(Decision d) throws IllegalDecisionException {
-		if      (d instanceof ClaimRailwayDecision) applyDecision((ClaimRailwayDecision)d);
-		else if (d instanceof     DrawCardDecision) applyDecision((    DrawCardDecision)d);
-		else if (d instanceof DrawMissionsDecision) applyDecision((DrawMissionsDecision)d);
-		else if (d instanceof KeepMissionsDecision) applyDecision((KeepMissionsDecision)d);
-		else throw new IllegalDecisionException("unknown decision type: "+d);
-	}
-
-	public void applyDecision(ClaimRailwayDecision d) throws IllegalDecisionException {
-		PlayerState p = currentPlayerState();
-
-		illegalIf(p.drawn_card != null, "you drew a card and now must decide what other card to draw");
-		illegalIf(p.drawn_missions != null, "you drew mission cards and now must decide which to keep");
-		illegalUnless(p.ncars >= d.railway.length, "you do not have enough cars");
-		illegalIf(isClaimed(d.railway), "that railway has already been claimed");
-		illegalIf(p.railways.contains(d.railway.dual), "you already own the other railway between these cities");
-		illegalUnless(p.hand.containsAll(d.cards), "you do not have these cards you claim to have");
-		illegalUnless(d.railway.costs(d.cards), "the cards offered do not correspond to the railway cost");
-
-		p.hand.removeAll(d.cards);
-		discarded.addAll(d.cards);
-		
-		p.claim(d.railway);
-
-		owner_by_railway.put(d.railway, p.handle);
-
-		restoreDecks();
-		switchTurns();
-	}
-
-	public void applyDecision(DrawCardDecision d) throws IllegalDecisionException {
-		PlayerState p = currentPlayerState();
-
-		illegalIf(p.drawn_missions != null, "you drew mission cards and now must decide which to keep");
-
-		// if drew a card last time, then can draw one more
-		boolean last_draw = p.drawn_card != null;
-
-		if (d.color == null) {
-			illegalIf(deck.isEmpty(), "deck is empty");
-			p.drawn_card = deck.draw(random);
-		} else {
-			illegalUnless(open_deck.contains(d.color), "no such card in the open deck");
-
-			p.drawn_card = open_deck.draw(d.color);
-			if (p.drawn_card == Color.GREY)
-				last_draw = true;
-		}
-
-		p.hand.add(p.drawn_card);
-		
-		restoreDecks();
-
-		if (last_draw) {
-			p.drawn_card = null;
-			switchTurns();
-		}
-	}
-
-	public void applyDecision(DrawMissionsDecision d) throws IllegalDecisionException {
-		PlayerState p = currentPlayerState();
-
-		illegalIf(p.drawn_card != null, "you drew a card and now must decide which other card to draw");
-		illegalIf(p.drawn_missions != null, "you drew mission cards and now must decide which to keep");
-		// NOTE: the rules don't forbid deciding to draw mission cards if the mission deck is empty
-
-		p.drawn_missions = new HashSet<Mission>();
-		for (int i = 0; i < 3; i++) {
-			if (!missions.isEmpty())
-				p.drawn_missions.add(missions.removeFirst());
-		}
-	}
-
-	public void applyDecision(KeepMissionsDecision d) throws IllegalDecisionException {
-		PlayerState p = currentPlayerState();
-
-		illegalIf(p.drawn_card != null, "you drew a card and now must decide which other card to draw");
-		illegalIf(p.drawn_missions == null, "you did not draw mission cards");
-		illegalIf(d.missions.isEmpty(), "you must keep at least one of the mission cards");
-		illegalUnless(p.drawn_missions.containsAll(d.missions), "you drew different mission cards than the ones you're trying to keep now");
-
-		// don't modify drawn_missions; it isn't cloned along with playerstate
-		for (Mission m: p.drawn_missions) {
-			if (d.missions.contains(m))
-				p.missions.add(m);
-			else
-				missions.addLast(m);
-		}
-		p.drawn_missions = null;
-
-		switchTurns();
+		d.requireLegal(this);
+		d.apply(this);
 	}
 
 	public List<Decision> allPossibleDecisions() {

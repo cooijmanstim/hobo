@@ -63,6 +63,7 @@ public class Game {
 				state.applyDecision(d);
 				break;
 			} catch (IllegalDecisionException e) {
+				System.out.println("illegal decision: "+d.reasonForIllegality(state));
 				p.illegal(state, d, e.reason);
 			}
 		}

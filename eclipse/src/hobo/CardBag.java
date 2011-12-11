@@ -3,8 +3,8 @@ package hobo;
 import java.util.*;
 
 public class CardBag implements Cloneable, Iterable<Color> {
-	private static final int ncolors = Color.values().length;
-	private int[] ks = new int[ncolors]; // multiplicities
+	private static final Color[] colors = Color.values();
+	private int[] ks = new int[colors.length]; // multiplicities
 	private int size = 0;
 
 	public CardBag() {}
@@ -18,6 +18,21 @@ public class CardBag implements Cloneable, Iterable<Color> {
 
 	public CardBag clone() {
 		return new CardBag(this);
+	}
+	
+	@Override public boolean equals(Object o) {
+		if (!(o instanceof CardBag))
+			return false;
+		return equals((CardBag)o);
+	}
+	
+	@Override public int hashCode() {
+		int h = 0;
+		for (int i = 0; i < colors.length; i++) {
+			if (ks[i] > 0)
+				h = (h << ks[i]) ^ colors[i].hashCode();
+		}
+		return h;
 	}
 
 	public int size() { return size; }
@@ -34,7 +49,7 @@ public class CardBag implements Cloneable, Iterable<Color> {
 	}
 
 	public void addAll(CardBag that) {
-		for (int i = 0; i < ncolors; i++) {
+		for (int i = 0; i < colors.length; i++) {
 			int k = that.ks[i];
 			this.ks[i] += k;
 			size += k;
@@ -49,7 +64,7 @@ public class CardBag implements Cloneable, Iterable<Color> {
 	}
 
 	public void removeAll(CardBag that) {
-		for (int i = 0; i < ncolors; i++) {
+		for (int i = 0; i < colors.length; i++) {
 			int k = Math.min(this.ks[i], that.ks[i]);
 			this.ks[i] -= k;
 			size -= k;
@@ -61,7 +76,7 @@ public class CardBag implements Cloneable, Iterable<Color> {
 	}
 
 	public boolean containsAll(CardBag that) {
-		for (int i = 0; i < ncolors; i++) {
+		for (int i = 0; i < colors.length; i++) {
 			if (this.ks[i] < that.ks[i])
 				return false;
 		}
@@ -69,7 +84,7 @@ public class CardBag implements Cloneable, Iterable<Color> {
 	}
 	
 	public boolean equals(CardBag that) {
-		for (int i = 0; i < ncolors; i++) {
+		for (int i = 0; i < colors.length; i++) {
 			if (this.ks[i] != that.ks[i])
 				return false;
 		}
@@ -79,7 +94,7 @@ public class CardBag implements Cloneable, Iterable<Color> {
 	// get a non-grey color of which at least one card is present
 	public Color arbitraryNonGrey() {
 		int j = Color.GREY.ordinal();
-		for (int i = 0; i < ncolors; i++) {
+		for (int i = 0; i < colors.length; i++) {
 			if (ks[i] > 0 && i != j)
 				return Color.values()[i];
 		}
@@ -95,7 +110,7 @@ public class CardBag implements Cloneable, Iterable<Color> {
 		assert(!isEmpty());
 		double x = random.nextDouble();
 		int m = 0;
-		for (int i = 0; i < ncolors; i++) {
+		for (int i = 0; i < colors.length; i++) {
 			m += ks[i];
 			if (x < ((double)m)/size) {
 				ks[i]--;
@@ -122,7 +137,7 @@ public class CardBag implements Cloneable, Iterable<Color> {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("CardBag(");
-		for (int i = 0; i < ncolors; i++) {
+		for (int i = 0; i < colors.length; i++) {
 			if (ks[i] == 0)
 				continue;
 			sb.append(ks[i]);
@@ -161,10 +176,10 @@ public class CardBag implements Cloneable, Iterable<Color> {
 				}
 
 				// next color until we get to a color for which cards are present
-				while (cs[0] < ncolors && ks[cs[0]] == 0)
+				while (cs[0] < colors.length && ks[cs[0]] == 0)
 					cs[0]++;
 				
-				if (cs[0] >= ncolors) {
+				if (cs[0] >= colors.length) {
 					finalized = true;
 					return null;
 				}

@@ -4,9 +4,11 @@ import java.util.*;
 
 public class BestReplyMinimaxPlayer implements Player {
 	private final String name;
+	public final int max_depth;
 
-	public BestReplyMinimaxPlayer(String name) {
+	public BestReplyMinimaxPlayer(String name, int max_depth) {
 		this.name = name;
+		this.max_depth = max_depth;
 	}
 	
 	public String name() { return name; }
@@ -14,9 +16,8 @@ public class BestReplyMinimaxPlayer implements Player {
 
 	public void perceive(Event e) {}
 	
-	public static final int MAX_DEPTH = 3;
 	public Decision decide(State s) {
-		Decision d = minimax(s, MAX_DEPTH,
+		Decision d = minimax(s, max_depth,
 		                     Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY,
 		                     s.playerHandleByName(name)).decision;
 		System.out.println("average branching factor: "+(total_nbranches * 1.0 / total_nbranches_nterms));
@@ -32,7 +33,7 @@ public class BestReplyMinimaxPlayer implements Player {
 	private static long total_nbranches_nterms = 0;
 	
 	// (this is pretty gruesome.)
-	public static EvaluatedDecision minimax(State s, int depth, double a, double b, int inquirer) {
+	public EvaluatedDecision minimax(State s, int depth, double a, double b, int inquirer) {
 		if (depth <= 0 || s.gameOver())
 			return new EvaluatedDecision(null, utility(s, inquirer));
 		boolean maximizing = s.currentPlayer() == inquirer;
@@ -46,7 +47,7 @@ public class BestReplyMinimaxPlayer implements Player {
 
 				double u = minimax(t, depth - 1, a, b, inquirer).utility;
 
-				if (depth == MAX_DEPTH)
+				if (depth == max_depth)
 					System.out.println(u + "\t" + d);
 
 				if (u > a) {
