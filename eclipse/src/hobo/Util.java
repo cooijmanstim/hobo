@@ -17,4 +17,15 @@ public class Util {
 		xs.add(x);
 		return xs;
 	}
+	
+	public static <E> E sample(Set<E> xs, Random random) {
+		int n = xs.size();
+		int i = random.nextInt(xs.size());
+		for (E x: xs) {
+			if (i == 0)
+				return x;
+			i--;
+		}
+		throw new RuntimeException("this shouldn't happen");
+	}
 }

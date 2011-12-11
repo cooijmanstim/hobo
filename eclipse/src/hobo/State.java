@@ -190,18 +190,11 @@ public class State implements Cloneable {
 		d.apply(this);
 	}
 
-	public List<Decision> allPossibleDecisions() {
+	public Set<Decision> allPossibleDecisions() {
 		PlayerState ps = currentPlayerState();
-		List<Decision> ds = new ArrayList<Decision>();
+		Set<Decision> ds = new LinkedHashSet<Decision>(100);
 
 		if (ps.drawn_missions == null) {
-			for (Color c: Color.values())
-				if (open_deck.contains(c))
-					ds.add(new DrawCardDecision(c));
-
-			if (!deck.isEmpty())
-				ds.add(new DrawCardDecision(null));
-			
 			if (ps.drawn_card == null) {
 				// claim
 				for (Railway r: Railway.railways) {
@@ -213,7 +206,16 @@ public class State implements Cloneable {
 						}
 					}
 				}
-				
+			}
+			
+			for (Color c: Color.values())
+				if (open_deck.contains(c))
+					ds.add(new DrawCardDecision(c));
+
+			if (!deck.isEmpty())
+				ds.add(new DrawCardDecision(null));
+			
+			if (ps.drawn_card == null) {
 				ds.add(new DrawMissionsDecision());
 			}
 		} else {

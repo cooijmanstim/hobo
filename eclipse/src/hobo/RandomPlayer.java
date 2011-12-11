@@ -14,10 +14,10 @@ public class RandomPlayer implements Player {
 
 	public void perceive(Event e) {}
 	public Decision decide(State s) {
-		List<Decision> ds = s.allPossibleDecisions();
+		Set<Decision> ds = s.allPossibleDecisions();
 		if (ds.isEmpty())
 				return null;
-		return ds.get(s.random.nextInt(ds.size()));
+		return Util.sample(ds, s.random);
 	}
 
 	public void illegal(State s, Decision d, String reason) {}
