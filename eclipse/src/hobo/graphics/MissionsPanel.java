@@ -1,5 +1,7 @@
 package hobo.graphics;
 
+import hobo.DrawCardDecision;
+import hobo.DrawMissionsDecision;
 import hobo.Mission;
 import hobo.Visualization;
 import hobo.State;
@@ -15,14 +17,17 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 
 public class MissionsPanel extends JPanel implements Visualization {
 	private ArrayList<Image> missionsImage;
 	private final JComboBox missionsCombo;
-
-	public MissionsPanel(GamePanel gv) {
+	private final GamePanel gamePanel;
+	
+	public MissionsPanel(final GamePanel gv) {
+		gamePanel = gv;
 		final MissionsPanel mp = this;
 		missionsCombo = new JComboBox();
 		missionsCombo.addActionListener(new ActionListener() {
@@ -32,6 +37,12 @@ public class MissionsPanel extends JPanel implements Visualization {
 		});
 		setPreferredSize(new Dimension(200, 150));
 		add(missionsCombo);
+		
+		JButton missionsButton = new JButton("Draw Mission Cards");
+		missionsButton.addActionListener(new ActionListener()
+		{@Override public void actionPerformed(ActionEvent e) 
+			{gv.registerDecision(new DrawMissionsDecision());}});
+		add(missionsButton);
 		setLayout(new FlowLayout());
 	}
 	
@@ -51,5 +62,8 @@ public class MissionsPanel extends JPanel implements Visualization {
 			missionsImage.add(getToolkit().getImage("src/missions/"+m.imagePath));
 			missionsCombo.addItem(m.source + " - " + m.destination + " ("+m.value+")");
 		}
+		if(ps.drawn_missions != null){
+			new MissionChooserFrame(ps.drawn_missions, gamePanel);}
+		
 	}
 }
