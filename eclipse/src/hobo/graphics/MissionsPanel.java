@@ -26,8 +26,9 @@ public class MissionsPanel extends JPanel implements Visualization {
 	private final JComboBox missionsCombo;
 	private final GamePanel gamePanel;
 	
-	public MissionsPanel(final GamePanel gv) {
-		gamePanel = gv;
+	public MissionsPanel(final GamePanel gamePanel) {
+		this.gamePanel = gamePanel;
+		
 		final MissionsPanel mp = this;
 		missionsCombo = new JComboBox();
 		missionsCombo.addActionListener(new ActionListener() {
@@ -39,10 +40,13 @@ public class MissionsPanel extends JPanel implements Visualization {
 		add(missionsCombo);
 		
 		JButton missionsButton = new JButton("Draw Mission Cards");
-		missionsButton.addActionListener(new ActionListener()
-		{@Override public void actionPerformed(ActionEvent e) 
-			{gv.registerDecision(new DrawMissionsDecision());}});
+		missionsButton.addActionListener(new ActionListener() {
+			@Override public void actionPerformed(ActionEvent e) {
+				gamePanel.registerDecision(new DrawMissionsDecision());
+			}
+		});
 		add(missionsButton);
+		
 		setLayout(new FlowLayout());
 	}
 	
@@ -62,8 +66,7 @@ public class MissionsPanel extends JPanel implements Visualization {
 			missionsImage.add(getToolkit().getImage("src/missions/"+m.imagePath));
 			missionsCombo.addItem(m.source + " - " + m.destination + " ("+m.value+")");
 		}
-		if(ps.drawn_missions != null){
-			new MissionChooserFrame(ps.drawn_missions, gamePanel);}
-		
+		if (ps.drawn_missions != null)
+			new MissionChooserFrame(ps.drawn_missions, gamePanel);
 	}
 }

@@ -24,25 +24,26 @@ import javax.swing.JList;
 public class MissionChooserFrame extends JFrame {
 	public MissionChooserFrame(Collection<Mission> missions, final GamePanel gamePanel) {
 		final JList list = new JList(missions.toArray());
-		add(list);
 		JButton button = new JButton("Confirm");
-		button.addActionListener(new ActionListener(){
+		button.addActionListener(new ActionListener() {
 			@Override public void actionPerformed(ActionEvent e) {
 				Set<Mission> ms = new HashSet<Mission>();
 				Object[] os = list.getSelectedValues();
-				for (int i = 0; i < os.length; i++) {
+				for (int i = 0; i < os.length; i++)
 					ms.add((Mission)os[i]);
-				}
 				gamePanel.registerDecision(new KeepMissionsDecision(ms));
 				
 				setVisible(false);
 				dispose();
 			}
 		});
-		add(button);
-		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		
 		setLayout(new FlowLayout());
+		add(list);
+		add(button);
 		pack();
+		
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setVisible(true);
 	}
 }

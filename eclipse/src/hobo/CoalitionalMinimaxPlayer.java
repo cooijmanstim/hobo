@@ -70,7 +70,7 @@ public class CoalitionalMinimaxPlayer extends Player {
 		boolean[] coalition = new boolean[s.players().length];
 		int coalition_size = 0;
 		for (int i = 0; i < coalition.length; i++) {
-			if (Math.random() > paranoia) {
+			if (i == handle || Math.random() > paranoia) {
 				coalition[i] = true;
 				coalition_size++;
 			}
@@ -82,11 +82,11 @@ public class CoalitionalMinimaxPlayer extends Player {
 		 * (Except if paranoia == 0; then the coalition is intended to be
 		 * maximal.)
 		 */
-		// XXX: apparently still broken
-		if (coalition_size == coalition.length && paranoia != 0)
+		if (coalition_size == coalition.length && paranoia != 0) {
 			Arrays.fill(coalition, false);
+			coalition[handle] = true;
+		}
 		
-		coalition[handle] = true;
 		return coalition;
 	}
 
