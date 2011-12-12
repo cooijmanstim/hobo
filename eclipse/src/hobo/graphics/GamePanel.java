@@ -124,7 +124,6 @@ public class GamePanel extends JLayeredPane implements Visualization {
 	public PlayerInteraction getUserInterface() {
 		return new PlayerInteraction() {
 			@Override public Decision askDecision(Player p, State s) {
-				reflect(s);
 				return getDecision();
 			}
 
