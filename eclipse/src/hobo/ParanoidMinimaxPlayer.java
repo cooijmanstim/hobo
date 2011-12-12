@@ -2,31 +2,20 @@ package hobo;
 
 import java.util.*;
 
-public class ParanoidMinimaxPlayer implements Player {
-	private final String name;
-
+// this is now a deprecated class; coalitionalplayer is a generalization
+public class ParanoidMinimaxPlayer extends Player {
 	public ParanoidMinimaxPlayer(String name) {
 		this.name = name;
 	}
-	
-	public String name() { return name; }
-	public String toString() { return name; }
-
-	public void perceive(Event e) {}
 	
 	public static final int MAX_DEPTH = 3;
 	public Decision decide(State s) {
 		Decision d = minimax(s, MAX_DEPTH,
 		                     Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY,
-		                     s.playerHandleByName(name)).decision;
+		                     handle).decision;
 		System.out.println("average branching factor: "+(total_nbranches * 1.0 / total_nbranches_nterms));
 		return d;
 	}
-
-	public void illegal(State s, Decision d, String reason) {}
-	public void loss   (State s) {}
-	public void win    (State s) {}
-	public void draw   (State s) {}
 
 	private static long total_nbranches = 0;
 	private static long total_nbranches_nterms = 0;

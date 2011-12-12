@@ -12,8 +12,10 @@ public class Game {
 
 		int ni = players.length;
 		String[] names = new String[ni];
-		for (int i = 0; i < ni; i++)
+		for (int i = 0; i < ni; i++) {
 			names[i] = players[i].name();
+			players[i].setHandle(i);
+		}
 		state = new State(names);
 	}
 

@@ -2,9 +2,10 @@ package hobo;
 
 import java.util.*;
 
-public class CoalitionalMinimaxPlayer implements Player {
-	private static final int N_KILLER_MOVES = 3;
-	private final String name;
+public class CoalitionalMinimaxPlayer extends Player {
+	private static final int N_KILLER_MOVES = 3,
+	                         KILLER_MOVES_HORIZON = 2,
+	                         MAX_DECISION_TIME = 60000;
 	private final double paranoia;
 	private final int max_depth;
 
@@ -17,26 +18,45 @@ public class CoalitionalMinimaxPlayer implements Player {
 		this.killerMoves = new Decision[max_depth*2+1][N_KILLER_MOVES];
 	}
 	
-	public String name() { return name; }
-	public String toString() { return name; }
-
-	public void perceive(Event e) {}
-	public void illegal(State s, Decision d, String reason) {}
-	public void loss   (State s) {}
-	public void win    (State s) {}
-	public void draw   (State s) {}
-
 	public Decision decide(State s) {
 		System.out.println("----------------------------------------------------");
 		System.out.println(name+" deciding...");
 		boolean[] coalition = selectCoalition(s);
 		System.out.println("assumed coalition "+Arrays.toString(coalition));
-		Decision d = minimax(s, max_depth, 0,
-		                     Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY,
-		                     coalition).decision;
+		Decision d = deepenIteratively(s, coalition);
 		System.out.println("assumed coalition "+Arrays.toString(coalition));
 		System.out.println("average branching factor: "+(total_nbranches * 1.0 / total_nbranches_nterms));
 		System.out.println("killer hit rate: "+(killer_hits*1.0/killer_tries)+"; "+killer_hits+"/"+killer_tries);
+		return d;
+	}
+	
+	private boolean outOfTime = false;
+	private Decision deepenIteratively(State s, boolean[] coalition) {
+		outOfTime = false;
+		Timer t = new Timer();
+		t.schedule(new TimerTask() {
+			public void run() {
+				outOfTime = true;
+			}
+		}, MAX_DECISION_TIME);
+
+		Decision d = null;
+		try {
+			for (int depth = 0; depth <= max_depth; depth++) {
+				EvaluatedDecision ed = minimax(s, depth, 0,
+				                               Double.NEGATIVE_INFINITY,
+				                               Double.POSITIVE_INFINITY,
+				                               coalition);
+				System.out.println("depth "+depth+" "+ed.utility+"\t"+ed.decision);
+				d = ed.decision;
+			}
+		} catch (OutOfTimeException e) {
+			System.out.println("out of time");
+		}
+		
+		if (!outOfTime)
+			t.cancel();
+		
 		return d;
 	}
 
@@ -55,21 +75,27 @@ public class CoalitionalMinimaxPlayer implements Player {
 				coalition_size++;
 			}
 		}
-		
+
 		/* If all players are in the coalition, there are no minimizing
 		 * plies in the tree, and so no alpha-beta pruning can happen.
 		 * This sucks big time, so disallow it.  Just go paranoid instead.
+		 * (Except if paranoia == 0; then the coalition is intended to be
+		 * maximal.)
 		 */
-		if (coalition_size == coalition.length)
+		// XXX: apparently still broken
+		if (coalition_size == coalition.length && paranoia != 0)
 			Arrays.fill(coalition, false);
 		
-		coalition[s.currentPlayer()] = true;
+		coalition[handle] = true;
 		return coalition;
 	}
 
 	// depth is measured in decisions, ply is measured in turns between min and max
 	// depth is used to limit recursion, ply is used to keep track of killer moves for min and max
-	public EvaluatedDecision minimax(State s, int depth, int ply, double a, double b, boolean[] coalition) {
+	public EvaluatedDecision minimax(State s, int depth, int ply, double a, double b, boolean[] coalition)
+			throws OutOfTimeException {
+		if (outOfTime)
+			throw new OutOfTimeException();
 		if (depth <= 0 || s.gameOver())
 			return new EvaluatedDecision(null, utility(s, coalition));
 		boolean maximizing = coalition[s.currentPlayer()];
@@ -78,10 +104,14 @@ public class CoalitionalMinimaxPlayer implements Player {
 		Set<Decision> ds = new LinkedHashSet<Decision>(100);
 
 		for (int i = N_KILLER_MOVES - 1; i >= 0; i--) {
-			Decision d = killerMoves[ply][i];
-			if (d != null && d.isLegal(s)) {
-				ds.add(d);
-				killer_tries++;
+			// look back several plies
+			int jmin = Math.max(0, ply - KILLER_MOVES_HORIZON);
+			for (int j = ply; j >= jmin; j--) {
+				Decision d = killerMoves[j][i];
+				if (d != null && d.isLegal(s)) {
+					ds.add(d);
+					killer_tries++;
+				}
 			}
 		}
 
@@ -116,31 +146,31 @@ public class CoalitionalMinimaxPlayer implements Player {
 			}
 
 			if (b <= a) {
-				// record this decision as a killer move
-
-				// figure out if it's already in the list
-				int i;
-				for (i = N_KILLER_MOVES - 1; i >= 0; i--) {
-					if (d.equals(killerMoves[ply][i]))
-						break;
-				}
-				
-				if (i >= 0)
-					killer_hits++;
-
-				// if so, shift everything in front of it backward to make room for it in the front
-				// if not, shift everything backward to make room for it in the front
-				if (i < 0) i = N_KILLER_MOVES - 1;
-				for (; i > 0; i--)
-					killerMoves[ply][i] = killerMoves[ply][i-1];
-				killerMoves[ply][0] = d;
-
-				// prune
+				recordKillerMove(d, ply);
 				break;
 			}
 		}
 		total_nbranches_nterms++;
 		return new EvaluatedDecision(dbest, maximizing ? a : b);
+	}
+	
+	private void recordKillerMove(Decision d, int ply) {
+		// figure out if it's already in the list
+		int i;
+		for (i = N_KILLER_MOVES - 1; i >= 0; i--) {
+			if (d.equals(killerMoves[ply][i]))
+				break;
+		}
+		
+		if (i >= 0)
+			killer_hits++;
+
+		// if so, shift everything in front of it backward to make room for it in the front
+		// if not, shift everything backward to make room for it in the front
+		if (i < 0) i = N_KILLER_MOVES - 1;
+		for (; i > 0; i--)
+			killerMoves[ply][i] = killerMoves[ply][i-1];
+		killerMoves[ply][0] = d;
 	}
 
 	private static class EvaluatedDecision {
@@ -158,4 +188,6 @@ public class CoalitionalMinimaxPlayer implements Player {
 			u += (coalition[ps.handle] ? 1 : -1) * ps.finalScore();
 		return u;
 	}
+	
+	private class OutOfTimeException extends Exception {}
 }

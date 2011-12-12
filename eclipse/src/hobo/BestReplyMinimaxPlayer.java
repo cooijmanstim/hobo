@@ -2,8 +2,7 @@ package hobo;
 
 import java.util.*;
 
-public class BestReplyMinimaxPlayer implements Player {
-	private final String name;
+public class BestReplyMinimaxPlayer extends Player {
 	public final int max_depth;
 
 	public BestReplyMinimaxPlayer(String name, int max_depth) {
@@ -11,23 +10,13 @@ public class BestReplyMinimaxPlayer implements Player {
 		this.max_depth = max_depth;
 	}
 	
-	public String name() { return name; }
-	public String toString() { return name; }
-
-	public void perceive(Event e) {}
-	
 	public Decision decide(State s) {
 		Decision d = minimax(s, max_depth,
 		                     Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY,
-		                     s.playerHandleByName(name)).decision;
+		                     handle).decision;
 		System.out.println("average branching factor: "+(total_nbranches * 1.0 / total_nbranches_nterms));
 		return d;
 	}
-
-	public void illegal(State s, Decision d, String reason) {}
-	public void loss   (State s) {}
-	public void win    (State s) {}
-	public void draw   (State s) {}
 
 	private static long total_nbranches = 0;
 	private static long total_nbranches_nterms = 0;

@@ -1,7 +1,6 @@
 package hobo;
 
-public class HumanPlayer implements Player {
-	private final String name;
+public class HumanPlayer extends Player {
 	private final PlayerInteraction ui;
 	
 	public HumanPlayer(String name, PlayerInteraction ui) {
@@ -9,10 +8,6 @@ public class HumanPlayer implements Player {
 		this.ui = ui;
 	}
 	
-	public String name() { return name; }
-	public String toString() { return name; }
-
-	public void perceive(Event e) {}
 	public Decision decide(State s) { return ui.askDecision(this, s); }
 
 	public void illegal(State s, Decision d, String reason) { ui.tellIllegal(this, s, d, reason); }
