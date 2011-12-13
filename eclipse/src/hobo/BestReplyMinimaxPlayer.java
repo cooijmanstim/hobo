@@ -13,9 +13,11 @@ public class BestReplyMinimaxPlayer extends Player {
 	public Decision decide(State s) {
 		System.out.println("----------------------------------------------------");
 		System.out.println(name+" deciding...");
+		boolean[] coalition = new boolean[s.players().length];
+		coalition[handle] = true;
 		Decision d = minimax(s, max_depth, 0,
 		                     Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY,
-		                     handle).decision.decision;
+		                     coalition).decision.decision;
 		System.out.println("average branching factor: "+(total_nbranches * 1.0 / total_nbranches_nterms));
 		//System.out.println("killer hit rate: "+(killer_hits*1.0/killer_tries)+"; "+killer_hits+"/"+killer_tries);
 		return d;
@@ -24,20 +26,20 @@ public class BestReplyMinimaxPlayer extends Player {
 	private static long total_nbranches = 0;
 	private static long total_nbranches_nterms = 0;
 
-	public EvaluatedDecision minimax(State s, int depth, int ply, double a, double b, int inquirer) {
+	public EvaluatedDecision minimax(State s, int depth, int ply, double a, double b, boolean coalition[]) {
 		if (depth <= 0 || s.gameOver())
-			return new EvaluatedDecision(null, utility(s, inquirer));
-		
+			return new EvaluatedDecision(null, utility(s, coalition));
+
 		Set<PlayerDecision> pds = new LinkedHashSet<PlayerDecision>(100);
 		
 		boolean maximizing = (ply % 2) == 0;
 		if (maximizing) {
-			for (Decision d: s.allPossibleDecisionsFor(inquirer))
-				pds.add(new PlayerDecision(inquirer, d));
+			for (Decision d: s.allPossibleDecisionsFor(handle))
+				pds.add(new PlayerDecision(handle, d));
 		} else {
 			// gather decisions for all other players
 			for (int player: s.players()) {
-				if (player == inquirer)
+				if (coalition[player])
 					continue;
 				for (Decision d: s.allPossibleDecisionsFor(player))
 					pds.add(new PlayerDecision(player, d));
@@ -56,7 +58,7 @@ public class BestReplyMinimaxPlayer extends Player {
 			if (t.currentPlayer() != pd.player)
 				newply++;
 
-			double u = minimax(t, depth - 1, newply, a, b, inquirer).utility;
+			double u = minimax(t, depth - 1, newply, a, b, coalition).utility;
 
 			if (maximizing) {
 				if (u > a) {
@@ -95,13 +97,11 @@ public class BestReplyMinimaxPlayer extends Player {
 		}
 	}
 
-	public static double utility(State s, int inquirer) {
-		// advantage over the other players combined
-		int total = 0;
-		for (PlayerState ps: s.playerStates()) {
-			if (ps.handle == inquirer) continue;
-			total += ps.finalScore();
-		}
-		return s.playerState(inquirer).finalScore() - total;
+	public double utility(State s, boolean[] coalition) {
+		// advantage of coalition over opposition
+		int u = 0;
+		for (PlayerState ps: s.playerStates())
+			u += (coalition[ps.handle] ? 1 : -1) * ps.finalScore();
+		return u;
 	}
 }
