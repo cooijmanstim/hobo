@@ -101,19 +101,7 @@ public class CoalitionalMinimaxPlayer extends Player {
 		Decision dbest = null;
 		
 		Set<Decision> ds = new LinkedHashSet<Decision>(100);
-
-		for (int i = N_KILLER_MOVES - 1; i >= 0; i--) {
-			// look back several plies
-			int jmin = Math.max(0, ply - KILLER_MOVES_HORIZON);
-			for (int j = ply; j >= jmin; j--) {
-				Decision d = killerMoves[j][i];
-				if (d != null && d.isLegal(s)) {
-					ds.add(d);
-					killer_tries++;
-				}
-			}
-		}
-
+		recallKillerMoves(ply, s, ds);
 		ds.addAll(s.allPossibleDecisions());
 
 		for (Decision d: ds) {
@@ -129,9 +117,6 @@ public class CoalitionalMinimaxPlayer extends Player {
 			
 			double u = minimax(t, depth - 1, newply, a, b, coalition).utility;
 
-			if (depth == max_depth)
-				System.out.println(u + "\t" + d);
-			
 			if (maximizing) {
 				if (u > a) {
 					a = u;
@@ -154,6 +139,9 @@ public class CoalitionalMinimaxPlayer extends Player {
 	}
 	
 	private void recordKillerMove(Decision d, int ply) {
+		if (N_KILLER_MOVES == 0)
+			return;
+
 		// figure out if it's already in the list
 		int i;
 		for (i = N_KILLER_MOVES - 1; i >= 0; i--) {
@@ -170,6 +158,24 @@ public class CoalitionalMinimaxPlayer extends Player {
 		for (; i > 0; i--)
 			killerMoves[ply][i] = killerMoves[ply][i-1];
 		killerMoves[ply][0] = d;
+	}
+
+	public void recallKillerMoves(int ply, State s, Set<Decision> ds) {
+		if (N_KILLER_MOVES == 0)
+			return;
+		
+		// look back several plies
+		// XXX: this also considers irrelevant plies where it's not the player's turn
+		int jmin = Math.max(0, ply - KILLER_MOVES_HORIZON);
+		for (int j = ply; j >= jmin; j--) {
+			for (int i = N_KILLER_MOVES - 1; i >= 0; i--) {
+				Decision d = killerMoves[j][i];
+				if (d != null && d.isLegal(s)) {
+					killer_tries++;
+					ds.add(d);
+				}
+			}
+		}
 	}
 
 	private static class EvaluatedDecision {

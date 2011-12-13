@@ -3,27 +3,36 @@ package hobo;
 public class DrawCardDecision extends Decision {
 	// if color is not null, draw from open deck
 	public final Color color;
-	public DrawCardDecision()            { this.color = null; }
-	public DrawCardDecision(Color color) { this.color = color; }
-		
+	public DrawCardDecision(int player) {
+		this.player = player;
+		this.color = null;
+	}
+	public DrawCardDecision(int player, Color color) {
+		this.player = player;
+		this.color = color;
+	}
+
 	@Override public String toString() {
-		return "DrawCardDecision(color: "+color+")";
+		return "DrawCardDecision(player: "+player+" color: "+color+")";
 	}
 	
 	@Override public boolean equals(Object o) {
 		if (!(o instanceof DrawCardDecision))
 			return false;
 		DrawCardDecision that = (DrawCardDecision)o;
-		return that.color == this.color;
+		return that.player == this.player && that.color == this.color;
 	}
 
 	private static final int classHashCode = "DrawCardDecision".hashCode();
 	@Override public int hashCode() {
-		return (color == null ? -1 : color.hashCode()) ^ classHashCode;
+		return player ^ (color == null ? -1 : color.hashCode()) ^ classHashCode;
 	}
 
 	@Override public String reasonForIllegality(State s) {
-		PlayerState p = s.currentPlayerState();
+		if (s.currentPlayer() != player)
+			return "it's not your turn";
+		
+		PlayerState p = s.playerState(player);
 
 		if (p.drawn_missions != null)
 			return "you drew mission cards and now must decide which to keep";
@@ -39,7 +48,8 @@ public class DrawCardDecision extends Decision {
 	}
 	
 	@Override public void apply(State s) {
-		PlayerState p = s.currentPlayerState();
+		s.switchToPlayer(player);
+		PlayerState p = s.playerState(player);
 
 		// if drew a card last time, then can draw one more
 		boolean last_draw = p.drawn_card != null;

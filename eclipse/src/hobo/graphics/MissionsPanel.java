@@ -42,7 +42,7 @@ public class MissionsPanel extends JPanel implements Visualization {
 		JButton missionsButton = new JButton("Draw Mission Cards");
 		missionsButton.addActionListener(new ActionListener() {
 			@Override public void actionPerformed(ActionEvent e) {
-				gamePanel.registerDecision(new DrawMissionsDecision());
+				gamePanel.drawMissions();
 			}
 		});
 		add(missionsButton);

@@ -36,7 +36,7 @@ public class Main {
 						final Game g = new Game(//new HumanPlayer("tim", gp.getUserInterface()),
 						                        new CoalitionalMinimaxPlayer("paranoid", 1, 30),
 						                        new CoalitionalMinimaxPlayer("joshua", 0.5, 30),
-						                        new BestReplyMinimaxPlayer("maarten", 4));
+						                        new BestReplyMinimaxPlayer("maarten", 5));
 
 						g.registerObserver(new GameObserver() {
 							@Override public void observe(final Event e) {

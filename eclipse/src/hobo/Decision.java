@@ -3,6 +3,8 @@ package hobo;
 import java.util.*;
 
 public abstract class Decision {
+	public /* pretend final */ int player;
+
 	public boolean isLegal(State s) {
 		return reasonForIllegality(s) == null;
 	}

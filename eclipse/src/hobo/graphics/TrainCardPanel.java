@@ -27,7 +27,7 @@ public class TrainCardPanel extends JPanel {
 		setPreferredSize(new Dimension(200, 100));
 		addMouseListener(new MouseAdapter() {
 			@Override public void mouseClicked(MouseEvent e) {
-				gamePanel.registerDecision(new DrawCardDecision(color));
+				gamePanel.drawCard(color);
 			}
 		});
 	}

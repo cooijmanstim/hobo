@@ -183,10 +183,9 @@ public class State implements Cloneable {
 		return allPossibleDecisionsFor(current_player);
 	}
 	
-	public Set<Decision> allPossibleDecisionsFor(int handle) {
-		PlayerState ps = players[handle];
+	public Set<Decision> allPossibleDecisionsFor(int player) {
 		Set<Decision> ds = new LinkedHashSet<Decision>(100);
-
+		PlayerState ps = players[player];
 		if (ps.drawn_missions == null) {
 			if (ps.drawn_card == null) {
 				// claim
@@ -195,7 +194,7 @@ public class State implements Cloneable {
 						for (Color c: Color.values()) {
 							CardBag cs = ps.hand.cardsToClaim(r, c);
 							if (cs != null)
-								ds.add(new ClaimRailwayDecision(r, cs));
+								ds.add(new ClaimRailwayDecision(player, r, cs));
 						}
 					}
 				}
@@ -203,20 +202,20 @@ public class State implements Cloneable {
 			
 			for (Color c: Color.values())
 				if (open_deck.contains(c))
-					ds.add(new DrawCardDecision(c));
+					ds.add(new DrawCardDecision(player, c));
 
 			if (!deck.isEmpty())
-				ds.add(new DrawCardDecision(null));
+				ds.add(new DrawCardDecision(player, null));
 			
 			if (ps.drawn_card == null) {
-				ds.add(new DrawMissionsDecision());
+				ds.add(new DrawMissionsDecision(player));
 			}
 		} else {
 			// keep
 			for (Set<Mission> ms: Util.powerset(ps.drawn_missions)) {
 				if (ms.isEmpty())
 					continue;
-				ds.add(new KeepMissionsDecision(ms));
+				ds.add(new KeepMissionsDecision(player, ms));
 			}
 		}
 

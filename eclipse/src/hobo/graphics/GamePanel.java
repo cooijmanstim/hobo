@@ -4,7 +4,10 @@ import hobo.CardBag;
 import hobo.ClaimRailwayDecision;
 import hobo.Color;
 import hobo.Decision;
+import hobo.DrawCardDecision;
+import hobo.DrawMissionsDecision;
 import hobo.Event;
+import hobo.KeepMissionsDecision;
 import hobo.Mission;
 import hobo.PlayerState;
 import hobo.Railway;
@@ -22,6 +25,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Set;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -137,14 +141,27 @@ public class GamePanel extends JLayeredPane implements Visualization {
 	}
 	
 	public void claim(Railway r) {
+		PlayerState ps = state.currentPlayerState();
 		Color selection = hand.selection();
-		CardBag cards = state.currentPlayerState().hand.cardsToClaim(r, selection);
+		CardBag cards = ps.hand.cardsToClaim(r, selection);
 		// if couldn't afford it, just let the move be illegal so the user will be notified
 		if (cards == null)
 			cards = new CardBag();
-		registerDecision(new ClaimRailwayDecision(r, cards));
+		registerDecision(new ClaimRailwayDecision(ps.handle, r, cards));
 	}
 
+	public void drawMissions() {
+		registerDecision(new DrawMissionsDecision(state.currentPlayer()));
+	}
+
+	public void keepMissions(Set<Mission> ms) {
+		registerDecision(new KeepMissionsDecision(state.currentPlayer(), ms));
+	}
+
+	public void drawCard(Color c) {
+		registerDecision(new DrawCardDecision(state.currentPlayer(), c));
+	}
+	
 	public void message(String s) {
 		System.out.println(s);
 		add(new Toast(s), JLayeredPane.POPUP_LAYER);

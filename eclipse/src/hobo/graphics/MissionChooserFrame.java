@@ -31,7 +31,7 @@ public class MissionChooserFrame extends JFrame {
 				Object[] os = list.getSelectedValues();
 				for (int i = 0; i < os.length; i++)
 					ms.add((Mission)os[i]);
-				gamePanel.registerDecision(new KeepMissionsDecision(ms));
+				gamePanel.keepMissions(ms);
 				
 				setVisible(false);
 				dispose();
