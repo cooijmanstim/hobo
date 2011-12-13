@@ -17,7 +17,7 @@ public class CoalitionalMinimaxPlayer extends Player {
 		// max_depth*2 is an upper bound on number of plies
 		this.killerMoves = new Decision[max_depth*2+1][N_KILLER_MOVES];
 	}
-	
+
 	public Decision decide(State s) {
 		System.out.println("----------------------------------------------------");
 		System.out.println(name+" deciding...");

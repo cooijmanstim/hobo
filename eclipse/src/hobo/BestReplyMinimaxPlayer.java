@@ -11,79 +11,86 @@ public class BestReplyMinimaxPlayer extends Player {
 	}
 	
 	public Decision decide(State s) {
-		Decision d = minimax(s, max_depth,
+		System.out.println("----------------------------------------------------");
+		System.out.println(name+" deciding...");
+		Decision d = minimax(s, max_depth, 0,
 		                     Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY,
-		                     handle).decision;
+		                     handle).decision.decision;
 		System.out.println("average branching factor: "+(total_nbranches * 1.0 / total_nbranches_nterms));
+		//System.out.println("killer hit rate: "+(killer_hits*1.0/killer_tries)+"; "+killer_hits+"/"+killer_tries);
 		return d;
 	}
 
 	private static long total_nbranches = 0;
 	private static long total_nbranches_nterms = 0;
-	
-	// (this is pretty gruesome.)
-	public EvaluatedDecision minimax(State s, int depth, double a, double b, int inquirer) {
+
+	public EvaluatedDecision minimax(State s, int depth, int ply, double a, double b, int inquirer) {
 		if (depth <= 0 || s.gameOver())
 			return new EvaluatedDecision(null, utility(s, inquirer));
-		boolean maximizing = s.currentPlayer() == inquirer;
-		Decision dbest = null;
+		
+		Set<PlayerDecision> pds = new LinkedHashSet<PlayerDecision>(100);
+		
+		boolean maximizing = (ply % 2) == 0;
 		if (maximizing) {
-			for (Decision d: s.allPossibleDecisions()) {
-				total_nbranches++;
-
-				State t = s.clone();
-				t.applyDecision(d);
-
-				double u = minimax(t, depth - 1, a, b, inquirer).utility;
-
-				if (depth == max_depth)
-					System.out.println(u + "\t" + d);
-
-				if (u > a) {
-					a = u;
-					dbest = d;
-				}
-
-				if (b <= a)
-					break;
-			}
+			for (Decision d: s.allPossibleDecisionsFor(inquirer))
+				pds.add(new PlayerDecision(inquirer, d));
 		} else {
-			// let all other players make one decision
-			while (s.currentPlayer() != inquirer && !s.gameOver()) {
-				for (Decision d: s.allPossibleDecisions()) {
-					total_nbranches++;
-
-					State t = s.clone();
-					t.applyDecision(d);
-					
-					// forward to maximizing player
-					while (t.currentPlayer() != inquirer && !t.gameOver())
-						t.switchTurns();
-
-					double u = minimax(t, depth - 1, a, b, inquirer).utility;
-
-					if (u < b) {
-						b = u;
-						dbest = d;
-					}
-
-					if (b <= a)
-						break;
-				}
-				s.switchTurns();
+			// gather decisions for all other players
+			for (int player: s.players()) {
+				if (player == inquirer)
+					continue;
+				for (Decision d: s.allPossibleDecisionsFor(player))
+					pds.add(new PlayerDecision(player, d));
 			}
 		}
+
+		PlayerDecision pdbest = null;
+		for (PlayerDecision pd: pds) {
+			total_nbranches++;
+
+			State t = s.clone();
+			t.switchToPlayer(pd.player);
+			t.applyDecision(pd.decision);
+
+			int newply = ply;
+			if (t.currentPlayer() != pd.player)
+				newply++;
+
+			double u = minimax(t, depth - 1, newply, a, b, inquirer).utility;
+
+			if (maximizing) {
+				if (u > a) {
+					a = u;
+					pdbest = pd;
+				}
+			} else {
+				if (u < b) {
+					b = u;
+					pdbest = pd;
+				}
+			}
+
+			if (b <= a)
+				break;
+		}
 		total_nbranches_nterms++;
-		// if not maximizing, dbest is meaningless because it does not
-		// have player information.  but EvaluatedDecision.decision is
-		// only used on the top level, after maximizing.
-		return new EvaluatedDecision(dbest, maximizing ? a : b);
+		return new EvaluatedDecision(pdbest, maximizing ? a : b);
 	}
 
-	private static class EvaluatedDecision {
+	// decision along with player
+	private static class PlayerDecision {
+		public final int player;
 		public final Decision decision;
+		public PlayerDecision(int player, Decision decision) {
+			this.player = player;
+			this.decision = decision;
+		}
+	}
+	
+	private static class EvaluatedDecision {
+		public final PlayerDecision decision;
 		public final double utility;
-		public EvaluatedDecision(Decision d, double u) {
+		public EvaluatedDecision(PlayerDecision d, double u) {
 			decision = d; utility = u;
 		}
 	}

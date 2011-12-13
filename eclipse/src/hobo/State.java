@@ -12,9 +12,7 @@ public class State implements Cloneable {
 
 	// the index into this array is used to refer to a player in many places here.
 	private PlayerState[] players;
-
-	// keep track of player order
-	private int[] player_order;
+	private int current_player;
 
 	public Map<Railway,Integer> owner_by_railway = new HashMap<Railway,Integer>();
 
@@ -39,7 +37,7 @@ public class State implements Cloneable {
 		that.players = this.players.clone();
 		for (int i = 0; i < players.length; i++)
 			that.players[i] = that.players[i].clone();
-		that.player_order = this.player_order.clone();
+		that.current_player = this.current_player;
 		that.owner_by_railway.putAll(this.owner_by_railway);
 		that.deck.addAll(this.deck);
 		that.open_deck.addAll(this.open_deck);
@@ -61,11 +59,9 @@ public class State implements Cloneable {
 	public State(String... player_names) {
 		int ni = player_names.length;
 		players = new PlayerState[ni];
-		player_order = new int[ni];
-		for (int i = 0; i < ni; i++) {
+		for (int i = 0; i < ni; i++)
 			players[i] = new PlayerState(i, player_names[i], colors[next_color_index++]);
-			player_order[i] = i;
-		}
+		current_player = 0;
 	}
 
 	public void setup() {
@@ -91,50 +87,44 @@ public class State implements Cloneable {
 	}
 
 	public void switchTurns() {
-		int curr = player_order[0];
-
 		if (currentPlayerState().almostOutOfCars()) {
 			if (last_player < 0) {
-				last_player = curr;
-			} else if (last_player == curr) {
+				last_player = current_player;
+			} else if (last_player == current_player) {
 				game_over = true;
 				return;
 			}
 		}
-		
-		// shifts all elements forward, putting the first element in the back
-		int ni = player_order.length;
-		for (int i = 1; i < ni; i++)
-			player_order[i-1] = player_order[i];
-		player_order[ni-1] = curr;
+
+		current_player++;
+		current_player %= players.length;
+	}
+
+	// this results in invalid states (used in best-reply search)
+	public void switchToPlayer(int handle) {
+		current_player = handle;
 	}
 
 	public int[] players() {
-		return player_order.clone();
+		int[] handles = new int[players.length];
+		for (int i = 0; i < handles.length; i++)
+			handles[i] = i;
+		return handles;
 	}
 	
 	public List<PlayerState> playerStates() {
 		List<PlayerState> playerStates = new ArrayList<PlayerState>();
-		for (int i: player_order)
+		for (int i = 0; i < players.length; i++)
 			playerStates.add(players[i]);
 		return playerStates;
 	}
 	
 	public int currentPlayer() {
-		return player_order[0];
+		return current_player;
 	}
 
 	public PlayerState currentPlayerState() {
-		return playerState(currentPlayer());
-	}
-
-	// TODO: this shouldn't be necessary
-	public int playerHandleByName(String name) {
-		for (PlayerState ps: players) {
-			if (ps.name.equals(name))
-				return ps.handle;
-		}
-		throw new RuntimeException("no player with name "+name);
+		return playerState(current_player);
 	}
 
 	public PlayerState playerState(int handle) {
@@ -147,7 +137,7 @@ public class State implements Cloneable {
 
 	public boolean isDraw() {
 		int winner = winner();
-		for (int handle: player_order) {
+		for (int handle: players()) {
 			if (handle != winner && players[winner].finalScore() == players[handle].finalScore())
 				return true;
 		}
@@ -157,8 +147,7 @@ public class State implements Cloneable {
 	public int winner() {
 		int xmax = Integer.MIN_VALUE;
 		int winner = -1;
-		int ni = players.length;
-		for (int i = 0; i < ni; i++) {
+		for (int i = 0; i < players.length; i++) {
 			int x = players[i].finalScore();
 			if (x > xmax) {
 				xmax = x;
@@ -191,7 +180,11 @@ public class State implements Cloneable {
 	}
 
 	public Set<Decision> allPossibleDecisions() {
-		PlayerState ps = currentPlayerState();
+		return allPossibleDecisionsFor(current_player);
+	}
+	
+	public Set<Decision> allPossibleDecisionsFor(int handle) {
+		PlayerState ps = players[handle];
 		Set<Decision> ds = new LinkedHashSet<Decision>(100);
 
 		if (ps.drawn_missions == null) {
