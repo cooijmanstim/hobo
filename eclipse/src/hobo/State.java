@@ -207,9 +207,8 @@ public class State implements Cloneable {
 			if (!deck.isEmpty())
 				ds.add(new DrawCardDecision(player, null));
 			
-			if (ps.drawn_card == null) {
+			if (ps.drawn_card == null && !missions.isEmpty())
 				ds.add(new DrawMissionsDecision(player));
-			}
 		} else {
 			// keep
 			for (Set<Mission> ms: Util.powerset(ps.drawn_missions)) {

@@ -2,6 +2,7 @@ package hobo;
 
 import hobo.graphics.GamePanel;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -41,12 +42,17 @@ public class Main {
 
 						g.registerObserver(new GameObserver() {
 							@Override public void observe(final Event e) {
-								javax.swing.SwingUtilities.invokeLater(new Runnable() {
-									public void run() {
-										gp.reflect(e.state);
-										gp.repaint();
-									}
-								});
+								try {
+									javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+										public void run() {
+											gp.reflect(e.state);
+											gp.repaint();
+										}
+									});
+								} catch (Exception ex) {
+									ex.printStackTrace();
+									System.exit(1);
+								}
 							}
 						});
 						

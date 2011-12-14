@@ -66,7 +66,7 @@ public class MissionsPanel extends JPanel implements Visualization {
 			missionsImage.add(getToolkit().getImage("src/missions/"+m.imagePath));
 			missionsCombo.addItem(m.source + " - " + m.destination + " ("+m.value+")");
 		}
-		if (ps.drawn_missions != null)
+		if (ps.drawn_missions != null && gamePanel.awaitingDecision())
 			new MissionChooserFrame(ps.drawn_missions, gamePanel);
 	}
 }

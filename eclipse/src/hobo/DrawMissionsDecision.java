@@ -28,7 +28,7 @@ public class DrawMissionsDecision extends Decision {
 		if (s.currentPlayer() != player) return "it's not your turn";
 		if (p.drawn_card != null) return "you drew a card and now must decide which other card to draw";
 		if (p.drawn_missions != null) return "you drew mission cards and now must decide which to keep";
-		// NOTE: the rules don't forbid deciding to draw mission cards if the mission deck is empty
+		if (s.missions.isEmpty()) return "no missions to draw";
 		return null;
 	}
 	

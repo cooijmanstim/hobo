@@ -140,6 +140,7 @@ public class GamePanel extends JLayeredPane implements Visualization {
 		};
 	}
 	
+	
 	public void claim(Railway r) {
 		PlayerState ps = state.currentPlayerState();
 		Color selection = hand.selection();
@@ -162,6 +163,7 @@ public class GamePanel extends JLayeredPane implements Visualization {
 		registerDecision(new DrawCardDecision(state.currentPlayer(), c));
 	}
 	
+	
 	public void message(String s) {
 		System.out.println(s);
 		add(new Toast(s), JLayeredPane.POPUP_LAYER);
@@ -170,6 +172,7 @@ public class GamePanel extends JLayeredPane implements Visualization {
 	// here be the thread-hackery that is required to make
 	// PlayerInteraction work for a graphical interface.
 	private final Object lastDecisionLock = new Object();
+	private boolean awaitingDecision = false;
 	private Decision lastDecision = null;
 	
 	public void registerDecision(Decision d) {
@@ -180,8 +183,9 @@ public class GamePanel extends JLayeredPane implements Visualization {
 	}
 	
 	public Decision getDecision() {
+		awaitingDecision = true;
+		Decision d = null;
 		try {
-			Decision d = null;
 			while (d == null) {
 					synchronized (lastDecisionLock) {
 						lastDecisionLock.wait();
@@ -189,9 +193,14 @@ public class GamePanel extends JLayeredPane implements Visualization {
 						lastDecision = null;
 					}
 			}
-			return d;
 		} catch (InterruptedException e) {
-			return null;
+			d = null;
 		}
+		awaitingDecision = false;
+		return d;
+	}
+	
+	public boolean awaitingDecision() {
+		return awaitingDecision;
 	}
 }
