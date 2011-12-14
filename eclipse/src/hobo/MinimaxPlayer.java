@@ -220,6 +220,4 @@ public class MinimaxPlayer extends Player {
 			u += (coalition[ps.handle] ? 1 : -1) * ps.finalScore();
 		return u;
 	}
-	
-	private class OutOfTimeException extends Exception {}
 }
