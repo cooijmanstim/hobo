@@ -35,9 +35,10 @@ public class Main {
 					public void actionPerformed(ActionEvent e) {
 						final GamePanel gp = new GamePanel();
 
-						final Game g = new Game(new MinimaxPlayer("minimax", 1, true, 30));
+						final Game g = new Game(new MinimaxPlayer("chris", 1, true, 3),
 //						                        new CoalitionalMinimaxPlayer("paranoid", 1, 30),
 //						                        new CoalitionalMinimaxPlayer("joshua", 0.5, 3));
+												new MinimaxPlayer("marius", 1, true, 3));
 
 
 

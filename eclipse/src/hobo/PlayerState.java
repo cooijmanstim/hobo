@@ -133,7 +133,7 @@ public class PlayerState implements Cloneable {
 	
 	public double utility(State s) {
 		// advantage over the other players combined
-		
+		if (s.gameOver()) return finalScore();
 		double u = 0.0;
 		for(Mission m : missions) {
 			int length = 0;
