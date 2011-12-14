@@ -42,10 +42,12 @@ public class KeepMissionsDecision extends Decision {
 
 		// don't modify drawn_missions; it isn't cloned along with playerstate
 		for (Mission m: p.drawn_missions) {
-			if (missions.contains(m))
+			if (missions.contains(m)) {
+				// FIXME: maintain p.completed_missions
 				p.missions.add(m);
-			else
+			} else {
 				s.missions.addLast(m);
+			}
 		}
 		p.drawn_missions = null;
 

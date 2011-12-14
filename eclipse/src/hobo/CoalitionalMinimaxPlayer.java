@@ -5,17 +5,19 @@ import java.util.*;
 public class CoalitionalMinimaxPlayer extends Player {
 	private static final int N_KILLER_MOVES = 3,
 	                         KILLER_MOVES_HORIZON = 2,
-	                         MAX_DECISION_TIME = 60000;
+	                         MAX_DECISION_TIME = 10000;
 	private final double paranoia;
 	private final int max_depth;
+	private final boolean best_reply;
 
-	public CoalitionalMinimaxPlayer(String name, double paranoia, int max_depth) {
+	public CoalitionalMinimaxPlayer(String name, double paranoia, boolean best_reply, int max_depth) {
 		this.name = name;
 		this.paranoia = paranoia;
+		this.best_reply = best_reply;
 		this.max_depth = max_depth;
 		// store N_KILLER_MOVES killer moves per ply
-		// max_depth*2 is an upper bound on number of plies
-		this.killerMoves = new Decision[max_depth*2+1][N_KILLER_MOVES];
+		// max_depth is an upper bound on number of plies
+		this.killerMoves = new Decision[max_depth][N_KILLER_MOVES];
 	}
 
 	public Decision decide(State s) {
@@ -97,23 +99,48 @@ public class CoalitionalMinimaxPlayer extends Player {
 			throw new OutOfTimeException();
 		if (depth <= 0 || s.gameOver())
 			return new EvaluatedDecision(null, utility(s, coalition));
-		boolean maximizing = coalition[s.currentPlayer()];
-		Decision dbest = null;
-		
+
 		Set<Decision> ds = new LinkedHashSet<Decision>(100);
 		recallKillerMoves(ply, s, ds);
-		ds.addAll(s.allPossibleDecisions());
 
+		boolean maximizing;
+		if (best_reply) {
+			// In best-reply search, we can't rely on s.currentPlayer(), because it depends
+			// on who performed the last decision.  But we know that every other ply is
+			// maximizing.
+			maximizing = (ply % 2) == 0;
+			if (ply == 0) {
+				// In the end, we have to return a decision for ourselves, and not
+				// for another coalition member.
+				ds.addAll(s.allPossibleDecisionsFor(handle));
+			} else {
+				for (int player: s.players()) {
+					// NOTE: if both true or both false
+					if (coalition[player] == maximizing)
+						ds.addAll(s.allPossibleDecisionsFor(player));
+				}
+			}
+		} else {
+			int player = s.currentPlayer();
+			maximizing = coalition[player];
+			ds.addAll(s.allPossibleDecisionsFor(player));
+		}
+
+		Decision dbest = null;
 		for (Decision d: ds) {
 			total_nbranches++;
 
+			if (!best_reply && s.currentPlayer() != d.player)
+				throw new RuntimeException("nooooooo: "+d);
+
 			State t = s.clone();
+			t.switchToPlayer(d.player); // not necessary, but to be clear
 			d.apply(t);
 
+			// next ply if decision ended a turn
 			int newply = ply;
-			if (	    maximizing && !coalition[t.currentPlayer()]
-					|| !maximizing &&  coalition[t.currentPlayer()])
-				newply += 1;
+			if (t.currentPlayer() != d.player)
+				newply++;
 			
 			double u = minimax(t, depth - 1, newply, a, b, coalition).utility;
 
@@ -165,12 +192,12 @@ public class CoalitionalMinimaxPlayer extends Player {
 			return;
 		
 		// look back several plies
-		// XXX: this also considers irrelevant plies where it's not the player's turn
-		int jmin = Math.max(0, ply - KILLER_MOVES_HORIZON);
-		for (int j = ply; j >= jmin; j--) {
+		int step = best_reply ? 2 : s.players().length;
+		int jmin = Math.max(0, ply - step * KILLER_MOVES_HORIZON);
+		for (int j = ply; j >= jmin; j -= step) {
 			for (int i = N_KILLER_MOVES - 1; i >= 0; i--) {
 				Decision d = killerMoves[j][i];
-				if (d != null && d.isLegal(s)) {
+				if (d != null && d.isLegalForPlayer(s)) {
 					killer_tries++;
 					ds.add(d);
 				}

@@ -19,14 +19,20 @@ public class BestReplyMinimaxPlayer extends Player {
 	public Decision decide(State s) {
 		System.out.println("----------------------------------------------------");
 		System.out.println(name+" deciding...");
-		boolean[] coalition = new boolean[s.players().length];
-		coalition[handle] = true;
+		boolean[] coalition = selectCoalition(s);
 		System.out.println("assumed coalition "+Arrays.toString(coalition));
 		Decision d = deepenIteratively(s, coalition);
 		System.out.println("assumed coalition "+Arrays.toString(coalition));
 		System.out.println("average branching factor: "+(total_nbranches * 1.0 / total_nbranches_nterms));
 		System.out.println("killer hit rate: "+(killer_hits*1.0/killer_tries)+"; "+killer_hits+"/"+killer_tries);
 		return d;
+	}
+
+	// it's really just paranoia = 1
+	private boolean[] selectCoalition(State s) {
+		boolean[] coalition = new boolean[s.players().length];
+		coalition[handle] = true;
+		return coalition;
 	}
 
 	private boolean outOfTime = false;
@@ -75,16 +81,12 @@ public class BestReplyMinimaxPlayer extends Player {
 		Set<Decision> ds = new LinkedHashSet<Decision>(100);
 		recallKillerMoves(ply, s, ds);
 		
+		// can't rely on s.currentPlayer()
 		boolean maximizing = (ply % 2) == 0;
-		if (maximizing) {
-			ds.addAll(s.allPossibleDecisionsFor(handle));
-		} else {
-			// gather decisions for all other players
-			for (int handle: s.players()) {
-				if (coalition[handle])
-					continue;
+
+		for (int handle: s.players()) {
+			if (coalition[handle] == maximizing)
 				ds.addAll(s.allPossibleDecisionsFor(handle));
-			}
 		}
 
 		Decision dbest = null;
@@ -92,6 +94,7 @@ public class BestReplyMinimaxPlayer extends Player {
 			total_nbranches++;
 
 			State t = s.clone();
+			t.switchToPlayer(d.player);
 			d.apply(t);
 
 			int newply = ply;
