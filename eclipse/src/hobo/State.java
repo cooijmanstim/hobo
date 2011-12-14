@@ -8,7 +8,7 @@ public class State implements Cloneable {
 	                        INITIAL_MISSION_COUNT = 3,
 	                        OPEN_DECK_SIZE = 5;
 
-	public final Random random = new Random(0);
+	public final Random random = new Random(0); //change this for more random things
 
 	// the index into this array is used to refer to a player in many places here.
 	private PlayerState[] players;
@@ -17,6 +17,7 @@ public class State implements Cloneable {
 	private int[] player_order;
 
 	public Map<Railway,Integer> owner_by_railway = new HashMap<Railway,Integer>();
+	
 
 	public CardBag deck      = new CardBag();
 	public CardBag open_deck = new CardBag();
@@ -190,6 +191,46 @@ public class State implements Cloneable {
 		d.apply(this);
 	}
 
+	public Set<Decision> allPossibleDecisionsOnlyOptimalRailways(ArrayList<Railway> rails) {
+		PlayerState ps = currentPlayerState();
+		Set<Decision> ds = new LinkedHashSet<Decision>(100);
+
+		if (ps.drawn_missions == null) {
+			if (ps.drawn_card == null) {
+				// claim
+				for (Railway r: rails) {
+					if (!isClaimed(r) && r.length <= ps.ncars && !ps.railways.contains(r.dual)) {
+						for (Color c: Color.values()) {
+							CardBag cs = ps.hand.cardsToClaim(r, c);
+							if (cs != null)
+								ds.add(new ClaimRailwayDecision(r, cs));
+						}
+					}
+				}
+			}
+			
+			for (Color c: Color.values())
+				if (open_deck.contains(c))
+					ds.add(new DrawCardDecision(c));
+
+			if (!deck.isEmpty())
+				ds.add(new DrawCardDecision(null));
+			
+			if (ps.drawn_card == null) {
+				ds.add(new DrawMissionsDecision());
+			}
+		} else {
+			// keep
+			for (Set<Mission> ms: Util.powerset(ps.drawn_missions)) {
+				if (ms.isEmpty())
+					continue;
+				ds.add(new KeepMissionsDecision(ms));
+			}
+		}
+
+		return ds;
+	}
+	
 	public Set<Decision> allPossibleDecisions() {
 		PlayerState ps = currentPlayerState();
 		Set<Decision> ds = new LinkedHashSet<Decision>(100);
