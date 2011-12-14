@@ -157,7 +157,12 @@ public class PlayerState implements Cloneable {
 				e += (-p)*Util.log2(p);
 			}			
 		}
+		int mPoints = 0;
+		if(missions.size() > 3) {
+			mPoints += 10*(missions.size()-3);
+		}
+		
 //		System.out.println("score="+score+" - u="+u+" - e="+e);
-		return score + u + (1-e)*5;
+		return score + u + (1-e)*2 - mPoints;
 	}
 }

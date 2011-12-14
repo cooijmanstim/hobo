@@ -3,7 +3,7 @@ package hobo;
 import java.util.*;
 
 public class MaxNPlayer extends Player {
-	private static final int MAX_DECISION_TIME = 10000;
+	private static final int MAX_DECISION_TIME = 2000;
 	private final int max_depth;
 
 	public MaxNPlayer(String name, int max_depth) {
@@ -12,8 +12,8 @@ public class MaxNPlayer extends Player {
 	}
 
 	public Decision decide(State s) {
-		System.out.println("----------------------------------------------------");
-		System.out.println(name+" deciding...");
+//		System.out.println("----------------------------------------------------");
+//		System.out.println(name+" deciding...");
 		Decision d = deepenIteratively(s);
 		System.out.println("average branching factor: "+(total_nbranches * 1.0 / total_nbranches_nterms));
 		return d;
@@ -37,7 +37,7 @@ public class MaxNPlayer extends Player {
 				d = ed.decision;
 			}
 		} catch (OutOfTimeException e) {
-			System.out.println("out of time");
+//			System.out.println("out of time");
 		}
 		
 		if (!outOfTime)

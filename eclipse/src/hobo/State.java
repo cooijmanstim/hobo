@@ -8,7 +8,7 @@ public class State implements Cloneable {
 	                        INITIAL_MISSION_COUNT = 3,
 	                        OPEN_DECK_SIZE = 5;
 
-	public final Random random = new Random(0); //change this for more random things
+	public final Random random = new Random(System.currentTimeMillis()); //change this for more random things
 
 	// the index into this array is used to refer to a player in many places here.
 	private PlayerState[] players;

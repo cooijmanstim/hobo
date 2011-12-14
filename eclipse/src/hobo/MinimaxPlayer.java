@@ -5,7 +5,7 @@ import java.util.*;
 public class MinimaxPlayer extends Player {
 	private static final int N_KILLER_MOVES = 3,
 	                         KILLER_MOVES_HORIZON = 2,
-	                         MAX_DECISION_TIME = 5000;
+	                         MAX_DECISION_TIME = 2000;
 	private final double paranoia;
 	private final int max_depth;
 	private final boolean best_reply;
