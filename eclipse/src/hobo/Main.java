@@ -34,10 +34,10 @@ public class Main {
 					public void actionPerformed(ActionEvent e) {
 						final GamePanel gp = new GamePanel();
 						final Game g = new Game(//new HumanPlayer("tim", gp.getUserInterface()),
-		                                        new CoalitionalMinimaxPlayer("paranoid", 1, false, 30),
-		                                        new CoalitionalMinimaxPlayer("joshua", 0.5, true, 30),
-		                                        new CoalitionalMinimaxPlayer("maarten", 1, true, 30),
-						                        new CoalitionalMinimaxPlayer("steven", 0.5, false, 30));
+		                                        new MinimaxPlayer("paranoid", 1, false, 30),
+		                                        new MinimaxPlayer("joshua", 0.5, true, 30),
+		                                        new MinimaxPlayer("maarten", 1, true, 30),
+						                        new MinimaxPlayer("steven", 0.5, false, 30));
 
 						g.registerObserver(new GameObserver() {
 							@Override public void observe(final Event e) {
