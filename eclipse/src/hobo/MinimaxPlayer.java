@@ -5,7 +5,7 @@ import java.util.*;
 public class MinimaxPlayer extends Player {
 	private static final int N_KILLER_MOVES = 3,
 	                         KILLER_MOVES_HORIZON = 2,
-	                         MAX_DECISION_TIME = 10000;
+	                         MAX_DECISION_TIME = 5000;
 	private final double paranoia;
 	private final int max_depth;
 	private final boolean best_reply;
@@ -217,7 +217,7 @@ public class MinimaxPlayer extends Player {
 		// advantage of coalition over opposition
 		int u = 0;
 		for (PlayerState ps: s.playerStates())
-			u += (coalition[ps.handle] ? 1 : -1) * ps.finalScore();
+			u += (coalition[ps.handle] ? 1 : -1) * ps.utility(s);
 		return u;
 	}
 }

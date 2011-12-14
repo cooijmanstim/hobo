@@ -98,7 +98,7 @@ public class MaxNPlayer extends Player {
 	public static double[] utility(State s) {
 		double[] utility = new double[s.players().length];
 		for (int handle: s.players())
-			utility[handle] = s.playerState(handle).finalScore();
+			utility[handle] = s.playerState(handle).utility(s);
 		return utility;
 	}
 }

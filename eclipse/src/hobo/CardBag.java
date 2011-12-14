@@ -273,5 +273,9 @@ public class CardBag implements Cloneable, Iterable<Color> {
 		requireIteratorFinitude();
 	}
 	
+	public int[] multiplicities() {
+		return ks.clone();
+	}
+	
 	public static void main(String[] args) {}
 }

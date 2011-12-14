@@ -1,5 +1,6 @@
 package hobo;
 
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.List;
 import java.util.HashSet;
@@ -128,5 +129,35 @@ public class PlayerState implements Cloneable {
 			}
 		}
 		return cities;
+	}
+	
+	public double utility(State s) {
+		// advantage over the other players combined
+		
+		double u = 0.0;
+		for(Mission m : missions) {
+			int length = 0;
+			int LENGTH = 0;
+			for(Railway r : Util.getShortestWay(m.source, m.destination, new ArrayList<Railway>(), s)) {
+				LENGTH += r.length;
+				if(railways.contains(r))
+					length += r.length;
+			}
+			u += m.value*(2 * ( length * 1.0 / LENGTH * 1.0 ) - 1);
+			
+		}
+		double e=0.0;
+		if(hand.size() == 0)
+			e = 1;
+		else {
+			for(int k:hand.multiplicities()) {
+				if(k == 0)
+					continue;
+				double p = (k*1.0)/hand.size();
+				e += (-p)*Util.log2(p);
+			}			
+		}
+//		System.out.println("score="+score+" - u="+u+" - e="+e);
+		return score + u + (1-e)*5;
 	}
 }

@@ -78,4 +78,8 @@ public class Util {
 	private static double calcDist(City city1, City city2) {
 		return Math.sqrt(Math.pow(city2.x-city1.x,2)+Math.pow(city2.y-city1.y,2));
 	}
+	
+	public static double log2(double number) {
+		return (Math.log10(number)/Math.log10(2));
+	}
 }
