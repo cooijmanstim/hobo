@@ -4,31 +4,29 @@ public class ClaimRailwayDecision extends Decision {
 	public final Railway railway;
 	public final CardBag cards;
 
-	public ClaimRailwayDecision(Railway railway, CardBag cards) {
-		assert(railway != null);
-		assert(cards != null);
-		this.railway = railway; this.cards = cards;
+	public ClaimRailwayDecision(int player, Railway railway, CardBag cards) {
+		this.player = player; this.railway = railway; this.cards = cards;
 	}
 	
 	@Override public String toString() {
-		return "ClaimRailwayDecision(railway: "+railway+" cards: "+cards+")";
+		return "ClaimRailwayDecision(player: "+player+" railway: "+railway+" cards: "+cards+")";
 	}
 	
 	@Override public boolean equals(Object o) {
 		if (!(o instanceof ClaimRailwayDecision))
 			return false;
 		ClaimRailwayDecision that = (ClaimRailwayDecision)o;
-		return that.railway == this.railway && that.cards.equals(this.cards);
+		return that.player == this.player && that.railway == this.railway && that.cards.equals(this.cards);
 	}
 
 	private static final int classHashCode = "ClaimRailwayDecision".hashCode();
 	@Override public int hashCode() {
-		return railway.hashCode() ^ cards.hashCode() ^ classHashCode;
+		return player ^ railway.hashCode() ^ cards.hashCode() ^ classHashCode;
 	}
 	
 	@Override public String reasonForIllegality(State s) {
-		PlayerState p = s.currentPlayerState();
-
+		if (s.currentPlayer() != player) return "it's not your turn";
+		PlayerState p = s.playerState(player);
 		if (p.drawn_card != null) return "you drew a card and now must decide what other card to draw";
 		if (p.drawn_missions != null) return "you drew mission cards and now must decide which to keep";
 		if (p.ncars < railway.length) return "you do not have enough cars";
@@ -40,13 +38,13 @@ public class ClaimRailwayDecision extends Decision {
 	}
 
 	@Override public void apply(State s) {
-		PlayerState p = s.currentPlayerState();
+		s.switchToPlayer(player);
+		PlayerState p = s.playerState(player);
 
 		p.hand.removeAll(cards);
 		s.discarded.addAll(cards);
 
 		p.claim(railway);
-
 		s.owner_by_railway.put(railway, p.handle);
 
 		s.restoreDecks();

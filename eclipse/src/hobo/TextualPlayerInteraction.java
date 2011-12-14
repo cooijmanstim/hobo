@@ -29,13 +29,13 @@ public class TextualPlayerInteraction implements PlayerInteraction {
 		do {
 			System.out.print("? ");
 			String[] words = get_words();
-			d = interpret(words);
+			d = interpret(words, ps.handle);
 		} while (d == null);
 
 		return d;
 	}
 
-	public Decision interpret(String[] words) {
+	public Decision interpret(String[] words, int player) {
 		/*
 		 * claim <cards> <city1> <city2> [color]
 		 * draw [color]
@@ -76,7 +76,7 @@ public class TextualPlayerInteraction implements PlayerInteraction {
 				return null;
 			}
 			
-			return new ClaimRailwayDecision(r, cards);
+			return new ClaimRailwayDecision(player, r, cards);
 		}
 
 		if (words[0].equals("draw")) {
@@ -88,11 +88,11 @@ public class TextualPlayerInteraction implements PlayerInteraction {
 					return null;
 				}
 			}
-			return new DrawCardDecision(c);
+			return new DrawCardDecision(player, c);
 		}
 
 		if (words[0].equals("draw_missions")) {
-			return new DrawMissionsDecision();
+			return new DrawMissionsDecision(player);
 		}
 
 		if (words[0].equals("keep_missions")) {
@@ -118,7 +118,7 @@ public class TextualPlayerInteraction implements PlayerInteraction {
 					}
 					missions.add(m);
 				}
-				return new KeepMissionsDecision(missions);
+				return new KeepMissionsDecision(player, missions);
 			}
 		}
 

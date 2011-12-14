@@ -87,7 +87,6 @@ public class Game {
 
 	public void registerObserver(GameObserver go) {
 		observers.add(go);
-		go.observe(new Event(state, null, null));
 	}
 
 	public void notifyObservers(Event e) {

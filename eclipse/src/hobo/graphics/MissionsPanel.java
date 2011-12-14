@@ -42,7 +42,7 @@ public class MissionsPanel extends JPanel implements Visualization {
 		JButton missionsButton = new JButton("Draw Mission Cards");
 		missionsButton.addActionListener(new ActionListener() {
 			@Override public void actionPerformed(ActionEvent e) {
-				gamePanel.registerDecision(new DrawMissionsDecision());
+				gamePanel.drawMissions();
 			}
 		});
 		add(missionsButton);
@@ -66,7 +66,7 @@ public class MissionsPanel extends JPanel implements Visualization {
 			missionsImage.add(getToolkit().getImage("src/missions/"+m.imagePath));
 			missionsCombo.addItem(m.source + " - " + m.destination + " ("+m.value+")");
 		}
-		if (ps.drawn_missions != null)
+		if (ps.drawn_missions != null && gamePanel.awaitingDecision())
 			new MissionChooserFrame(ps.drawn_missions, gamePanel);
 	}
 }
