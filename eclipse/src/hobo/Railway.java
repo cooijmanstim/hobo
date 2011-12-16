@@ -28,6 +28,10 @@ public class Railway {
 		       this.source == d && this.destination == c;
 	}
 	
+	public boolean connects(City c) {
+		return this.source == c || this.destination == c;
+	}
+	
 	public City otherCity(City c) {
 		return (this.source      == c) ? this.destination
 		     : (this.destination == c) ? this.source

@@ -12,7 +12,21 @@ import javax.swing.*;
 
 public class Main {
 	public static void main(String[] args) {
-		graphical();
+		headless();
+	}
+	
+	public static void headless() {
+		long then = System.currentTimeMillis();
+		for (int i = 0; i < 300; i++) {
+			Game g = new Game(new RandomPlayer("igor"),
+					new RandomPlayer("igor"),
+				new RandomPlayer("igor"),
+				new RandomPlayer("iwan"));
+			g.play();
+			//g.printScores();
+		}
+		long now = System.currentTimeMillis();
+		System.out.println(now - then);
 	}
 	
 	public static void textual() {
@@ -35,12 +49,10 @@ public class Main {
 					public void actionPerformed(ActionEvent e) {
 						final GamePanel gp = new GamePanel();
 
-						final Game g = new Game(//new MaxNPlayer("MaxN", 30),
-												new MinimaxPlayer("Minimax", 1, false, 30),
-												new MinimaxPlayer("Minimax-best-reply", 1, true, 30));
-												//new RandomPlayer("random"));
-
-
+						final Game g = new Game(new MinimaxPlayer("joshua", 0, false, 30),
+												new RandomPlayer("igor"),
+												new RandomPlayer("iwan"),
+												new RandomPlayer("piotr"));
 
 						g.registerObserver(new GameObserver() {
 							@Override public void observe(final Event e) {

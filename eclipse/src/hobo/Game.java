@@ -74,6 +74,13 @@ public class Game {
 		notifyPlayers(e);
 		notifyObservers(e);
 	}
+	
+	public void printScores() {
+		for (Player p: players) {
+			PlayerState ps = state.playerState(p.handle);
+			System.out.println(ps.name+": "+ps.finalScore());
+		}
+	}
 
 	private boolean aborted = false;
 	public void abort() {

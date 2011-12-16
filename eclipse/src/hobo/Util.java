@@ -34,11 +34,8 @@ public class Util {
 	}
 	
 	public static ArrayList<Railway> getShortestWay(City city1, City city2, ArrayList<Railway> rails, State s) {
-		if(rails.size() > 0) {
-			if((rails.get(rails.size()-1).destination.name.equals(city2.name) || rails.get(rails.size()-1).source.name.equals(city2.name))) {
-				return rails;			
-			}
-		}
+		if (rails.size() > 0 && rails.get(rails.size()-1).connects(city2))
+				return rails;
 		Railway railwayChoose = null;
 		double dist = Double.POSITIVE_INFINITY;
 		
@@ -47,30 +44,17 @@ public class Util {
 //		allRailways.removeAll(OccupiedRailways);
 //		System.out.println(city1);
 //		System.out.println(allRailways.size());
-		for(Railway r : city1.railways) { 
-			
-			if(r.source.name.equals(city1.name)) {
-				City city = r.destination;
-				double distance = calcDist(city, city2);
-				if(dist > distance) {
-					dist = distance;
-					railwayChoose = r;
-				}
-			} else {
-				City city = r.source;
-				double distance = calcDist(city, city2);
-				if(dist > distance) {
-					dist = distance;
-					railwayChoose = r;
-				}
+		for (Railway r : city1.railways) {
+			City city = r.otherCity(city1);
+			double distance = calcDist(city, city2);
+			if (dist > distance) {
+				dist = distance;
+				railwayChoose = r;
 			}
 		}
 		rails.add(railwayChoose);
-		if(railwayChoose.source.name.equals(city1.name)) {
-			getShortestWay(railwayChoose.destination, city2, rails, s);					
-		} else {
-			getShortestWay(railwayChoose.source, city2, rails, s);
-		}
+
+		getShortestWay(railwayChoose.otherCity(city1), city2, rails, s);					
 		
 		return rails;
 	}
