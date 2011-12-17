@@ -1,10 +1,12 @@
 package hobo;
 
-import java.util.HashSet;
-
 public class DrawMissionsDecision extends Decision {
 	public DrawMissionsDecision(int player) {
 		this.player = player;
+	}
+	
+	public DrawMissionsDecision(DrawMissionsDecision that) {
+		this.player = that.player;
 	}
 	
 	@Override public String toString() {
@@ -12,10 +14,16 @@ public class DrawMissionsDecision extends Decision {
 	}
 	
 	@Override public boolean equals(Object o) {
+		if (this == o)
+			return true;
 		if (!(o instanceof DrawMissionsDecision))
 			return false;
 		DrawMissionsDecision that = (DrawMissionsDecision)o;
 		return that.player == this.player;
+	}
+	
+	@Override public DrawMissionsDecision clone() {
+		return new DrawMissionsDecision(this);
 	}
 
 	private static final int classHashCode = "DrawMissionsDecision".hashCode();
@@ -32,14 +40,32 @@ public class DrawMissionsDecision extends Decision {
 		return null;
 	}
 	
+	private State appliedTo = null;
+	private Random old_random;
+	private int old_player;
+	
 	@Override public void apply(State s) {
+		assert(appliedTo == null);
+		appliedTo = s;
+
+		old_random = s.random.clone();
+		old_player = s.currentPlayer();
 		s.switchToPlayer(player);
 		PlayerState p = s.playerState(player);
 
-		p.drawn_missions = new HashSet<Mission>();
-		for (int i = 0; i < 3; i++) {
-			if (!s.missions.isEmpty())
-				p.drawn_missions.add(s.missions.removeFirst());
-		}
+		p.drawn_missions = Util.remove_sample(s.missions, 3, s.random);
+	}
+	
+	@Override public void undo(State s) {
+		assert(appliedTo == s);
+		appliedTo = null;
+
+		PlayerState p = s.playerState(player);
+		
+		s.missions.addAll(p.drawn_missions);
+		p.drawn_missions = null;
+		
+		s.switchToPlayer(old_player);
+		s.random = old_random;
 	}
 }

@@ -27,8 +27,15 @@ public class Main {
 		}
 		long now = System.currentTimeMillis();
 		System.out.println(now - then);
+		
+//		Game g = new Game(new MinimaxPlayer("joshua", 1, false, 3),
+//		                  new MinimaxPlayer("maarten", 1, true, 3));
+//		g.play();
+//		g.printScores();
+//		for (Decision d: g.decisionSequence)
+//			System.out.println(d);
 	}
-	
+
 	public static void textual() {
 		PlayerInteraction ui = new TextualPlayerInteraction();
 		Game g = new Game(new HumanPlayer("x", ui));

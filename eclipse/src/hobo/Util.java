@@ -4,22 +4,22 @@ import java.util.*;
 
 public class Util {
 	public static <E> Set<Set<E>> powerset(Set<E> set) {
-		Set<Set<E>> powerset = new HashSet<Set<E>>((int)Math.pow(2, set.size()));
-		powerset.add(new HashSet<E>());
+		Set<Set<E>> powerset = new LinkedHashSet<Set<E>>((int)Math.pow(2, set.size()));
+		powerset.add(new LinkedHashSet<E>());
 		for (E element: set)
-			for (Set<E> subset: new HashSet<Set<E>>(powerset))
+			for (Set<E> subset: new LinkedHashSet<Set<E>>(powerset))
 				powerset.add(with(element, subset));
 		return powerset;
 	}
 
 	public static <E> Set<E> with(E x, Set<E> xs) {
-		xs = new HashSet<E>(xs);
+		xs = new LinkedHashSet<E>(xs);
 		xs.add(x);
 		return xs;
 	}
 	
+	// XXX: this runs in linear time
 	public static <E> E sample(Set<E> xs, Random random) {
-		int n = xs.size();
 		int i = random.nextInt(xs.size());
 		for (E x: xs) {
 			if (i == 0)
@@ -28,9 +28,73 @@ public class Util {
 		}
 		throw new RuntimeException("this shouldn't happen");
 	}
+
+	@SuppressWarnings("unchecked")
+	public static <E> Set<E> sample(Set<E> xs, int k, Random random) {
+		if (xs.size() <= k)
+			return new LinkedHashSet<E>(xs);
+		Set<E> ys = new LinkedHashSet<E>(k);
+		Object[] os = xs.toArray(); // fuck you java
+		// this can take long if k is large
+		while (ys.size() < k)
+			ys.add((E)os[random.nextInt(os.length)]);
+		return ys;
+	}
+	
+	public static <E> Set<E> remove_sample(Set<E> xs, int k, Random random) {
+		Set<E> ys = sample(xs, k, random);
+		xs.removeAll(ys);
+		return ys;
+	}
 	
 	public static <E> E arb(Set<E> e) {
 		return e.iterator().next();
+	}
+	
+	public static List<Railway> shortestPath(City a, City b, Set<Railway> railways) {
+		Set<City> seen = new LinkedHashSet<City>(railways.size());
+		PriorityQueue<AStarNode> fringe = new PriorityQueue<AStarNode>(railways.size());
+		fringe.offer(new AStarNode(a, null, null, b));
+		AStarNode x;
+		while ((x = fringe.poll()) != null) {
+			if (seen.contains(x.city))
+				continue;
+			seen.add(x.city);
+			if (x.city == b)
+				return x.reconstructPath();
+			for (Railway r: x.city.railways) {
+				if (!railways.contains(r))
+					continue;
+				fringe.offer(new AStarNode(r.otherCity(x.city), r, x, b));
+			}
+		}
+		return null;
+	}
+	
+	private static class AStarNode implements Comparable<AStarNode> {
+		public final Railway railway;
+		public final City city;
+		public final AStarNode prev;
+		public final double f, g, h;
+
+		public AStarNode(City city, Railway railway, AStarNode prev, City target) {
+			this.city = city; this.railway = railway; this.prev = prev;
+			h = euclideanDistance(city, target);
+			g = (prev == null ? 0 : prev.g + euclideanDistance(prev.city, city));
+			f = g + h;
+		}
+
+		public int compareTo(AStarNode that) {
+			return Double.compare(this.f, that.f);
+		}
+
+		public List<Railway> reconstructPath() {
+			if (this.prev == null)
+				return new ArrayList<Railway>();
+			List<Railway> path = this.prev.reconstructPath();
+			path.add(railway);
+			return path;
+		}
 	}
 	
 	public static ArrayList<Railway> getShortestWay(City city1, City city2, ArrayList<Railway> rails, State s) {
@@ -46,7 +110,7 @@ public class Util {
 //		System.out.println(allRailways.size());
 		for (Railway r : city1.railways) {
 			City city = r.otherCity(city1);
-			double distance = calcDist(city, city2);
+			double distance = euclideanDistance(city, city2);
 			if (dist > distance) {
 				dist = distance;
 				railwayChoose = r;
@@ -59,7 +123,7 @@ public class Util {
 		return rails;
 	}
 	
-	private static double calcDist(City city1, City city2) {
+	private static double euclideanDistance(City city1, City city2) {
 		return Math.sqrt(Math.pow(city2.x-city1.x,2)+Math.pow(city2.y-city1.y,2));
 	}
 	

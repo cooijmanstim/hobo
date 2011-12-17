@@ -11,6 +11,7 @@ import hobo.City;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import java.awt.FlowLayout;
@@ -27,7 +28,7 @@ public class MissionChooserFrame extends JFrame {
 		JButton button = new JButton("Confirm");
 		button.addActionListener(new ActionListener() {
 			@Override public void actionPerformed(ActionEvent e) {
-				Set<Mission> ms = new HashSet<Mission>();
+				Set<Mission> ms = new LinkedHashSet<Mission>();
 				Object[] os = list.getSelectedValues();
 				for (int i = 0; i < os.length; i++)
 					ms.add((Mission)os[i]);

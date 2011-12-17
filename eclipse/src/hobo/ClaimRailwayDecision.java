@@ -8,15 +8,25 @@ public class ClaimRailwayDecision extends Decision {
 		this.player = player; this.railway = railway; this.cards = cards;
 	}
 	
+	public ClaimRailwayDecision(ClaimRailwayDecision that) {
+		this.player = that.player; this.railway = that.railway; this.cards = that.cards;
+	}
+	
 	@Override public String toString() {
 		return "ClaimRailwayDecision(player: "+player+" railway: "+railway+" cards: "+cards+")";
 	}
 	
 	@Override public boolean equals(Object o) {
+		if (this == o)
+			return true;
 		if (!(o instanceof ClaimRailwayDecision))
 			return false;
 		ClaimRailwayDecision that = (ClaimRailwayDecision)o;
 		return that.player == this.player && that.railway == this.railway && that.cards.equals(this.cards);
+	}
+	
+	@Override public ClaimRailwayDecision clone() {
+		return new ClaimRailwayDecision(this);
 	}
 
 	private static final int classHashCode = "ClaimRailwayDecision".hashCode();
@@ -37,7 +47,16 @@ public class ClaimRailwayDecision extends Decision {
 		return null;
 	}
 
+	private State appliedTo = null;
+	private int old_player;
+	private Random old_random;
+	
 	@Override public void apply(State s) {
+		assert(appliedTo == null);
+		appliedTo = s;
+
+		old_random = s.random.clone();
+		old_player = s.currentPlayer();
 		s.switchToPlayer(player);
 		PlayerState p = s.playerState(player);
 
@@ -49,5 +68,23 @@ public class ClaimRailwayDecision extends Decision {
 
 		s.restoreDecks();
 		s.switchTurns();
+	}
+
+	@Override public void undo(State s) {
+		assert(appliedTo == s);
+		appliedTo = null;
+
+		PlayerState p = s.playerState(player);
+		s.unswitchTurns();
+		s.unrestoreDecks();
+
+		s.owner_by_railway.remove(railway);
+		p.unclaim(railway);
+
+		s.discarded.removeAll(cards);
+		p.hand.addAll(cards);
+
+		s.switchToPlayer(old_player);
+		s.random = old_random;
 	}
 }

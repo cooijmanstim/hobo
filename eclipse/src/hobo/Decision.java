@@ -1,10 +1,8 @@
 package hobo;
 
-import java.util.*;
-
 public abstract class Decision {
 	public /* pretend final */ int player;
-
+	
 	public boolean isLegal(State s) {
 		return reasonForIllegality(s) == null;
 	}
@@ -25,4 +23,6 @@ public abstract class Decision {
 
 	public abstract String reasonForIllegality(State s);
 	public abstract void apply(State s);
+	public abstract void undo(State s);
+	public abstract Decision clone();
 }

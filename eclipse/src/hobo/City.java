@@ -1,7 +1,7 @@
 package hobo;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class City {
@@ -83,7 +83,7 @@ public class City {
 	public static City NEW_ORLEANS    = new City("New Orleans",     702, 559);
 	public static City MIAMI          = new City("Miami",           925, 596);
 
-	public static Set<City> cities = new HashSet<City>();
+	public static Set<City> cities = new LinkedHashSet<City>();
 	static {
 		cities.add(VANCOUVER);
 		cities.add(CALGARY);

@@ -98,6 +98,18 @@ class Random implements java.io.Serializable {
         this.seed = new AtomicLong(0L);
         setSeed(seed);
     }
+    
+    //HOBO
+    public Random clone() {
+    	return new Random(this);
+    }
+    
+    //HOBO
+    public Random(Random that) {
+    	this.seed = new AtomicLong(that.getSeed());
+    	this.haveNextNextGaussian = that.haveNextNextGaussian;
+    	this.nextNextGaussian = that.nextNextGaussian;
+    }
 
     /**
      * Sets the seed of this random number generator using a single

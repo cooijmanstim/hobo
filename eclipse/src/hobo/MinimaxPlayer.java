@@ -5,7 +5,7 @@ import java.util.*;
 public class MinimaxPlayer extends Player {
 	private static final int N_KILLER_MOVES = 3,
 	                         KILLER_MOVES_HORIZON = 2,
-	                         MAX_DECISION_TIME = 5000;
+	                         MAX_DECISION_TIME = 30000;
 	private final double paranoia;
 	private final int max_depth;
 	private final boolean best_reply;
@@ -26,7 +26,6 @@ public class MinimaxPlayer extends Player {
 		boolean[] coalition = selectCoalition(s);
 		System.out.println("assumed coalition "+Arrays.toString(coalition));
 		Decision d = deepenIteratively(s, coalition);
-		System.out.println("assumed coalition "+Arrays.toString(coalition));
 		System.out.println("average branching factor: "+(total_nbranches * 1.0 / total_nbranches_nterms));
 		System.out.println("killer hit rate: "+(killer_hits*1.0/killer_tries)+"; "+killer_hits+"/"+killer_tries);
 		return d;
@@ -130,19 +129,18 @@ public class MinimaxPlayer extends Player {
 		for (Decision d: ds) {
 			total_nbranches++;
 
-			if (!best_reply && s.currentPlayer() != d.player)
-				throw new RuntimeException("nooooooo: "+d);
-
 			State t = s.clone();
-			t.switchToPlayer(d.player); // not necessary, but to be clear
 			d.apply(t);
 
 			// next ply if decision ended a turn
 			int newply = ply;
 			if (t.currentPlayer() != d.player)
 				newply++;
-			
+
 			double u = minimax(t, depth - 1, newply, a, b, coalition).utility;
+
+			d.undo(t);
+			assert(t.equals(s));
 
 			if (maximizing) {
 				if (u > a) {
@@ -164,7 +162,11 @@ public class MinimaxPlayer extends Player {
 		total_nbranches_nterms++;
 		return new EvaluatedDecision(dbest, maximizing ? a : b);
 	}
-	
+
+	// decisions stored in the killer moves table should never be applied/undone
+	// store them as clones of the decisions that were actually tried,
+	// and clone them again before trying them in new nodes
+	@SuppressWarnings("unused")
 	private void recordKillerMove(Decision d, int ply) {
 		if (N_KILLER_MOVES == 0)
 			return;
@@ -184,9 +186,10 @@ public class MinimaxPlayer extends Player {
 		if (i < 0) i = N_KILLER_MOVES - 1;
 		for (; i > 0; i--)
 			killerMoves[ply][i] = killerMoves[ply][i-1];
-		killerMoves[ply][0] = d;
+		killerMoves[ply][0] = d.clone();
 	}
 
+	@SuppressWarnings("unused")
 	public void recallKillerMoves(int ply, State s, Set<Decision> ds) {
 		if (N_KILLER_MOVES == 0)
 			return;
@@ -199,7 +202,7 @@ public class MinimaxPlayer extends Player {
 				Decision d = killerMoves[j][i];
 				if (d != null && d.isLegalForPlayer(s)) {
 					killer_tries++;
-					ds.add(d);
+					ds.add(d.clone());
 				}
 			}
 		}

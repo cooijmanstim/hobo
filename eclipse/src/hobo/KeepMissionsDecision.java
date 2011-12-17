@@ -6,8 +6,11 @@ public class KeepMissionsDecision extends Decision {
 	public final Set<Mission> missions;
 
 	public KeepMissionsDecision(int player, Set<Mission> missions) {
-		this.missions = missions;
-		this.player = player;
+		this.player = player; this.missions = missions;
+	}
+	
+	public KeepMissionsDecision(KeepMissionsDecision that) {
+		this.player = that.player; this.missions = that.missions;
 	}
 	
 	@Override public String toString() {
@@ -19,6 +22,10 @@ public class KeepMissionsDecision extends Decision {
 			return false;
 		KeepMissionsDecision that = (KeepMissionsDecision)o;
 		return that.player == this.player && that.missions.equals(this.missions);
+	}
+	
+	@Override public KeepMissionsDecision clone() {
+		return new KeepMissionsDecision(this);
 	}
 	
 	private static final int classHashCode = "KeepMissionsDecision".hashCode();	
@@ -36,21 +43,40 @@ public class KeepMissionsDecision extends Decision {
 		return null;
 	}
 	
+	private State appliedTo = null;
+	private int old_player;
+	private Set<Mission> drawn_missions = null;
+
 	@Override public void apply(State s) {
+		assert(appliedTo == null);
+		appliedTo = s;
+
+		old_player = s.currentPlayer();
 		s.switchToPlayer(player);
 		PlayerState p = s.playerState(player);
 
-		// don't modify drawn_missions; it isn't cloned along with playerstate
-		for (Mission m: p.drawn_missions) {
-			if (missions.contains(m)) {
-				// FIXME: maintain p.completed_missions
-				p.missions.add(m);
-			} else {
-				s.missions.addLast(m);
-			}
-		}
+		// XXX: don't modify p.drawn_missions
+		p.missions.addAll(missions);
+		s.missions.addAll(p.drawn_missions);
+		s.missions.removeAll(missions);
+
+		drawn_missions = p.drawn_missions;
 		p.drawn_missions = null;
 
 		s.switchTurns();
+	}
+
+	@Override public void undo(State s) {
+		assert(appliedTo == s);
+		appliedTo = null;
+		
+		s.unswitchTurns();
+		PlayerState p = s.playerState(player);
+
+		p.missions.removeAll(drawn_missions);
+		s.missions.removeAll(drawn_missions);
+		p.drawn_missions = drawn_missions;
+
+		s.switchToPlayer(old_player);
 	}
 }

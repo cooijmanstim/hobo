@@ -6,6 +6,9 @@ public class Game {
 	private final State state;
 	private final Player[] players;
 	private final List<GameObserver> observers = new ArrayList<GameObserver>();
+	
+	// this is useful for comparing two AIs that should behave exactly equally
+	public final List<Decision> decisionSequence = new ArrayList<Decision>();
 
 	public Game(Player... players) {
 		this.players = players;
@@ -21,7 +24,6 @@ public class Game {
 
 	public void play() {
 		state.setup();
-		// maybe notify observers here
 
 		while (true) {
 			try {
@@ -56,7 +58,8 @@ public class Game {
 		Decision d;
 		while (true) {
 			d = p.decide(state);
-//			System.out.println(p.name()+" decided "+d);
+			decisionSequence.add(d);
+			//System.out.println(p.name()+" decided "+d);
 			if (d == null) {
 				abort();
 				return;

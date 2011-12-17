@@ -4,6 +4,7 @@ import hobo.PlayerState;
 import hobo.Visualization;
 import hobo.State;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.HashSet;
 
@@ -19,7 +20,7 @@ public class PlayersPanel extends JPanel implements Visualization {
 	
 	@Override public void reflect(State s) {
 		if (children == null) {
-			children = new HashSet<PlayerPanel>();
+			children = new LinkedHashSet<PlayerPanel>();
 			for (int handle: s.players()) {
 				PlayerPanel pp = new PlayerPanel(handle);
 				children.add(pp);

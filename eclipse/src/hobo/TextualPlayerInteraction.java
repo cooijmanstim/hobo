@@ -16,7 +16,6 @@ public class TextualPlayerInteraction implements PlayerInteraction {
 		System.out.println("player: "+p.name());
 		System.out.println("railways: "+ps.railways);
 		System.out.println("missions: "+ps.missions);
-		System.out.println("completed missions: "+ps.completed_missions);
 		System.out.println("hand: "+ps.hand);
 		System.out.println("open deck: "+s.openCards());
 
@@ -99,7 +98,7 @@ public class TextualPlayerInteraction implements PlayerInteraction {
 			if (words.length % 2 == 0) {
 				System.out.println("mission designators must be pairs of cities");
 			} else {
-				Set<Mission> missions = new HashSet<Mission>();
+				Set<Mission> missions = new LinkedHashSet<Mission>();
 				for (int i = 1; i < words.length - 1; i += 2) {
 					City a = City.designated_by(words[i]);
 					if (a == null) {

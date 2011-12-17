@@ -8,21 +8,20 @@ public class State implements Cloneable {
 	                        INITIAL_MISSION_COUNT = 3,
 	                        OPEN_DECK_SIZE = 5;
 
-	public final Random random = new Random(System.currentTimeMillis()); //change this for more random things
+	public Random random = new Random(0);
 
 	// the index into this array is used to refer to a player in many places here.
 	private PlayerState[] players;
 	private int current_player;
 
 	public Map<Railway,Integer> owner_by_railway = new HashMap<Railway,Integer>();
-	
 
 	public CardBag deck      = new CardBag();
 	public CardBag open_deck = new CardBag();
 	public CardBag discarded = new CardBag();
 
 	// deck of destination tickets
-	public LinkedList<Mission> missions = new LinkedList<Mission>();
+	public Set<Mission> missions = new LinkedHashSet<Mission>();
 
 	private boolean game_over = false;
 	private int last_player = -1;
@@ -34,7 +33,7 @@ public class State implements Cloneable {
 
 	public State clone() {
 		State that = new State();
-		that.random.setSeed(this.random.getSeed());
+		that.random = this.random.clone();
 		that.players = this.players.clone();
 		for (int i = 0; i < players.length; i++)
 			that.players[i] = that.players[i].clone();
@@ -44,10 +43,32 @@ public class State implements Cloneable {
 		that.open_deck.addAll(this.open_deck);
 		that.discarded.addAll(this.discarded);
 		that.missions.addAll(this.missions);
+		that.deck_restorations.addAll(this.deck_restorations);
+		that.discardeds.addAll(this.discardeds);
 		that.game_over = this.game_over;
 		that.last_player = this.last_player;
 		that.next_color_index = this.next_color_index;
 		return that;
+	}
+	
+	@Override public boolean equals(Object o) {
+		if (this == o) return true;
+		if (!(o instanceof State)) return false;
+		State that = (State)o;
+		if (this.random.getSeed() != that.random.getSeed()) return false;
+		if (!Arrays.deepEquals(this.players, that.players)) return false;
+		if (this.current_player != that.current_player) return false;
+		if (!this.owner_by_railway.equals(that.owner_by_railway)) return false;
+		if (!this.deck.equals(that.deck)) return false;
+		if (!this.open_deck.equals(that.open_deck)) return false;
+		if (!this.discarded.equals(that.discarded)) return false;
+		if (!this.missions.equals(that.missions)) return false;
+		if (!this.deck_restorations.equals(that.deck_restorations)) return false;
+		if (!this.discardeds.equals(that.discardeds)) return false;
+		if (this.game_over != that.game_over) return false;
+		if (this.last_player != that.last_player) return false;
+		if (this.next_color_index != that.next_color_index) return false;
+		return true;
 	}
 
 	public String toString() {
@@ -72,15 +93,11 @@ public class State implements Cloneable {
 		deck.add(Color.GREY); deck.add(Color.GREY);
 
 		missions.addAll(Mission.missions);
-		Collections.shuffle(missions, new java.util.Random(random.getSeed()));
 
 		for (PlayerState p: players) {
 			for (int i = 0; i < INITIAL_HAND_SIZE; i++)
 				p.hand.add(deck.draw(random));
-			// XXX: officially, players can choose to discard one
-			// of the missions dealt.
-			for (int i = 0; i < INITIAL_MISSION_COUNT; i++)
-				p.missions.add(missions.removeFirst());
+			p.missions.addAll(Util.remove_sample(missions, INITIAL_MISSION_COUNT, random));
 		}
 
 		for (int i = 0; i < OPEN_DECK_SIZE; i++)
@@ -101,6 +118,20 @@ public class State implements Cloneable {
 		current_player %= players.length;
 	}
 
+	public void unswitchTurns() {
+		if (game_over) {
+			game_over = false;
+			return;
+		}
+
+		current_player--;
+		if (current_player < 0)
+			current_player += players.length;
+		
+		if (currentPlayerState().almostOutOfCars() && last_player == current_player)
+			last_player = -1;
+	}
+	
 	// this results in invalid states (used in best-reply search)
 	public void switchToPlayer(int handle) {
 		current_player = handle;
@@ -165,14 +196,34 @@ public class State implements Cloneable {
 	public CardBag openCards() {
 		return open_deck;
 	}
-	
+
+	// restoreDecks undo info
+	private final Deque<CardBag> deck_restorations = new LinkedList<CardBag>();
+	private final Deque<CardBag> discardeds = new LinkedList<CardBag>();
+
 	public void restoreDecks() {
-		if (deck.isEmpty()) {
-			deck = discarded;
+		int k = OPEN_DECK_SIZE - open_deck.size();
+		if (deck.size() < k) {
+			deck.addAll(discarded);
+			discardeds.push(discarded);
 			discarded = new CardBag();
+		} else {
+			discardeds.push(null);
 		}
-		while (open_deck.size() < OPEN_DECK_SIZE && !deck.isEmpty())
-			open_deck.add(deck.draw(random));
+		CardBag cs = deck.draw(k, random);
+		deck_restorations.push(cs);
+		open_deck.addAll(cs);
+	}
+	
+	public void unrestoreDecks() {
+		CardBag cs = deck_restorations.pop();
+		open_deck.removeAll(cs);
+		deck.addAll(cs);
+		CardBag ds = discardeds.pop();
+		if (ds != null) {
+			discarded.addAll(ds);
+			deck.removeAll(ds);
+		}
 	}
 	
 	public void applyDecision(Decision d) throws IllegalDecisionException {
