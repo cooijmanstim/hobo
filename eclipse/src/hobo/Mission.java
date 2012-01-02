@@ -4,20 +4,34 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
-public class Mission {
+public enum Mission {
+	LosAngeles_NewYork(21), Seattle_NewYork(22), Vancouver_SantaFe(13),
+	LosAngeles_Miami(20), LosAngeles_Chicago(16), Montreal_Atlanta(9),
+	Dallas_NewYork(11), Calgary_Phoenix(13), Denver_ElPaso(4),
+	Winnipeg_LittleRock(11), NewYork_Atlanta(6), Chicago_SantaFe(9),
+	Duluth_ElPaso(10), Boston_Miami(12), Calgary_SaltLakeCity(7),
+	Portland_Nashville(17), Portland_Phoenix(11), Denver_Pittsburgh(11),
+	Montreal_NewOrleans(13), Vancouver_Montreal(20), Helena_LosAngeles(8),
+	Seattle_LosAngeles(9), SaultStMarie_OklahomaCity(9), SaultStMarie_Nashville(8),
+	Chicago_NewOrleans(7), Toronto_Miami(10), SanFrancisco_Atlanta(17),
+	Winnipeg_Houston(12), Duluth_Houston(8), KansasCity_Houston(5);
+
 	public final City source, destination;
 	public final int value;
 	public final String imagePath;
 
-	public Mission(City source, City destination, int value, String imagePath){
-		this.source = source;
-		this.destination = destination;
+	private Mission(int value) {
 		this.value = value;
-		this.imagePath = imagePath;
+
+		this.imagePath = name() + ".png";
+
+		String[] parts = name().split("_");
+		source = City.valueOf(parts[0]);
+		destination = City.valueOf(parts[1]);
 	}
 
 	public static Mission connecting(City c, City d) {
-		for (Mission m: missions)
+		for (Mission m: values())
 			if (m.connects(c, d))
 				return m;
 		return null;
@@ -34,39 +48,5 @@ public class Mission {
 
 	public String toString() {
 		return "Mission(source: "+source+", destination: "+destination+", value: "+value+")";
-	}
-		
-	public static ArrayList<Mission> missions = new ArrayList<Mission>();
-	static {
-		missions.add(new Mission(City.LOS_ANGELES, City.NEW_YORK, 21, "LosAngeles_NewYork.png"));
-		missions.add(new Mission(City.SEATTLE, City.NEW_YORK, 22, "Seattle_NewYork.png"));
-		missions.add(new Mission(City.VANCOUVER, City.SANTA_FE, 13, "Vancouver_SantaFe.png"));
-		missions.add(new Mission(City.LOS_ANGELES, City.MIAMI, 20, "LosAngeles_Miami.png"));
-		missions.add(new Mission(City.LOS_ANGELES, City.CHICAGO, 16, "LosAngeles_Chicago.png"));
-		missions.add(new Mission(City.MONTREAL, City.ATLANTA, 9, "Montreal_Atlanta.png"));
-		missions.add(new Mission(City.DALLAS, City.NEW_YORK, 11, "Dallas_NewYork.png"));
-		missions.add(new Mission(City.CALGARY, City.PHOENIX, 13, "Calgary_Phoenix.png"));
-		missions.add(new Mission(City.DENVER, City.EL_PASO, 4, "Denver_ElPaso.png"));
-		missions.add(new Mission(City.WINNIPEG, City.LITTLE_ROCK, 11, "Winnipeg_LittleRock.png"));
-		missions.add(new Mission(City.NEW_YORK, City.ATLANTA, 6, "NewYork_Atlanta.png"));
-		missions.add(new Mission(City.CHICAGO, City.SANTA_FE, 9, "Chicago_SantaFe.png"));
-		missions.add(new Mission(City.DULUTH, City.EL_PASO, 10, "Duluth_ElPaso.png"));
-		missions.add(new Mission(City.BOSTON, City.MIAMI, 12, "Boston_Miami.png"));
-		missions.add(new Mission(City.CALGARY, City.SALT_LAKE_CITY, 7, "Calgary_SaltLakeCity.png"));
-		missions.add(new Mission(City.PORTLAND, City.NASHVILLE, 17, "Portland_Nashville.png"));
-		missions.add(new Mission(City.PORTLAND, City.PHOENIX, 11, "Portland_Phoenix.png"));
-		missions.add(new Mission(City.DENVER, City.PITTSBURGH, 11, "Denver_Pittsburgh.png"));
-		missions.add(new Mission(City.MONTREAL, City.NEW_ORLEANS, 13, "Montreal_NewOrleans.png"));
-		missions.add(new Mission(City.VANCOUVER, City.MONTREAL, 20, "Vancouver_Montreal.png"));
-		missions.add(new Mission(City.HELENA, City.LOS_ANGELES, 8, "Helena_LosAngeles.png"));
-		missions.add(new Mission(City.SEATTLE, City.LOS_ANGELES, 9, "Seattle_LosAngeles.png"));
-		missions.add(new Mission(City.SAULT_ST_MARIE, City.OKLAHOMA_CITY, 9, "SaultStMarie_Oklahoma.png"));
-		missions.add(new Mission(City.SAULT_ST_MARIE, City.NASHVILLE, 8, "SaultStMarie_Nashville.png"));
-		missions.add(new Mission(City.CHICAGO, City.NEW_ORLEANS, 7, "Chicago_NewOrleans.png"));
-		missions.add(new Mission(City.TORONTO, City.MIAMI, 10, "Toronto_Miami.png"));
-		missions.add(new Mission(City.SAN_FRANCISCO, City.ATLANTA, 17, "SanFrancisco_Atlanta.png"));
-		missions.add(new Mission(City.WINNIPEG, City.HOUSTON, 12, "Winnipeg_Houston.png"));
-		missions.add(new Mission(City.DULUTH, City.HOUSTON, 8, "Duluth_Houston.png"));
-		missions.add(new Mission(City.KANSAS_CITY, City.HOUSTON, 5, "KansasCity_Houston.png"));	
 	}
 }

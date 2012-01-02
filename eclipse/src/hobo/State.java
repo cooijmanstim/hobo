@@ -92,7 +92,7 @@ public class State implements Cloneable {
 		// two more grey cards than other colors
 		deck.add(Color.GREY); deck.add(Color.GREY);
 
-		missions.addAll(Mission.missions);
+		missions.addAll(Arrays.asList(Mission.values()));
 
 		for (PlayerState p: players) {
 			for (int i = 0; i < INITIAL_HAND_SIZE; i++)
@@ -241,7 +241,7 @@ public class State implements Cloneable {
 		if (ps.drawn_missions == null) {
 			if (ps.drawn_card == null) {
 				// claim
-				for (Railway r: Railway.railways) {
+				for (Railway r: Railway.values()) {
 					if (!isClaimed(r) && r.length <= ps.ncars && !ps.railways.contains(r.dual)) {
 						for (Color c: Color.values()) {
 							CardBag cs = ps.hand.cardsToClaim(r, c);

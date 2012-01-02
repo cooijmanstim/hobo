@@ -19,7 +19,7 @@ public class RailChooserFrame extends JFrame {
 	public RailChooserFrame(City source, Collection<Railway> railways, final GamePanel gamePanel, final MapPanel mapPanel) {
 		for (final Railway r: railways) {
 			City destination = r.otherCity(source);
-			JButton b = new JButton(source.name+" - "+destination.name+" ("+r.color+")");
+			JButton b = new JButton(source.name()+" - "+destination.name()+" ("+r.color+")");
 			b.addActionListener(new ActionListener() {
 				@Override public void actionPerformed(ActionEvent e) {
 					gamePanel.claim(r);

@@ -27,7 +27,7 @@ public class MapPanel extends JPanel implements Visualization {
 	
 	public MapPanel(GamePanel gv) {
 		map = getToolkit().getImage("src/railways/background.jpg");
-		for(City city: City.cities) {
+		for(City city: City.values()) {
 			CityPanel cp = new CityPanel(city, gv, this); 
 			add(cp);
 			cityPanels.add(cp);
