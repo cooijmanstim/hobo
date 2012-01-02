@@ -5,7 +5,7 @@ import java.util.*;
 public class MinimaxPlayer extends Player {
 	private static final int N_KILLER_MOVES = 3,
 	                         KILLER_MOVES_HORIZON = 2,
-	                         MAX_DECISION_TIME = 30000;
+	                         MAX_DECISION_TIME = 5000;
 	private final double paranoia;
 	private final int max_depth;
 	private final boolean best_reply;
@@ -21,8 +21,9 @@ public class MinimaxPlayer extends Player {
 	}
 
 	public Decision decide(State s) {
+		//s = s.clone(); // to be sure we don't mess with the real state
 		System.out.println("----------------------------------------------------");
-		System.out.println(name+" deciding...");
+		System.out.println(name+" ("+handle+") deciding...");
 		boolean[] coalition = selectCoalition(s);
 		System.out.println("assumed coalition "+Arrays.toString(coalition));
 		Decision d = deepenIteratively(s, coalition);
@@ -129,18 +130,20 @@ public class MinimaxPlayer extends Player {
 		for (Decision d: ds) {
 			total_nbranches++;
 
-			State t = s.clone();
-			d.apply(t);
+			d.apply(s);
 
-			// next ply if decision ended a turn
-			int newply = ply;
-			if (t.currentPlayer() != d.player)
-				newply++;
+			double u;
+			try {
+				// next ply if decision ended a turn
+				int newply = ply;
+				if (s.currentPlayer() != d.player)
+					newply++;
 
-			double u = minimax(t, depth - 1, newply, a, b, coalition).utility;
-
-			d.undo(t);
-			assert(t.equals(s));
+				u = minimax(s, depth - 1, newply, a, b, coalition).utility;
+			} finally {
+				// recursion might throw outoftime
+				d.undo(s);
+			}
 
 			if (maximizing) {
 				if (u > a) {
