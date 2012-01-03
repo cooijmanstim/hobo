@@ -21,14 +21,15 @@ public class MinimaxPlayer extends Player {
 	}
 
 	public Decision decide(State s) {
-		//s = s.clone(); // to be sure we don't mess with the real state
+		State t = s.clone(); // to be sure we don't mess with the real state
 		System.out.println("----------------------------------------------------");
 		System.out.println(name+" ("+handle+") deciding...");
-		boolean[] coalition = selectCoalition(s);
+		boolean[] coalition = selectCoalition(t);
 		System.out.println("assumed coalition "+Arrays.toString(coalition));
-		Decision d = deepenIteratively(s, coalition);
+		Decision d = deepenIteratively(t, coalition);
 		System.out.println("average branching factor: "+(total_nbranches * 1.0 / total_nbranches_nterms));
 		System.out.println("killer hit rate: "+(killer_hits*1.0/killer_tries)+"; "+killer_hits+"/"+killer_tries);
+		assert(t.equals(s)); // to know when the undo code is broken
 		return d;
 	}
 	
@@ -72,7 +73,7 @@ public class MinimaxPlayer extends Player {
 		boolean[] coalition = new boolean[s.players().length];
 		int coalition_size = 0;
 		for (int i = 0; i < coalition.length; i++) {
-			if (i == handle || Math.random() > paranoia) {
+			if (Math.random() > paranoia) {
 				coalition[i] = true;
 				coalition_size++;
 			}

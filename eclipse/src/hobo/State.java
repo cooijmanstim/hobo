@@ -14,14 +14,14 @@ public class State implements Cloneable {
 	private PlayerState[] players;
 	private int current_player;
 
-	public Map<Railway,Integer> owner_by_railway = new HashMap<Railway,Integer>();
+	public Map<Railway,Integer> owner_by_railway = new EnumMap<Railway,Integer>(Railway.class);
 
 	public CardBag deck      = new CardBag();
 	public CardBag open_deck = new CardBag();
 	public CardBag discarded = new CardBag();
 
 	// deck of destination tickets
-	public Set<Mission> missions = new LinkedHashSet<Mission>();
+	public Set<Mission> missions = EnumSet.noneOf(Mission.class);
 
 	private boolean game_over = false;
 	private int last_player = -1;
@@ -97,7 +97,7 @@ public class State implements Cloneable {
 		for (PlayerState p: players) {
 			for (int i = 0; i < INITIAL_HAND_SIZE; i++)
 				p.hand.add(deck.draw(random));
-			p.missions.addAll(Util.remove_sample(missions, INITIAL_MISSION_COUNT, random));
+			p.missions.addAll(Util.remove_sample(missions, INITIAL_MISSION_COUNT, random, EnumSet.noneOf(Mission.class)));
 		}
 
 		for (int i = 0; i < OPEN_DECK_SIZE; i++)
@@ -263,7 +263,7 @@ public class State implements Cloneable {
 				ds.add(new DrawMissionsDecision(player));
 		} else {
 			// keep
-			for (Set<Mission> ms: Util.powerset(ps.drawn_missions)) {
+			for (Set<Mission> ms: Util.powerset(ps.drawn_missions, EnumSet.noneOf(Mission.class))) {
 				if (ms.isEmpty())
 					continue;
 				ds.add(new KeepMissionsDecision(player, ms));

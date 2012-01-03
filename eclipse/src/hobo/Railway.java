@@ -1,10 +1,5 @@
 package hobo;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.*;
-
 public enum Railway {
 	Vancouver_Calgary_1(3, Color.GREY),
 	Vancouver_Seattle_1(1, Color.GREY),
@@ -106,7 +101,26 @@ public enum Railway {
 	Dallas_Houston_2(1, Color.GREY),
 	Houston_NewOrleans_1(2, Color.GREY),
 	Miami_NewOrleans_1(6, Color.RED);
-	
+
+	static {
+		// find and couple double railways
+		for (Railway r: values()) {
+			for (Railway s: values()) {
+				if (s != r && s.connects(r.source, r.destination)) {
+					r.dual = s;
+					s.dual = r;
+				}
+			}
+		}
+		
+		// register railways with cities
+		// (can only be done after all enum members are initialized)
+		for (Railway r: values()) {
+			r.source.registerRailway(r);
+			r.destination.registerRailway(r);
+		}
+	}
+
 	// NOTE: despite these being called source/destination, railways are not directed
 	public final City source, destination;
 	public final int length;
@@ -124,9 +138,6 @@ public enum Railway {
 		destination = City.valueOf(parts[1]);
 
 		imagePath = name() + "_";
-
-		source.registerRailway(this);
-		destination.registerRailway(this);
 	}
 
 	public boolean connects(City c, City d) {
@@ -164,15 +175,4 @@ public enum Railway {
 		return "Railway(source: "+source+", destination: "+destination+", color: "+color+")";
 	}
 
-	static {
-		// find and couple double railways
-		for (Railway r: values()) {
-			for (Railway s: values()) {
-				if (s != r && s.connects(r.source, r.destination)) {
-					r.dual = s;
-					s.dual = r;
-				}
-			}
-		}
-	}	
 }

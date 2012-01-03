@@ -1,6 +1,7 @@
 package hobo;
 
-import java.util.ArrayList;
+import java.util.Set;
+import java.util.EnumSet;
 
 public enum City {
 	Vancouver    (110, 105),
@@ -40,14 +41,10 @@ public enum City {
 	NewOrleans   (702, 559),
 	Miami        (925, 596);
 
-	static {
-		// make sure railways are initialized also
-		// (city.railways is populated from there)
-		Railway.values();
-	}
-
 	public final double x, y;
-	public final ArrayList<Railway> railways = new ArrayList<Railway>();
+
+	// initialized in registerRailway to avoid circularity
+	public /* pretend final */ Set<Railway> railways = null;
 
 	private City(double x, double y) {
 		this.x = x;
@@ -63,10 +60,13 @@ public enum City {
 	}
 
 	public void registerRailway(Railway r) {
-		railways.add(r);
+		if (railways == null)
+			railways = EnumSet.of(r);
+		else
+			railways.add(r);
 	}
 
-	// get a railway that connects this city to that one, possible constrained by color
+	// get a railway that connects this city to that one, possibly constrained by color
 	public Railway railwayTo(City that, Color c) {
 		for (Railway r: railways) {
 			if (r.connects(this, that) && (c == null || r.color == c))

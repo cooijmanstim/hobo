@@ -1,6 +1,7 @@
 package hobo;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -12,8 +13,8 @@ public class PlayerState implements Cloneable {
 	public final Color color;
 	public int ncars = 45, score = 0;
 	public CardBag hand = new CardBag();
-	public Set<Mission> missions = new LinkedHashSet<Mission>();
-	public Set<Railway> railways = new LinkedHashSet<Railway>();
+	public Set<Mission> missions = EnumSet.noneOf(Mission.class);
+	public Set<Railway> railways = EnumSet.noneOf(Railway.class);
 
 	// when ncars drops below this at the end of a player's turn, the game
 	// goes on for one last round.

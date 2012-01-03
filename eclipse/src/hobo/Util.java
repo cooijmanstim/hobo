@@ -3,17 +3,21 @@ package hobo;
 import java.util.*;
 
 public class Util {
-	public static <E> Set<Set<E>> powerset(Set<E> set) {
+	// some of these assume enum elements; if we ever need more generality we can
+	// implement separate versions..  java sucks
+
+	// you'll have to pass in an empty set from now on because java sucks
+	public static <E extends Enum<E>> Set<Set<E>> powerset(Set<E> set, Set<E> empty_set) {
 		Set<Set<E>> powerset = new LinkedHashSet<Set<E>>((int)Math.pow(2, set.size()));
-		powerset.add(new LinkedHashSet<E>());
+		powerset.add(empty_set);
 		for (E element: set)
 			for (Set<E> subset: new LinkedHashSet<Set<E>>(powerset))
 				powerset.add(with(element, subset));
 		return powerset;
 	}
 
-	public static <E> Set<E> with(E x, Set<E> xs) {
-		xs = new LinkedHashSet<E>(xs);
+	public static <E extends Enum<E>> Set<E> with(E x, Set<E> xs) {
+		xs = EnumSet.copyOf(xs);
 		xs.add(x);
 		return xs;
 	}
@@ -29,20 +33,22 @@ public class Util {
 		throw new RuntimeException("this shouldn't happen");
 	}
 
+	// the sample will be put into ys; this is so that the caller can choose the set implementation
 	@SuppressWarnings("unchecked")
-	public static <E> Set<E> sample(Set<E> xs, int k, Random random) {
-		if (xs.size() <= k)
-			return new LinkedHashSet<E>(xs);
-		Set<E> ys = new LinkedHashSet<E>(k);
-		Object[] os = xs.toArray(); // fuck you java
-		// this can take long if k is large
-		while (ys.size() < k)
-			ys.add((E)os[random.nextInt(os.length)]);
+	public static <E> Set<E> sample(Set<E> xs, int k, Random random, Set<E> ys) {
+		if (xs.size() <= k) {
+			ys.addAll(xs);
+		} else {
+			Object[] os = xs.toArray(); // fuck you java
+			// this can take long if k is large
+			while (ys.size() < k)
+				ys.add((E)os[random.nextInt(os.length)]);
+		}
 		return ys;
 	}
 	
-	public static <E> Set<E> remove_sample(Set<E> xs, int k, Random random) {
-		Set<E> ys = sample(xs, k, random);
+	public static <E> Set<E> remove_sample(Set<E> xs, int k, Random random, Set<E> ys) {
+		sample(xs, k, random, ys);
 		xs.removeAll(ys);
 		return ys;
 	}
@@ -52,7 +58,7 @@ public class Util {
 	}
 	
 	public static List<Railway> shortestPath(City a, City b, Set<Railway> railways) {
-		Set<City> seen = new LinkedHashSet<City>(railways.size());
+		Set<City> seen = EnumSet.noneOf(City.class);
 		PriorityQueue<AStarNode> fringe = new PriorityQueue<AStarNode>(railways.size());
 		fringe.offer(new AStarNode(a, null, null, b));
 		AStarNode x;

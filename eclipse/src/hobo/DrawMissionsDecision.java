@@ -1,5 +1,7 @@
 package hobo;
 
+import java.util.EnumSet;
+
 public class DrawMissionsDecision extends Decision {
 	public DrawMissionsDecision(int player) {
 		this.player = player;
@@ -53,7 +55,7 @@ public class DrawMissionsDecision extends Decision {
 		s.switchToPlayer(player);
 		PlayerState p = s.playerState(player);
 
-		p.drawn_missions = Util.remove_sample(s.missions, 3, s.random);
+		p.drawn_missions = Util.remove_sample(s.missions, 3, s.random, EnumSet.noneOf(Mission.class));
 	}
 	
 	@Override public void undo(State s) {
