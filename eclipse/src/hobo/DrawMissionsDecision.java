@@ -7,10 +7,6 @@ public class DrawMissionsDecision extends Decision {
 		this.player = player;
 	}
 	
-	public DrawMissionsDecision(DrawMissionsDecision that) {
-		this.player = that.player;
-	}
-	
 	@Override public String toString() {
 		return "DrawMissionsDecision(player: "+player+")";
 	}
@@ -24,10 +20,6 @@ public class DrawMissionsDecision extends Decision {
 		return that.player == this.player;
 	}
 	
-	@Override public DrawMissionsDecision clone() {
-		return new DrawMissionsDecision(this);
-	}
-
 	private static final int classHashCode = "DrawMissionsDecision".hashCode();
 	@Override public int hashCode() {
 		return player ^ classHashCode;
@@ -42,32 +34,27 @@ public class DrawMissionsDecision extends Decision {
 		return null;
 	}
 	
-	private State appliedTo = null;
-	private Random old_random;
-	private int old_player;
-	
-	@Override public void apply(State s) {
-		assert(appliedTo == null);
-		appliedTo = s;
+	@Override public AppliedDecision apply(State s) {
+		Application a = new Application(this, s);
 
-		old_random = s.random.clone();
-		old_player = s.currentPlayer();
 		s.switchToPlayer(player);
 		PlayerState p = s.playerState(player);
 
 		p.drawn_missions = Util.remove_sample(s.missions, 3, s.random, EnumSet.noneOf(Mission.class));
+		
+		return a;
 	}
-	
-	@Override public void undo(State s) {
-		assert(appliedTo == s);
-		appliedTo = null;
 
-		PlayerState p = s.playerState(player);
-		
-		s.missions.addAll(p.drawn_missions);
-		p.drawn_missions = null;
-		
-		s.switchToPlayer(old_player);
-		s.random = old_random;
+	private class Application extends AppliedDecision {
+		public Application(Decision d, State s) { super(d, s); }
+
+		@Override public void undo() {
+			PlayerState p = state.playerState(player);
+
+			state.missions.addAll(p.drawn_missions);
+			p.drawn_missions = null;
+
+			super.undo();
+		}
 	}
 }

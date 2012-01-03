@@ -9,10 +9,6 @@ public class KeepMissionsDecision extends Decision {
 		this.player = player; this.missions = missions;
 	}
 	
-	public KeepMissionsDecision(KeepMissionsDecision that) {
-		this.player = that.player; this.missions = that.missions;
-	}
-	
 	@Override public String toString() {
 		return "KeepMissionsDecision(player: "+player+" missions: "+missions+")";
 	}
@@ -22,10 +18,6 @@ public class KeepMissionsDecision extends Decision {
 			return false;
 		KeepMissionsDecision that = (KeepMissionsDecision)o;
 		return that.player == this.player && that.missions.equals(this.missions);
-	}
-	
-	@Override public KeepMissionsDecision clone() {
-		return new KeepMissionsDecision(this);
 	}
 	
 	private static final int classHashCode = "KeepMissionsDecision".hashCode();	
@@ -43,15 +35,9 @@ public class KeepMissionsDecision extends Decision {
 		return null;
 	}
 	
-	private State appliedTo = null;
-	private int old_player;
-	private Set<Mission> drawn_missions = null;
-
-	@Override public void apply(State s) {
-		assert(appliedTo == null);
-		appliedTo = s;
-
-		old_player = s.currentPlayer();
+	@Override public AppliedDecision apply(State s) {
+		Application a = new Application(this, s);
+		
 		s.switchToPlayer(player);
 		PlayerState p = s.playerState(player);
 
@@ -60,23 +46,28 @@ public class KeepMissionsDecision extends Decision {
 		s.missions.addAll(p.drawn_missions);
 		s.missions.removeAll(missions);
 
-		drawn_missions = p.drawn_missions;
+		a.drawn_missions = p.drawn_missions;
 		p.drawn_missions = null;
 
 		s.switchTurns();
+		
+		return a;
 	}
 
-	@Override public void undo(State s) {
-		assert(appliedTo == s);
-		appliedTo = null;
+	private class Application extends AppliedDecision {
+		private Set<Mission> drawn_missions = null;
 		
-		s.unswitchTurns();
-		PlayerState p = s.playerState(player);
+		public Application(Decision d, State s) { super(d, s); }
 
-		p.missions.removeAll(drawn_missions);
-		s.missions.removeAll(drawn_missions);
-		p.drawn_missions = drawn_missions;
+		@Override public void undo() {
+			state.unswitchTurns();
+			PlayerState p = state.playerState(player);
 
-		s.switchToPlayer(old_player);
+			p.missions.removeAll(drawn_missions);
+			state.missions.removeAll(drawn_missions);
+			p.drawn_missions = drawn_missions;
+
+			super.undo();
+		}
 	}
 }

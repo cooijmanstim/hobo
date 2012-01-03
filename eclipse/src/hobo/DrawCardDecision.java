@@ -14,11 +14,6 @@ public class DrawCardDecision extends Decision {
 		this.color = color;
 	}
 	
-	public DrawCardDecision(DrawCardDecision that) {
-		this.player = that.player;
-		this.color = that.color;
-	}
-
 	@Override public String toString() {
 		return "DrawCardDecision(player: "+player+" color: "+color+")";
 	}
@@ -32,10 +27,6 @@ public class DrawCardDecision extends Decision {
 		return that.player == this.player && that.color == this.color;
 	}
 	
-	@Override public DrawCardDecision clone() {
-		return new DrawCardDecision(this);
-	}
-
 	private static final int classHashCode = "DrawCardDecision".hashCode();
 	@Override public int hashCode() {
 		return player ^ (color == null ? -1 : color.hashCode()) ^ classHashCode;
@@ -59,26 +50,16 @@ public class DrawCardDecision extends Decision {
 		}
 		return null;
 	}
+	
+	@Override public AppliedDecision apply(State s) {
+		Application a = new Application(this, s);
 
-	// this undo crap shouldn't affect equality and cloning
-	private State appliedTo = null;
-	private Random old_random;
-	private int old_player;
-	private Color old_drawn_card; // old p.drawn_card
-	private Color drawn_card; // card drawn for this decision
-
-	@Override public void apply(State s) {
-		assert(appliedTo == null);
-		appliedTo = s;
-
-		old_random = s.random.clone();
-		old_player = s.currentPlayer();
 		s.switchToPlayer(player);
 		PlayerState p = s.playerState(player);
 
 		// if drew a card last time, then can draw one more
 		boolean last_draw = p.drawn_card != null;
-		old_drawn_card = p.drawn_card;
+		a.old_drawn_card = p.drawn_card;
 
 		if (color == null) {
 			p.drawn_card = s.deck.draw(s.random);
@@ -88,7 +69,7 @@ public class DrawCardDecision extends Decision {
 				last_draw = true;
 		}
 
-		drawn_card = p.drawn_card;
+		a.drawn_card = p.drawn_card;
 		p.hand.add(p.drawn_card);
 		
 		s.restoreDecks();
@@ -97,29 +78,34 @@ public class DrawCardDecision extends Decision {
 			p.drawn_card = null;
 			s.switchTurns();
 		}
+		
+		return a;
 	}
-	
-	@Override public void undo(State s) {
-		assert(appliedTo == s);
-		appliedTo = null;
+
+	private class Application extends AppliedDecision {
+		private Color old_drawn_card; // card drawn before
+		private Color drawn_card; // card drawn during
 		
-		// second draw or single open deck draw
-		if (old_drawn_card != null || color == Color.GREY)
-			s.unswitchTurns();
-		PlayerState p = s.playerState(player);
-		s.unrestoreDecks();
-		
-		p.hand.remove(drawn_card);
-		
-		if (color == null) {
-			s.deck.add(drawn_card);
-		} else {
-			s.open_deck.add(drawn_card);
+		public Application(Decision d, State s) { super(d, s); }
+
+		@Override public void undo() {
+			// second draw or single open deck draw
+			if (old_drawn_card != null || color == Color.GREY)
+				state.unswitchTurns();
+			PlayerState p = state.playerState(player);
+			state.unrestoreDecks();
+			
+			p.hand.remove(drawn_card);
+			
+			if (color == null) {
+				state.deck.add(drawn_card);
+			} else {
+				state.open_deck.add(drawn_card);
+			}
+			
+			p.drawn_card = old_drawn_card;
+			
+			super.undo();
 		}
-		
-		p.drawn_card = old_drawn_card;
-		
-		s.random = old_random;
-		s.switchToPlayer(old_player);
 	}
 }

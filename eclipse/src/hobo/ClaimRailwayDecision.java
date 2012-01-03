@@ -8,10 +8,6 @@ public class ClaimRailwayDecision extends Decision {
 		this.player = player; this.railway = railway; this.cards = cards;
 	}
 	
-	public ClaimRailwayDecision(ClaimRailwayDecision that) {
-		this.player = that.player; this.railway = that.railway; this.cards = that.cards;
-	}
-	
 	@Override public String toString() {
 		return "ClaimRailwayDecision(player: "+player+" railway: "+railway+" cards: "+cards+")";
 	}
@@ -25,10 +21,6 @@ public class ClaimRailwayDecision extends Decision {
 		return that.player == this.player && that.railway == this.railway && that.cards.equals(this.cards);
 	}
 	
-	@Override public ClaimRailwayDecision clone() {
-		return new ClaimRailwayDecision(this);
-	}
-
 	private static final int classHashCode = "ClaimRailwayDecision".hashCode();
 	@Override public int hashCode() {
 		return player ^ railway.hashCode() ^ cards.hashCode() ^ classHashCode;
@@ -47,16 +39,9 @@ public class ClaimRailwayDecision extends Decision {
 		return null;
 	}
 
-	private State appliedTo = null;
-	private int old_player;
-	private Random old_random;
-	
-	@Override public void apply(State s) {
-		assert(appliedTo == null);
-		appliedTo = s;
-
-		old_random = s.random.clone();
-		old_player = s.currentPlayer();
+	@Override public AppliedDecision apply(State s) {
+		Application a = new Application(this, s);
+		
 		s.switchToPlayer(player);
 		PlayerState p = s.playerState(player);
 
@@ -68,23 +53,25 @@ public class ClaimRailwayDecision extends Decision {
 
 		s.restoreDecks();
 		s.switchTurns();
+		
+		return a;
 	}
 
-	@Override public void undo(State s) {
-		assert(appliedTo == s);
-		appliedTo = null;
+	private class Application extends AppliedDecision {
+		public Application(Decision d, State s) { super(d, s); }
 
-		PlayerState p = s.playerState(player);
-		s.unswitchTurns();
-		s.unrestoreDecks();
+		@Override public void undo() {
+			PlayerState p = state.playerState(player);
+			state.unswitchTurns();
+			state.unrestoreDecks();
 
-		s.owner_by_railway.remove(railway);
-		p.unclaim(railway);
+			state.owner_by_railway.remove(railway);
+			p.unclaim(railway);
 
-		s.discarded.removeAll(cards);
-		p.hand.addAll(cards);
+			state.discarded.removeAll(cards);
+			p.hand.addAll(cards);
 
-		s.switchToPlayer(old_player);
-		s.random = old_random;
+			super.undo();
+		}
 	}
 }

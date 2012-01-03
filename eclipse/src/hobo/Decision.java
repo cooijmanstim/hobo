@@ -22,7 +22,5 @@ public abstract class Decision {
 	}
 
 	public abstract String reasonForIllegality(State s);
-	public abstract void apply(State s);
-	public abstract void undo(State s);
-	public abstract Decision clone();
+	public abstract AppliedDecision apply(State s);
 }

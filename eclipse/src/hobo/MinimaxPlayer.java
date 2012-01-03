@@ -131,7 +131,7 @@ public class MinimaxPlayer extends Player {
 		for (Decision d: ds) {
 			total_nbranches++;
 
-			d.apply(s);
+			AppliedDecision ad = d.apply(s);
 
 			double u;
 			try {
@@ -143,7 +143,7 @@ public class MinimaxPlayer extends Player {
 				u = minimax(s, depth - 1, newply, a, b, coalition).utility;
 			} finally {
 				// recursion might throw outoftime
-				d.undo(s);
+				ad.undo();
 			}
 
 			if (maximizing) {
@@ -190,7 +190,7 @@ public class MinimaxPlayer extends Player {
 		if (i < 0) i = N_KILLER_MOVES - 1;
 		for (; i > 0; i--)
 			killerMoves[ply][i] = killerMoves[ply][i-1];
-		killerMoves[ply][0] = d.clone();
+		killerMoves[ply][0] = d;
 	}
 
 	@SuppressWarnings("unused")
@@ -206,7 +206,7 @@ public class MinimaxPlayer extends Player {
 				Decision d = killerMoves[j][i];
 				if (d != null && d.isLegalForPlayer(s)) {
 					killer_tries++;
-					ds.add(d.clone());
+					ds.add(d);
 				}
 			}
 		}
