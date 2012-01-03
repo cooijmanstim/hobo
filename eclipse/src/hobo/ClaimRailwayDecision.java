@@ -39,8 +39,8 @@ public class ClaimRailwayDecision extends Decision {
 		return null;
 	}
 
-	@Override public AppliedDecision apply(State s) {
-		Application a = new Application(this, s);
+	@Override public AppliedDecision apply(State s, boolean undoably) {
+		Application a = undoably ? new Application(this, s) : null;
 		
 		s.switchToPlayer(player);
 		PlayerState p = s.playerState(player);

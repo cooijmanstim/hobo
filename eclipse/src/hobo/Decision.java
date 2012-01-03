@@ -22,5 +22,5 @@ public abstract class Decision {
 	}
 
 	public abstract String reasonForIllegality(State s);
-	public abstract AppliedDecision apply(State s);
+	public abstract AppliedDecision apply(State s, boolean undoably);
 }

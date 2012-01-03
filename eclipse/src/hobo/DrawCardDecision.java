@@ -51,15 +51,15 @@ public class DrawCardDecision extends Decision {
 		return null;
 	}
 	
-	@Override public AppliedDecision apply(State s) {
-		Application a = new Application(this, s);
+	@Override public AppliedDecision apply(State s, boolean undoably) {
+		Application a = undoably ? new Application(this, s) : null;
 
 		s.switchToPlayer(player);
 		PlayerState p = s.playerState(player);
 
 		// if drew a card last time, then can draw one more
 		boolean last_draw = p.drawn_card != null;
-		a.old_drawn_card = p.drawn_card;
+		if (undoably) a.old_drawn_card = p.drawn_card;
 
 		if (color == null) {
 			p.drawn_card = s.deck.draw(s.random);
@@ -69,7 +69,7 @@ public class DrawCardDecision extends Decision {
 				last_draw = true;
 		}
 
-		a.drawn_card = p.drawn_card;
+		if (undoably) a.drawn_card = p.drawn_card;
 		p.hand.add(p.drawn_card);
 		
 		s.restoreDecks();

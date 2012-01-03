@@ -228,7 +228,7 @@ public class State implements Cloneable {
 	
 	public void applyDecision(Decision d) throws IllegalDecisionException {
 		d.requireLegal(this);
-		d.apply(this);
+		d.apply(this, false);
 	}
 	
 	public Set<Decision> allPossibleDecisions() {

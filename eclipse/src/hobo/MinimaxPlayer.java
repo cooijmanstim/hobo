@@ -131,7 +131,7 @@ public class MinimaxPlayer extends Player {
 		for (Decision d: ds) {
 			total_nbranches++;
 
-			AppliedDecision ad = d.apply(s);
+			AppliedDecision ad = d.apply(s, true);
 
 			double u;
 			try {
