@@ -13,6 +13,8 @@ public enum Color {
 	ORANGE(236, 191, 108),
 	PURPLE(191, 152, 193),
 	GREY(223, 223, 223);
+	
+	public static final Color[] all = values();
 
 	public final java.awt.Color awtColor;
 

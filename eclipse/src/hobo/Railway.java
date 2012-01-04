@@ -1,5 +1,7 @@
 package hobo;
 
+import java.util.Arrays;
+
 public enum Railway {
 	Vancouver_Calgary_1(3, Color.GREY),
 	Vancouver_Seattle_1(1, Color.GREY),
@@ -101,6 +103,8 @@ public enum Railway {
 	Dallas_Houston_2(1, Color.GREY),
 	Houston_NewOrleans_1(2, Color.GREY),
 	Miami_NewOrleans_1(6, Color.RED);
+
+	public static final Railway[] all = values();
 
 	static {
 		// find and couple double railways

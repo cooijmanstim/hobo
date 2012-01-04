@@ -241,9 +241,9 @@ public class State implements Cloneable {
 		if (ps.drawn_missions == null) {
 			if (ps.drawn_card == null) {
 				// claim
-				for (Railway r: Railway.values()) {
+				for (Railway r: Railway.all) {
 					if (!isClaimed(r) && r.length <= ps.ncars && !ps.railways.contains(r.dual)) {
-						for (Color c: Color.values()) {
+						for (Color c: Color.all) {
 							CardBag cs = ps.hand.cardsToClaim(r, c);
 							if (cs != null)
 								ds.add(new ClaimRailwayDecision(player, r, cs));
@@ -252,7 +252,7 @@ public class State implements Cloneable {
 				}
 			}
 			
-			for (Color c: Color.values())
+			for (Color c: Color.all)
 				if (open_deck.contains(c))
 					ds.add(new DrawCardDecision(player, c));
 

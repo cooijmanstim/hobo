@@ -15,6 +15,8 @@ public enum Mission {
 	Seattle_LosAngeles(9), SaultStMarie_OklahomaCity(9), SaultStMarie_Nashville(8),
 	Chicago_NewOrleans(7), Toronto_Miami(10), SanFrancisco_Atlanta(17),
 	Winnipeg_Houston(12), Duluth_Houston(8), KansasCity_Houston(5);
+	
+	public static final Mission[] all = values();
 
 	public final City source, destination;
 	public final int value;
@@ -31,7 +33,7 @@ public enum Mission {
 	}
 
 	public static Mission connecting(City c, City d) {
-		for (Mission m: values())
+		for (Mission m: all)
 			if (m.connects(c, d))
 				return m;
 		return null;

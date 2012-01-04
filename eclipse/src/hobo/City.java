@@ -40,6 +40,8 @@ public enum City {
 	Houston      (609, 571),
 	NewOrleans   (702, 559),
 	Miami        (925, 596);
+	
+	public static final City[] all = values();
 
 	public final double x, y;
 
