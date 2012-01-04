@@ -31,24 +31,34 @@ public class State implements Cloneable {
 	                                                   Color.YELLOW, Color.BLACK };
 	private int next_color_index = 0;
 
-	public State clone() {
-		State that = new State();
-		that.random = this.random.clone();
-		that.players = this.players.clone();
+	public State(State that) {
+		this.random = that.random.clone();
+		this.players = that.players.clone();
 		for (int i = 0; i < players.length; i++)
-			that.players[i] = that.players[i].clone();
-		that.current_player = this.current_player;
-		that.owner_by_railway.putAll(this.owner_by_railway);
-		that.deck.addAll(this.deck);
-		that.open_deck.addAll(this.open_deck);
-		that.discarded.addAll(this.discarded);
-		that.missions.addAll(this.missions);
-		that.deck_restorations.addAll(this.deck_restorations);
-		that.discardeds.addAll(this.discardeds);
-		that.game_over = this.game_over;
-		that.last_player = this.last_player;
-		that.next_color_index = this.next_color_index;
-		return that;
+			this.players[i] = that.players[i].clone();
+		this.current_player = that.current_player;
+		this.owner_by_railway.putAll(that.owner_by_railway);
+		this.deck.addAll(that.deck);
+		this.open_deck.addAll(that.open_deck);
+		this.discarded.addAll(that.discarded);
+		this.missions.addAll(that.missions);
+		this.deck_restorations.addAll(that.deck_restorations);
+		this.discardeds.addAll(that.discardeds);
+		this.game_over = that.game_over;
+		this.last_player = that.last_player;
+		this.next_color_index = that.next_color_index;
+	}
+	
+	public State(String... player_names) {
+		int ni = player_names.length;
+		players = new PlayerState[ni];
+		for (int i = 0; i < ni; i++)
+			players[i] = new PlayerState(i, player_names[i], colors[next_color_index++]);
+		current_player = 0;
+	}
+
+	@Override public State clone() {
+		return new State(this);
 	}
 	
 	@Override public boolean equals(Object o) {
@@ -74,16 +84,6 @@ public class State implements Cloneable {
 	public String toString() {
 		return "State(deck: "+deck+" open_deck: "+open_deck
 		     + " missions: "+missions+" last_player: "+last_player+")";
-	}
-
-	public State() {}
-	
-	public State(String... player_names) {
-		int ni = player_names.length;
-		players = new PlayerState[ni];
-		for (int i = 0; i < ni; i++)
-			players[i] = new PlayerState(i, player_names[i], colors[next_color_index++]);
-		current_player = 0;
 	}
 
 	public void setup() {
