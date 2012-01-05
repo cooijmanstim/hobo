@@ -12,28 +12,25 @@ import javax.swing.*;
 
 public class Main {
 	public static void main(String[] args) {
-		headless();
+		graphical();
 	}
-	
+
 	public static void headless() {
 		long then = System.currentTimeMillis();
-		for (int i = 0; i < 300; i++) {
-			Game g = new Game(new RandomPlayer("igor"),
-					new RandomPlayer("igor"),
-				new RandomPlayer("igor"),
-				new RandomPlayer("iwan"));
-			g.play();
-			//g.printScores();
+		for (int i = 0; i < 1000; i++) {
+			new Game(new RandomPlayer("igor"),
+			         new RandomPlayer("iwan")).play();
 		}
 		long now = System.currentTimeMillis();
 		System.out.println(now - then);
+		//System.out.println(PlayerState.hits + "/" + PlayerState.tries + ": "+(PlayerState.hits * 1.0 / PlayerState.tries));
 		
-//		Game g = new Game(new MinimaxPlayer("joshua", 1, false, 3),
-//		                  new MinimaxPlayer("maarten", 1, true, 3));
-//		g.play();
-//		g.printScores();
-//		for (Decision d: g.decisionSequence)
-//			System.out.println(d);
+		/*Game g = new Game(new MinimaxPlayer("joshua", 1, false, 30),
+		                  new MinimaxPlayer("maarten", 1, true, 30));
+		g.play();
+		g.printScores();
+		for (Decision d: g.decisionSequence)
+			System.out.println(d);*/
 	}
 
 	public static void textual() {
@@ -56,10 +53,8 @@ public class Main {
 					public void actionPerformed(ActionEvent e) {
 						final GamePanel gp = new GamePanel();
 
-						final Game g = new Game(new MinimaxPlayer("joshua", 0, false, 30),
-												new RandomPlayer("igor"),
-												new RandomPlayer("iwan"),
-												new RandomPlayer("piotr"));
+						final Game g = new Game(new MinimaxPlayer("joshua", 1, false, 30),
+						                        new MonteCarloPlayer("carlo"));
 
 						g.registerObserver(new GameObserver() {
 							@Override public void observe(final Event e) {

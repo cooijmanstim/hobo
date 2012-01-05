@@ -82,7 +82,7 @@ public class State implements Cloneable {
 	}
 
 	public String toString() {
-		return "State(deck: "+deck+" open_deck: "+open_deck
+		return "State(game_over: "+game_over+" deck: "+deck+" open_deck: "+open_deck
 		     + " missions: "+missions+" last_player: "+last_player+")";
 	}
 
@@ -187,6 +187,17 @@ public class State implements Cloneable {
 			}
 		}
 		return winner;
+	}
+
+	// how far is the player ahead of the best other player?
+	public int aheadness(int i) {
+		int xmax = Integer.MIN_VALUE;
+		for (int j = 0; j < players.length; j++) {
+			int x = players[j].finalScore();
+			if (i != j && x > xmax)
+				xmax = x;
+		}
+		return players[i].finalScore() - xmax;
 	}
 
 	public boolean isClaimed(Railway r) {

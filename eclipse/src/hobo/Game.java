@@ -59,7 +59,7 @@ public class Game {
 		while (true) {
 			d = p.decide(state);
 			decisionSequence.add(d);
-			//System.out.println(p.name()+" decided "+d);
+			System.out.println(p.name()+" decided "+d);
 			if (d == null) {
 				abort();
 				return;
