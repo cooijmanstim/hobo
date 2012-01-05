@@ -153,9 +153,15 @@ public class MonteCarloPlayer extends Player {
 					Decision d = dn.getKey();
 					Node n = dn.getValue();
 
-					// TODO: uct
-					double u = (maximizing ? 1 : -1) * n.expectedValue();
-					// prioritize NaNs or they will never ever be selected
+					double u;
+					if (n.visit_count == 0) {
+						// division by zero results in NaN, not infinity
+						u = Double.POSITIVE_INFINITY;
+					} else {
+						u = (maximizing ? 1 : -1) * n.expectedValue();
+						u += Math.sqrt(2 * Math.log(visit_count) / n.visit_count); // UCT
+					}
+
 					if (Double.isNaN(u) || u > ubest) {
 						ubest = u;
 						dbest = d;
