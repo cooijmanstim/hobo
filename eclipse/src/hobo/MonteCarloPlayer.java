@@ -30,6 +30,7 @@ public class MonteCarloPlayer extends Player {
 			simulation_count++;
 		}
 		Decision d = tree.decide();
+		tree.printStatistics();
 		tree = null;
 
 		System.out.println("performed "+simulation_count+" simulations");
@@ -65,6 +66,52 @@ public class MonteCarloPlayer extends Player {
 			for (Decision d: all_possible_decisions)
 				childFor(d);
 			fully_expanded = true;
+		}
+		
+		public void printStatistics() {
+			int count = 0;
+			double total = 0, min = Double.POSITIVE_INFINITY, max = Double.NEGATIVE_INFINITY;
+			for (Node n: children.values()) {
+				// expectedValue will be NaN
+				if (n.visit_count == 0)
+					continue;
+				double u = n.expectedValue();
+				
+				total += u;
+				count++;
+				
+				min = Math.min(min, u);
+				max = Math.max(max, u);
+			}
+			double mean = total / count, variance = 0;
+			for (Node n: children.values()) {
+				// expectedValue will be NaN
+				if (n.visit_count == 0)
+					continue;
+				double u = n.expectedValue();
+				
+				variance += Math.pow(u - mean, 2);
+			}
+			List<Map.Entry<Decision,Node>> dns = new ArrayList<Map.Entry<Decision,Node>>(children.entrySet());
+			// zzzzzzz <<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+			Iterator<Map.Entry<Decision,Node>> idns = dns.iterator();
+			// I HATE THIS CODE!  I HATE JAVA!
+			while (idns.hasNext()) {
+				Map.Entry<Decision,Node> dn = idns.next();
+				if (Double.isNaN(dn.getValue().expectedValue()))
+					idns.remove();
+			}
+			Collections.sort(dns, new Comparator<Map.Entry<Decision,Node>>() {
+				public int compare(Map.Entry<Decision,Node> a, Map.Entry<Decision,Node> b) {
+					// AUGH,   URRGHLL
+					return -Double.compare(a.getValue().expectedValue(), b.getValue().expectedValue());
+				}
+			});
+			System.out.println("up to 10 best: ");
+			for (Map.Entry<Decision,Node> dn: dns.subList(0, Math.min(10, /* nyarrr */ dns.size()))) {
+				System.out.println(dn.getValue().expectedValue()+"\t"+dn.getValue().visit_count+" visits\t"+dn.getKey());
+			}
+			System.out.println("count "+count+" min "+min+" max "+max+" mean "+mean+" stdev "+Math.sqrt(variance));
 		}
 		
 		public Decision decide() {
