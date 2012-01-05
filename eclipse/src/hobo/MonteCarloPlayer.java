@@ -137,7 +137,7 @@ public class MonteCarloPlayer extends Player {
 			// ensure cache is correct
 			//if (all_possible_decisions != null)
 			//	assert(all_possible_decisions.equals(s.allPossibleDecisions()));
-			
+
 			if (visit_count >= FULL_EXPANSION_THRESHOLD)
 				fullyExpand();
 			
@@ -155,7 +155,8 @@ public class MonteCarloPlayer extends Player {
 
 					// TODO: uct
 					double u = (maximizing ? 1 : -1) * n.expectedValue();
-					if (u > ubest) {
+					// prioritize NaNs or they will never ever be selected
+					if (Double.isNaN(u) || u > ubest) {
 						ubest = u;
 						dbest = d;
 						nbest = n;
