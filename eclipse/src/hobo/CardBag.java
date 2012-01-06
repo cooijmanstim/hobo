@@ -3,9 +3,12 @@ package hobo;
 import java.util.*;
 
 public class CardBag implements Cloneable, Iterable<Color> {
+	private static final Color wildcard_color = Color.GREY;
+	private static final int wildcard_ordinal = wildcard_color.ordinal();
+
 	private int[] ks = new int[Color.all.length]; // multiplicities
 	private int size = 0;
-
+	
 	public CardBag() {}
 	public CardBag(Color... cs) {
 		for (Color c: cs)
@@ -56,8 +59,9 @@ public class CardBag implements Cloneable, Iterable<Color> {
 	}
 
 	public void remove(Color c) {
-		if (ks[c.ordinal()] > 0) {
-			ks[c.ordinal()]--;
+		int i = c.ordinal();
+		if (ks[i] > 0) {
+			ks[i]--;
 			size--;
 		}
 	}
@@ -90,11 +94,10 @@ public class CardBag implements Cloneable, Iterable<Color> {
 		return true;
 	}
 
-	// get a non-grey color of which at least one card is present
-	public Color arbitraryNonGrey() {
-		int j = Color.GREY.ordinal();
+	// get a non-wild color of which at least one card is present
+	public Color arbitraryNonWildcard() {
 		for (int i = 0; i < Color.all.length; i++) {
-			if (ks[i] > 0 && i != j)
+			if (ks[i] > 0 && i != wildcard_ordinal)
 				return Color.all[i];
 		}
 		return null;
@@ -130,10 +133,10 @@ public class CardBag implements Cloneable, Iterable<Color> {
 			// (specifically, raise to the 3rd instead of the 2nd
 			// because 2^2 == 2*2)
 			u += k * k * k;
+			
+			if (k == wildcard_ordinal)
+				u += k * k * k;
 		}
-		// grey cards are extra super duper
-		int k = ks[Color.GREY.ordinal()];
-		u += k * k * k;
 		// now take a root to keep the value somewhat in check
 		return Math.pow(u, 1/3.0);
 	}
@@ -249,33 +252,33 @@ public class CardBag implements Cloneable, Iterable<Color> {
 	}
 	
 	// two cards are "equivalent" if they can be used in place of eachother.
-	// e.g., grey can be used in place of blue.
+	// e.g., a wildcard can be used in place of blue.
 	public int countEquivalent(Color c) {
-		// grey is a problematic case.  all cards that are individually
-		// equivalent to grey may not be mutually equivalent.
+		// wildcard is a problematic case.  all cards that are individually
+		// equivalent to a wildcard may not be mutually equivalent.
 		// (i.e., equivalence is symmetric but not transitive)
-		if (c == Color.GREY)
+		if (c == wildcard_color)
 			throw new IllegalArgumentException();
-		return count(c) + count(Color.GREY);
+		return ks[c.ordinal()] + ks[wildcard_ordinal];
 	}
 
 	public boolean allEquivalent() {
-		return count(Color.GREY) == size || countEquivalent(arbitraryNonGrey()) == size;
+		return ks[wildcard_ordinal] == size || countEquivalent(arbitraryNonWildcard()) == size;
 	}
 	
 	// A bag of cards that can be used to claim the railway
-	// If the railway is grey, the caller must specify the
+	// If the railway is wild, the caller must specify the
 	// color of cards to use as a second argument.
 	public CardBag cardsToClaim(Railway r) {
-		assert(r.color != Color.GREY);
+		assert(r.color != wildcard_color);
 		return cardsToClaim(r, r.color);
 	}
 
 	public CardBag cardsToClaim(Railway r, Color c) {
 		int n = r.length;
 		CardBag cards;
-		if (c == Color.GREY) {
-			if (count(c) < n)
+		if (c == wildcard_color) {
+			if (ks[wildcard_ordinal] < n)
 				return null;
 
 			cards = new CardBag();
@@ -283,24 +286,24 @@ public class CardBag implements Cloneable, Iterable<Color> {
 		} else {
 			// use as many cards of color c as possible
 			int k;
-			if (c != r.color && r.color != Color.GREY)
+			if (c != r.color && r.color != wildcard_color)
 				k = 0; // can't use cards of color c at all
 			else
 				k = Math.min(count(c), n);
 
 			// add wildcards as necessary
-			if (count(Color.GREY) < n-k)
+			if (ks[wildcard_ordinal] < n-k)
 				return null;
 
 			cards = new CardBag();
 			cards.add(c, k);
-			cards.add(Color.GREY, n-k);
+			cards.add(wildcard_color, n-k);
 		}
 		return cards;
 	}
 
 	public boolean canAfford(Railway r) {
-		if (r.color != Color.GREY)
+		if (r.color != wildcard_color)
 			return cardsToClaim(r) != null;
 		for (Color c: Color.all)
 			if (cardsToClaim(r, c) != null)
@@ -323,9 +326,5 @@ public class CardBag implements Cloneable, Iterable<Color> {
 	
 	static {
 		requireIteratorFinitude();
-	}
-	
-	public int[] multiplicities() {
-		return ks.clone();
 	}
 }
