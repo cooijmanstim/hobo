@@ -1,5 +1,7 @@
 package hobo;
 
+import java.util.*;
+
 public class DrawCardDecision extends Decision {
 	// if color is not null, draw from open deck
 	public final Color color;
@@ -32,15 +34,18 @@ public class DrawCardDecision extends Decision {
 		return player ^ (color == null ? -1 : color.hashCode()) ^ classHashCode;
 	}
 	
-	@Override public double weight(State s) {
-		CardBag hand = s.playerState(player).hand;
-		Color c = color == null ? s.deck.cardOnTop(s.random) : color;
-		double oldu = hand.utilityAsHand();
-		hand.add(c);
-		double newu = hand.utilityAsHand();
-		hand.remove(c);
-		double du = newu - oldu;
-		return Util.logsig(du);
+	public static Set<Decision> availableTo(State s, PlayerState ps, Set<Decision> ds) {
+		if (ps.drawn_missions != null)
+			return ds;
+		
+		for (Color c: Color.all)
+			if (s.open_deck.contains(c))
+				ds.add(new DrawCardDecision(ps.handle, c));
+
+		if (!s.deck.isEmpty())
+			ds.add(new DrawCardDecision(ps.handle, null));
+
+		return ds;
 	}
 	
 	@Override public String reasonForIllegality(State s) {

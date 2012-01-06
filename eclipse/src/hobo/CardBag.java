@@ -165,7 +165,7 @@ public class CardBag implements Cloneable, Iterable<Color> {
 	}
 
 	public CardBag draw(int k, Random random) {
-		assert(size() >= k);
+		k = Math.min(k, size);
 		CardBag cs = new CardBag();
 		for (; k > 0; k--)
 			cs.add(draw(random));

@@ -191,7 +191,7 @@ public class MonteCarloPlayer extends Player {
 
 		public int playout(State s) {
 			while (!s.gameOver()) {
-				Decision d = sample(s.allPossibleDecisions(), s);
+				Decision d = chooseDecision(s);
 				d.apply(s, false);
 			}
 			int value = (int)Math.signum(s.aheadness(handle)); // more than just win or loss
@@ -200,16 +200,37 @@ public class MonteCarloPlayer extends Player {
 			return value;
 		}
 		
-		// pick a decision according to the non-normalized distribution
-		// defined by Decision::weight(s)
+		public Decision chooseDecision(State s) {
+			Set<Decision> ds = new LinkedHashSet<Decision>(50);
+			PlayerState ps = s.currentPlayerState();
+			if (ps.drawn_card != null) {
+				ds = DrawCardDecision.availableTo(s, ps, ds);
+			} else if (ps.drawn_missions != null) {
+				ds = KeepMissionsDecision.availableTo(s, ps, ds);
+			} else {
+				while (ds.isEmpty()) {
+					double x = Math.random();
+					if (x < 0.6) {
+						ds = DrawCardDecision.availableTo(s, ps, ds);
+					} else if (x < 0.99) {
+						ds = ClaimRailwayDecision.availableTo(s, ps, ds);
+					} else {
+						ds = DrawMissionsDecision.availableTo(s, ps, ds);
+					}
+				}
+			}
+			return sample(ds, s);
+		}
+
+		// sample from non-normalized distribution defined by weight()
 		public Decision sample(Set<Decision> ds, State s) {
 			double total_weight = 0;
 			for (Decision d: ds)
-				total_weight += d.weight(s);
-			
+				total_weight += weight(d, s);
+
 			double index = random.nextDouble()*total_weight;
 			for (Decision d: ds) {
-				index -= d.weight(s);
+				index -= weight(d, s);
 				if (index <= 0)
 					return d;
 			}
@@ -217,9 +238,32 @@ public class MonteCarloPlayer extends Player {
 			// shouldn't get here
 			System.out.print("distribution: ");
 			for (Decision d: ds)
-				System.out.println(d.weight(s) + "\t" + d);
-			System.out.println(index+" of probability mass left");
+				System.out.println(weight(d, s) + "\t" + d);
+			System.out.println(index+" of mass left");
 			throw new RuntimeException();
+		}
+
+		// defines a probability distribution over decisions,
+		// conditioned on type
+		public double weight(Decision d, State s) {
+			if (d instanceof ClaimRailwayDecision) {
+				return ((ClaimRailwayDecision)d).railway.score() * 1.0 / Railway.MAX_SCORE;
+			} else if (d instanceof DrawCardDecision) {
+				DrawCardDecision dcd = (DrawCardDecision)d;
+				CardBag hand = s.playerState(d.player).hand;
+				Color c = dcd.color == null ? s.deck.cardOnTop(s.random) : dcd.color;
+				double oldu = hand.utilityAsHand();
+				hand.add(c);
+				double newu = hand.utilityAsHand();
+				hand.remove(c);
+				double du = newu - oldu;
+				return Util.logsig(du);
+			} else if (d instanceof DrawMissionsDecision) {
+				return 1;
+			} else if (d instanceof KeepMissionsDecision) {
+				// smaller probably better
+				return 1/((KeepMissionsDecision)d).missions.size();
+			} else throw new RuntimeException("yarrr");
 		}
 		
 		@Override public String toString() {

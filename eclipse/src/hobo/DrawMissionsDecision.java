@@ -1,6 +1,7 @@
 package hobo;
 
 import java.util.EnumSet;
+import java.util.Set;
 
 public class DrawMissionsDecision extends Decision {
 	public DrawMissionsDecision(int player) {
@@ -25,11 +26,6 @@ public class DrawMissionsDecision extends Decision {
 		return player ^ classHashCode;
 	}
 	
-	@Override public double weight(State s) {
-		// maybe look at which will be drawn
-		return 0.01;
-	}
-
 	@Override public String reasonForIllegality(State s) {
 		PlayerState p = s.playerState(player);
 		if (s.currentPlayer() != player) return "it's not your turn";
@@ -61,5 +57,12 @@ public class DrawMissionsDecision extends Decision {
 
 			super.undo();
 		}
+	}
+
+	public static Set<Decision> availableTo(State s, PlayerState ps, Set<Decision> ds) {
+		if (ps.drawn_card != null || ps.drawn_missions != null || s.missions.isEmpty())
+			return ds;
+		ds.add(new DrawMissionsDecision(ps.handle));
+		return ds;
 	}
 }

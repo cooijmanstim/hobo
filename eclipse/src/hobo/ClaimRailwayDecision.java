@@ -1,5 +1,7 @@
 package hobo;
 
+import java.util.*;
+
 public class ClaimRailwayDecision extends Decision {
 	public final Railway railway;
 	public final CardBag cards;
@@ -26,12 +28,21 @@ public class ClaimRailwayDecision extends Decision {
 		return player ^ railway.hashCode() ^ cards.hashCode() ^ classHashCode;
 	}
 	
-	@Override public double weight(State s) {
-		// TODO: maybe look at player's missions, but we
-		// really don't have that kind of time in here
-		return 0.5 * (railway.score() * 1.0 / Railway.MAX_SCORE);
+	public static Set<Decision> availableTo(State s, PlayerState ps, Set<Decision> ds) {
+		if (ps.drawn_missions != null || ps.drawn_card != null)
+			return ds;
+		for (Railway r: Railway.all) {
+			if (!s.isClaimed(r) && r.length <= ps.ncars && !ps.railways.contains(r.dual)) {
+				for (Color c: Color.all) {
+					CardBag cs = ps.hand.cardsToClaim(r, c);
+					if (cs != null)
+						ds.add(new ClaimRailwayDecision(ps.handle, r, cs));
+				}
+			}
+		}
+		return ds;
 	}
-	
+
 	@Override public String reasonForIllegality(State s) {
 		if (s.currentPlayer() != player) return "it's not your turn";
 		PlayerState p = s.playerState(player);

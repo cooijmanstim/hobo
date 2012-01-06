@@ -254,42 +254,14 @@ public class State implements Cloneable {
 	public Set<Decision> allPossibleDecisions() {
 		return allPossibleDecisionsFor(current_player);
 	}
-	
+
 	public Set<Decision> allPossibleDecisionsFor(int player) {
 		Set<Decision> ds = new LinkedHashSet<Decision>(100);
 		PlayerState ps = players[player];
-		if (ps.drawn_missions == null) {
-			if (ps.drawn_card == null) {
-				// claim
-				for (Railway r: Railway.all) {
-					if (!isClaimed(r) && r.length <= ps.ncars && !ps.railways.contains(r.dual)) {
-						for (Color c: Color.all) {
-							CardBag cs = ps.hand.cardsToClaim(r, c);
-							if (cs != null)
-								ds.add(new ClaimRailwayDecision(player, r, cs));
-						}
-					}
-				}
-			}
-			
-			for (Color c: Color.all)
-				if (open_deck.contains(c))
-					ds.add(new DrawCardDecision(player, c));
-
-			if (!deck.isEmpty())
-				ds.add(new DrawCardDecision(player, null));
-			
-			if (ps.drawn_card == null && !missions.isEmpty())
-				ds.add(new DrawMissionsDecision(player));
-		} else {
-			// keep
-			for (Set<Mission> ms: Util.powerset(ps.drawn_missions, EnumSet.noneOf(Mission.class))) {
-				if (ms.isEmpty())
-					continue;
-				ds.add(new KeepMissionsDecision(player, ms));
-			}
-		}
-
+		ds = ClaimRailwayDecision.availableTo(this, ps, ds);
+		ds = DrawCardDecision.availableTo(this, ps, ds);
+		ds = DrawMissionsDecision.availableTo(this, ps, ds);
+		ds = KeepMissionsDecision.availableTo(this, ps, ds);
 		return ds;
 	}
 }

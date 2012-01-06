@@ -1,5 +1,6 @@
 package hobo;
 
+import java.util.EnumSet;
 import java.util.Set;
 
 public class KeepMissionsDecision extends Decision {
@@ -24,15 +25,18 @@ public class KeepMissionsDecision extends Decision {
 	@Override public int hashCode() {
 		return player ^ missions.hashCode() ^ classHashCode;
 	}
-	
-	@Override public double weight(State s) {
-		// maybe look at whether some are already complete
-		// when this type of decision is possible, all possible decisions
-		// will be of this type, so the prior weight for keep missions
-		// decision has no influence
-		return 1;
+
+	public static Set<Decision> availableTo(State s, PlayerState ps, Set<Decision> ds) {
+		if (ps.drawn_missions == null)
+			return ds;
+		for (Set<Mission> ms: Util.powerset(ps.drawn_missions, EnumSet.noneOf(Mission.class))) {
+			if (ms.isEmpty())
+				continue;
+			ds.add(new KeepMissionsDecision(ps.handle, ms));
+		}
+		return ds;
 	}
-	
+
 	@Override public String reasonForIllegality(State s) {
 		PlayerState p = s.playerState(player);
 		if (s.currentPlayer() != player) return "it's not your turn";
