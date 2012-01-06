@@ -26,6 +26,12 @@ public class ClaimRailwayDecision extends Decision {
 		return player ^ railway.hashCode() ^ cards.hashCode() ^ classHashCode;
 	}
 	
+	@Override public double weight(State s) {
+		// TODO: maybe look at player's missions, but we
+		// really don't have that kind of time in here
+		return 0.5 * (railway.score() * 1.0 / Railway.MAX_SCORE);
+	}
+	
 	@Override public String reasonForIllegality(State s) {
 		if (s.currentPlayer() != player) return "it's not your turn";
 		PlayerState p = s.playerState(player);

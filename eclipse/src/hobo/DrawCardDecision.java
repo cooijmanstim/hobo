@@ -31,7 +31,18 @@ public class DrawCardDecision extends Decision {
 	@Override public int hashCode() {
 		return player ^ (color == null ? -1 : color.hashCode()) ^ classHashCode;
 	}
-
+	
+	@Override public double weight(State s) {
+		CardBag hand = s.playerState(player).hand;
+		Color c = color == null ? s.deck.cardOnTop(s.random) : color;
+		double oldu = hand.utilityAsHand();
+		hand.add(c);
+		double newu = hand.utilityAsHand();
+		hand.remove(c);
+		double du = newu - oldu;
+		return Util.logsig(du);
+	}
+	
 	@Override public String reasonForIllegality(State s) {
 		if (s.currentPlayer() != player)
 			return "it's not your turn";

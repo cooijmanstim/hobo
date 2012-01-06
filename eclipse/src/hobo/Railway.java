@@ -171,6 +171,7 @@ public enum Railway {
 	}
 
 	private static final int[] score_by_length = new int[]{ 0, 1, 2, 4, 7, 10, 15 };
+	public static final int MAX_SCORE = score_by_length[score_by_length.length - 1];
 	public int score() {
 		return score_by_length[length];
 	}

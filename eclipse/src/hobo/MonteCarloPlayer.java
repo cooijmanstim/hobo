@@ -172,7 +172,7 @@ public class MonteCarloPlayer extends Player {
 				dbest.apply(s, false);
 				value = nbest.populate(s);
 			} else {
-				Decision d = sample(all_possible_decisions);
+				Decision d = sample(all_possible_decisions, s);
 				d.apply(s, false);
 				Node n = childFor(d);
 				if (n.visit_count == 0) {
@@ -191,7 +191,7 @@ public class MonteCarloPlayer extends Player {
 
 		public int playout(State s) {
 			while (!s.gameOver()) {
-				Decision d = sample(s.allPossibleDecisions());
+				Decision d = sample(s.allPossibleDecisions(), s);
 				d.apply(s, false);
 			}
 			int value = (int)Math.signum(s.aheadness(handle)); // more than just win or loss
@@ -200,8 +200,26 @@ public class MonteCarloPlayer extends Player {
 			return value;
 		}
 		
-		public Decision sample(Set<Decision> ds) {
-			return Util.sample(ds, random); // TODO: distribution
+		// pick a decision according to the non-normalized distribution
+		// defined by Decision::weight(s)
+		public Decision sample(Set<Decision> ds, State s) {
+			double total_weight = 0;
+			for (Decision d: ds)
+				total_weight += d.weight(s);
+			
+			double index = random.nextDouble()*total_weight;
+			for (Decision d: ds) {
+				index -= d.weight(s);
+				if (index <= 0)
+					return d;
+			}
+
+			// shouldn't get here
+			System.out.print("distribution: ");
+			for (Decision d: ds)
+				System.out.println(d.weight(s) + "\t" + d);
+			System.out.println(index+" of probability mass left");
+			throw new RuntimeException();
 		}
 		
 		@Override public String toString() {

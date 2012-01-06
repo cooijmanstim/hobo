@@ -24,6 +24,11 @@ public class DrawMissionsDecision extends Decision {
 	@Override public int hashCode() {
 		return player ^ classHashCode;
 	}
+	
+	@Override public double weight(State s) {
+		// maybe look at which will be drawn
+		return 0.01;
+	}
 
 	@Override public String reasonForIllegality(State s) {
 		PlayerState p = s.playerState(player);

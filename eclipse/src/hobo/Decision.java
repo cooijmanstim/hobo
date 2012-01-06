@@ -2,7 +2,7 @@ package hobo;
 
 public abstract class Decision {
 	public /* pretend final */ int player;
-	
+
 	public boolean isLegal(State s) {
 		return reasonForIllegality(s) == null;
 	}
@@ -23,4 +23,9 @@ public abstract class Decision {
 
 	public abstract String reasonForIllegality(State s);
 	public abstract AppliedDecision apply(State s, boolean undoably);
+
+	// a heuristic estimate of the "goodness" of a decision
+	// the value for this should make sense across the different
+	// decision types
+	public abstract double weight(State s);
 }

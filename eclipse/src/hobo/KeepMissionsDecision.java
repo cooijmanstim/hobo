@@ -25,6 +25,14 @@ public class KeepMissionsDecision extends Decision {
 		return player ^ missions.hashCode() ^ classHashCode;
 	}
 	
+	@Override public double weight(State s) {
+		// maybe look at whether some are already complete
+		// when this type of decision is possible, all possible decisions
+		// will be of this type, so the prior weight for keep missions
+		// decision has no influence
+		return 1;
+	}
+	
 	@Override public String reasonForIllegality(State s) {
 		PlayerState p = s.playerState(player);
 		if (s.currentPlayer() != player) return "it's not your turn";

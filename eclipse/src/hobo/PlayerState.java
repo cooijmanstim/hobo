@@ -86,37 +86,27 @@ public class PlayerState implements Cloneable {
 	}
 
 	public double utility(State s) {
-		// advantage over the other players combined
 		if (s.gameOver()) return finalScore();
+
+		Set<Railway> usable_railways = s.usableRailwaysFor(handle);
 		double u = 0.0;
-		for(Mission m : missions) {
+		for (Mission m: missions) {
 			int length = 0;
 			int LENGTH = 0;
-			for(Railway r : Util.getShortestWay(m.source, m.destination, new ArrayList<Railway>(), s)) {
+			for (Railway r: Util.shortestPath(m.source, m.destination, usable_railways)) {
 				LENGTH += r.length;
-				if(railways.contains(r))
+				if (railways.contains(r))
 					length += r.length;
 			}
-			u += m.value*(2 * ( length * 1.0 / LENGTH * 1.0 ) - 1);
-			
+			u += m.value * length * 2.0 / LENGTH - 1;
 		}
-		double e=0.0;
-		if(hand.size() == 0)
-			e = 1;
-		else {
-			for(int k:hand.multiplicities()) {
-				if(k == 0)
-					continue;
-				double p = (k*1.0)/hand.size();
-				e += (-p)*Util.log2(p);
-			}			
-		}
+
 		int mPoints = 0;
-		if(missions.size() > 3) {
+		if (missions.size() > 3) {
 			mPoints += 10*(missions.size()-3);
 		}
-		
+
 //		System.out.println("score="+score+" - u="+u+" - e="+e);
-		return score + u + (1-e)*2 - mPoints;
+		return score + u + hand.utilityAsHand() - mPoints;
 	}
 }

@@ -136,4 +136,8 @@ public class Util {
 	public static double log2(double number) {
 		return (Math.log10(number)/Math.log10(2));
 	}
+
+	public static double logsig(double x) {
+		return 1 / (1 + Math.exp(-x));
+	}
 }

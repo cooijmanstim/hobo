@@ -103,7 +103,41 @@ public class CardBag implements Cloneable, Iterable<Color> {
 	public int count(Color c) {
 		return ks[c.ordinal()];
 	}
+	
+	public double entropy() {
+		if (size == 0)
+			return 0;
+		double e = 0;
+		for (int k: ks) {
+			if (k == 0)
+				continue;
 
+			double p = k * 1.0 / size;
+			e -= p*Util.log2(p);
+		}
+		return e;
+	}
+	
+	public double maxEntropy() {
+		return size == 0 ? 0 : Util.log2(size);
+	}
+	
+	public double utilityAsHand() {
+		int u = 0;
+		for (int k: ks) {
+			// raise to some power to emphasize importance of having
+			// multiple cards of one color
+			// (specifically, raise to the 3rd instead of the 2nd
+			// because 2^2 == 2*2)
+			u += k * k * k;
+		}
+		// grey cards are extra super duper
+		int k = ks[Color.GREY.ordinal()];
+		u += k * k * k;
+		// now take a root to keep the value somewhat in check
+		return Math.pow(u, 1/3.0);
+	}
+	
 	// weighted but otherwise uniformly random selection
 	public Color draw(Random random) {
 		assert(!isEmpty());
@@ -118,6 +152,13 @@ public class CardBag implements Cloneable, Iterable<Color> {
 			}
 		}
 		throw new RuntimeException();
+	}
+
+	// see what kind of card would be drawn next
+	public Color cardOnTop(Random random) {
+		Color c = draw(random.clone());
+		add(c);
+		return c;
 	}
 
 	public CardBag draw(int k, Random random) {
