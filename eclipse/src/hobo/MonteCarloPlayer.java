@@ -158,7 +158,8 @@ public class MonteCarloPlayer extends Player {
 						// division by zero results in NaN, not infinity
 						u = Double.POSITIVE_INFINITY;
 					} else {
-						u = (maximizing ? 1 : -1) * n.expectedValue();
+						double eu = n.expectedValue();
+						u = (maximizing ? 1 : -1) * Math.signum(eu);
 						u += Math.sqrt(2 * Math.log(visit_count) / n.visit_count); // UCT
 					}
 
