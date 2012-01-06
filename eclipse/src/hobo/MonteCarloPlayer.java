@@ -159,7 +159,7 @@ public class MonteCarloPlayer extends Player {
 						u = Double.POSITIVE_INFINITY;
 					} else {
 						double eu = n.expectedValue();
-						u = (maximizing ? 1 : -1) * Math.signum(eu);
+						u = (maximizing ? 1 : -1) * eu;
 						u += Math.sqrt(2 * Math.log(visit_count) / n.visit_count); // UCT
 					}
 
@@ -172,7 +172,7 @@ public class MonteCarloPlayer extends Player {
 				dbest.apply(s, false);
 				value = nbest.populate(s);
 			} else {
-				Decision d = Util.sample(all_possible_decisions, random); // TODO: distribution
+				Decision d = sample(all_possible_decisions);
 				d.apply(s, false);
 				Node n = childFor(d);
 				if (n.visit_count == 0) {
@@ -191,13 +191,17 @@ public class MonteCarloPlayer extends Player {
 
 		public int playout(State s) {
 			while (!s.gameOver()) {
-				Decision d = Util.sample(s.allPossibleDecisions(), random); // TODO: distribution
+				Decision d = sample(s.allPossibleDecisions());
 				d.apply(s, false);
 			}
-			int value = s.aheadness(handle); // more than just win or loss
+			int value = (int)Math.signum(s.aheadness(handle)); // more than just win or loss
 			total_value += value;
 			visit_count++;
 			return value;
+		}
+		
+		public Decision sample(Set<Decision> ds) {
+			return Util.sample(ds, random); // TODO: distribution
 		}
 		
 		@Override public String toString() {
