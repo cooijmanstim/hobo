@@ -58,6 +58,9 @@ public class Util {
 	}
 	
 	public static List<Railway> shortestPath(City a, City b, Set<Railway> railways) {
+		if (railways.size() == 0)
+			return null;
+		
 		Set<City> seen = EnumSet.noneOf(City.class);
 		PriorityQueue<AStarNode> fringe = new PriorityQueue<AStarNode>(railways.size());
 		fringe.offer(new AStarNode(a, null, null, b));

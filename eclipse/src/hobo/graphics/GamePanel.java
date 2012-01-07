@@ -58,7 +58,7 @@ public class GamePanel extends JLayeredPane implements Visualization {
 		panel2.add(decks, BorderLayout.WEST);
 		panel2.add(new JScrollPane(map), BorderLayout.CENTER);
 
-		JPanel panel3 = new JPanel();		
+		JPanel panel3 = new JPanel();
 		panel3.setLayout(new BorderLayout());
 		panel3.add(missions, BorderLayout.WEST);
 		panel3.add(hand, BorderLayout.CENTER);
@@ -78,9 +78,9 @@ public class GamePanel extends JLayeredPane implements Visualization {
 		
 		if (s.gameOver()) {
 			// show end state, overlaid with scores and shit
-			JPanel p = new JPanel();
+			JFrame f = new JFrame();
 			int[] players = s.players();
-			p.setLayout(new GridLayout(0, players.length));
+			f.setLayout(new GridLayout(0, players.length));
 			// sigh. gridlayout insists on ltr, ttb child insertion
 			for (int y = 0; y < 3; y++) {
 				for (int handle: players) {
@@ -102,8 +102,8 @@ public class GamePanel extends JLayeredPane implements Visualization {
 								Mission m = (Mission)o;
 								JLabel c = new JLabel(m.value+" "+m.source+" - "+m.destination);
 								c.setBackground(ps.missionCompleted(m)
-								                  ? new java.awt.Color(0.5f, 0.5f, 1f, 0.5f)
-								                  : new java.awt.Color(1f, 0.5f, 0.5f, 0.5f));
+								                  ? new java.awt.Color(0.5f, 0.5f, 1f)
+								                  : new java.awt.Color(1f, 0.5f, 0.5f));
 								c.setOpaque(true);
 								return c;
 							}
@@ -111,11 +111,12 @@ public class GamePanel extends JLayeredPane implements Visualization {
 						c = l;
 						break;
 					}
-					p.add(c);
+					f.add(c);
 				}
 			}
-			add(p, JLayeredPane.POPUP_LAYER);
-			revalidate(); // fuck this shit
+			f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+			f.pack();
+			f.setVisible(true);
 		} else {
 			players.reflect(s);
 			decks.reflect(s);
