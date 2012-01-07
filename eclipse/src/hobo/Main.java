@@ -49,10 +49,10 @@ public class Main {
 				b.addActionListener(new ActionListener() {
 					private Thread gameThread = null;
 					private GamePanel gamePanel = null; // hate hate hate
+					private Game game = null;
 
 					public void actionPerformed(ActionEvent e) {
 						final GamePanel gp = new GamePanel();
-
 						final Game g = new Game(new MinimaxPlayer("joshua", 1, false, 30),
 						                        new MonteCarloPlayer("carlo"));
 
@@ -65,22 +65,28 @@ public class Main {
 											gp.repaint();
 										}
 									});
-								} catch (Exception ex) {
+								} catch (InterruptedException ex) {
+									g.abort();
+								} catch (InvocationTargetException ex) {
 									ex.printStackTrace();
 									System.exit(1);
 								}
 							}
 						});
-						
+
+						if (gameThread != null) {
+							game.abort();
+							gameThread.interrupt();
+						}
+						game = g;
+
 						if (gamePanel != null)
 							f.remove(gamePanel);
 						gamePanel = gp;
-						f.add(gamePanel, BorderLayout.CENTER);
 						
+						f.add(gamePanel, BorderLayout.CENTER);
 						f.validate();
 
-						if (gameThread != null)
-							gameThread.interrupt();
 						gameThread = new Thread(new Runnable() {
 							public void run() { g.play(); }
 						});
