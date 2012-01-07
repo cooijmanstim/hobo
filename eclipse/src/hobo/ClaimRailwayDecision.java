@@ -32,11 +32,18 @@ public class ClaimRailwayDecision extends Decision {
 		if (ps.drawn_missions != null || ps.drawn_card != null)
 			return ds;
 		for (Railway r: Railway.all) {
-			if (!s.isClaimed(r) && r.length <= ps.ncars && !ps.railways.contains(r.dual)) {
-				for (Color c: Color.all) {
-					CardBag cs = ps.hand.cardsToClaim(r, c);
+			if (r.length <= ps.ncars && r.length <= ps.hand.size()
+					&& !s.isClaimed(r) && !ps.railways.contains(r.dual)) {
+				if (r.color != Color.GREY) {
+					CardBag cs = ps.hand.cardsToClaim(r, r.color);
 					if (cs != null)
 						ds.add(new ClaimRailwayDecision(ps.handle, r, cs));
+				} else {
+					for (Color c: Color.all) {
+						CardBag cs = ps.hand.cardsToClaim(r, c);
+						if (cs != null)
+							ds.add(new ClaimRailwayDecision(ps.handle, r, cs));
+					}
 				}
 			}
 		}
