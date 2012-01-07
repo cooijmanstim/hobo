@@ -225,12 +225,19 @@ public class MonteCarloPlayer extends Player {
 			} else if (ps.drawn_missions != null) {
 				ds = KeepMissionsDecision.availableTo(s, ps, ds);
 			} else {
+				// endpoints for probability integral
+				double dcd_end = 0.5 + Util.logsig(-ps.hand.size()),
+				       crd_end = 0.99;
 				while (ds.isEmpty()) {
 					double x = Math.random();
-					if (x < 0.6) {
+					if (x < dcd_end) {
 						ds = DrawCardDecision.availableTo(s, ps, ds);
-					} else if (x < 0.99) {
+						if (ds.isEmpty())
+							dcd_end = 0;
+					} else if (x < crd_end) {
 						ds = ClaimRailwayDecision.availableTo(s, ps, ds);
+						if (ds.isEmpty())
+							crd_end = 0; // i guess...
 					} else {
 						ds = DrawMissionsDecision.availableTo(s, ps, ds);
 					}
