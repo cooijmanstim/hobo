@@ -3,8 +3,8 @@ package hobo;
 import java.util.*;
 
 public class MinimaxPlayer extends Player {
-	private static final int N_KILLER_MOVES = 2,
-	                         KILLER_MOVES_HORIZON = 1;
+	private static final int N_KILLER_MOVES = 3,
+	                         KILLER_MOVES_HORIZON = 2;
 	private final double paranoia;
 	private final int max_depth, decision_time;
 	private final boolean best_reply;
