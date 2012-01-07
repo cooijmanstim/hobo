@@ -3,17 +3,33 @@ package hobo;
 import java.util.*;
 
 public class MaxNPlayer extends Player {
-	private static final int MAX_DECISION_TIME = 2000;
+	private final int decision_time;
 	private final int max_depth;
 
-	public MaxNPlayer(String name, int max_depth) {
+	public MaxNPlayer(String name, int max_depth, int decision_time) {
 		this.name = name;
 		this.max_depth = max_depth;
+		this.decision_time = decision_time;
+	}
+	
+	public static MaxNPlayer fromConfiguration(String configuration) {
+		String name = "maxn";
+		int max_depth = 25;
+		int decision_time = 5;
+		
+		for (Map.Entry<String,String> entry: Util.parseConfiguration(configuration).entrySet()) {
+			String k = entry.getKey(), v = entry.getValue();
+			if (k.equals("name"))          name = v;
+			if (k.equals("max_depth"))     max_depth = Integer.parseInt(v);
+			if (k.equals("decision_time")) decision_time = Integer.parseInt(v);
+		}
+		
+		return new MaxNPlayer(name, max_depth, decision_time);
 	}
 
 	public Decision decide(State s) {
-//		System.out.println("----------------------------------------------------");
-//		System.out.println(name+" deciding...");
+		System.out.println("----------------------------------------------------");
+		System.out.println(name+" deciding...");
 		Decision d = deepenIteratively(s);
 		System.out.println("average branching factor: "+(total_nbranches * 1.0 / total_nbranches_nterms));
 		return d;
@@ -27,7 +43,7 @@ public class MaxNPlayer extends Player {
 			public void run() {
 				outOfTime = true;
 			}
-		}, MAX_DECISION_TIME);
+		}, decision_time);
 
 		Decision d = null;
 		try {
@@ -37,7 +53,7 @@ public class MaxNPlayer extends Player {
 				d = ed.decision;
 			}
 		} catch (OutOfTimeException e) {
-//			System.out.println("out of time");
+			System.out.println("out of time");
 		}
 		
 		if (!outOfTime)

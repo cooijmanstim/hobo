@@ -10,7 +10,7 @@ public class Game {
 	// this is useful for comparing two AIs that should behave exactly equally
 	public final List<Decision> decisionSequence = new ArrayList<Decision>();
 
-	public Game(Player... players) {
+	public Game(String configuration, Player... players) {
 		this.players = players;
 
 		int ni = players.length;
@@ -19,7 +19,7 @@ public class Game {
 			names[i] = players[i].name();
 			players[i].setHandle(i);
 		}
-		state = new State(names);
+		state = State.fromConfiguration(configuration, names);
 	}
 
 	public void play() {

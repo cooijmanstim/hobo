@@ -49,12 +49,25 @@ public class State implements Cloneable {
 		this.next_color_index = that.next_color_index;
 	}
 	
-	public State(String... player_names) {
+	public State(String[] player_names, long seed) {
 		int ni = player_names.length;
 		players = new PlayerState[ni];
 		for (int i = 0; i < ni; i++)
 			players[i] = new PlayerState(i, player_names[i], colors[next_color_index++]);
 		current_player = 0;
+		
+		random = new Random(seed);
+	}
+	
+	public static State fromConfiguration(String configuration, String... player_names) {
+		long seed = System.currentTimeMillis();
+
+		for (Map.Entry<String,String> entry: Util.parseConfiguration(configuration).entrySet()) {
+			String k = entry.getKey(), v = entry.getValue();
+			if (k.equals("seed")) seed = Long.parseLong(v);
+		}
+
+		return new State(player_names, seed);
 	}
 
 	@Override public State clone() {

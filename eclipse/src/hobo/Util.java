@@ -143,4 +143,13 @@ public class Util {
 	public static double logsig(double x) {
 		return 1 / (1 + Math.exp(-x));
 	}
+
+	public static Map<String,String> parseConfiguration(String configuration) {
+		Map<String,String> entries = new LinkedHashMap<String,String>();
+		for (String pair: configuration.trim().split("\\s+")) {
+			String[] kv = pair.split(":");
+			entries.put(kv[0], kv[1]);
+		}
+		return entries;
+	}
 }

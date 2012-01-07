@@ -4,20 +4,39 @@ import java.util.*;
 
 public class MinimaxPlayer extends Player {
 	private static final int N_KILLER_MOVES = 2,
-	                         KILLER_MOVES_HORIZON = 1,
-	                         MAX_DECISION_TIME = 5000;
+	                         KILLER_MOVES_HORIZON = 1;
 	private final double paranoia;
-	private final int max_depth;
+	private final int max_depth, decision_time;
 	private final boolean best_reply;
 
-	public MinimaxPlayer(String name, double paranoia, boolean best_reply, int max_depth) {
+	public MinimaxPlayer(String name, double paranoia, boolean best_reply, int max_depth, int decision_time) {
 		this.name = name;
 		this.paranoia = paranoia;
 		this.best_reply = best_reply;
 		this.max_depth = max_depth;
+		this.decision_time = decision_time;
 		// store N_KILLER_MOVES killer moves per ply
 		// max_depth is an upper bound on number of plies
-		this.killerMoves = new Decision[max_depth][N_KILLER_MOVES];
+		this.killer_moves = new Decision[max_depth][N_KILLER_MOVES];
+	}
+
+	public static MinimaxPlayer fromConfiguration(String configuration) {
+		String name = "minimax";
+		double paranoia = 1;
+		boolean best_reply = false;
+		int max_depth = 25;
+		int decision_time = 5;
+		
+		for (Map.Entry<String,String> entry: Util.parseConfiguration(configuration).entrySet()) {
+			String k = entry.getKey(), v = entry.getValue();
+			if (k.equals("name"))          name = v;
+			if (k.equals("paranoia"))      paranoia = Double.parseDouble(v);
+			if (k.equals("best_reply"))    best_reply = Boolean.parseBoolean(v);
+			if (k.equals("max_depth"))     max_depth = Integer.parseInt(v);
+			if (k.equals("decision_time")) decision_time = Integer.parseInt(v);
+		}
+		
+		return new MinimaxPlayer(name, paranoia, best_reply, max_depth, decision_time);
 	}
 
 	public Decision decide(State s) {
@@ -41,7 +60,7 @@ public class MinimaxPlayer extends Player {
 			public void run() {
 				outOfTime = true;
 			}
-		}, MAX_DECISION_TIME);
+		}, decision_time * 1000);
 
 		Decision d = null;
 		try {
@@ -67,7 +86,7 @@ public class MinimaxPlayer extends Player {
 	private long total_nbranches_nterms = 0;
 	private long killer_hits = 0, killer_tries = 0;
 
-	private final Decision[][] killerMoves;
+	private final Decision[][] killer_moves;
 
 	private boolean[] selectCoalition(State s) {
 		boolean[] coalition = new boolean[s.players().length];
@@ -178,7 +197,7 @@ public class MinimaxPlayer extends Player {
 		// figure out if it's already in the list
 		int i;
 		for (i = N_KILLER_MOVES - 1; i >= 0; i--) {
-			if (d.equals(killerMoves[ply][i]))
+			if (d.equals(killer_moves[ply][i]))
 				break;
 		}
 		
@@ -189,8 +208,8 @@ public class MinimaxPlayer extends Player {
 		// if not, shift everything backward to make room for it in the front
 		if (i < 0) i = N_KILLER_MOVES - 1;
 		for (; i > 0; i--)
-			killerMoves[ply][i] = killerMoves[ply][i-1];
-		killerMoves[ply][0] = d;
+			killer_moves[ply][i] = killer_moves[ply][i-1];
+		killer_moves[ply][0] = d;
 	}
 
 	@SuppressWarnings("unused")
@@ -203,7 +222,7 @@ public class MinimaxPlayer extends Player {
 		int jmin = Math.max(0, ply - step * KILLER_MOVES_HORIZON);
 		for (int j = ply; j >= jmin; j -= step) {
 			for (int i = N_KILLER_MOVES - 1; i >= 0; i--) {
-				Decision d = killerMoves[j][i];
+				Decision d = killer_moves[j][i];
 				if (d != null && d.isLegalForPlayer(s)) {
 					killer_tries++;
 					ds.add(d);

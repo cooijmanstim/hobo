@@ -3,11 +3,28 @@ package hobo;
 import java.util.*;
 
 public class MonteCarloPlayer extends Player {
-	private static final int MAX_DECISION_TIME = 5000;
-	private static final Random random = new Random();
+	private final int decision_time;
+	private final Random random;
 
-	public MonteCarloPlayer(String name) {
+	public MonteCarloPlayer(String name, long seed, int decision_time) {
 		this.name = name;
+		this.decision_time = decision_time;
+		this.random = new Random(seed);
+	}
+	
+	public static MonteCarloPlayer fromConfiguration(String configuration) {
+		String name = "carlo";
+		int decision_time = 5;
+		long seed = System.currentTimeMillis();
+		
+		for (Map.Entry<String,String> entry: Util.parseConfiguration(configuration).entrySet()) {
+			String k = entry.getKey(), v = entry.getValue();
+			if (k.equals("name"))          name = v;
+			if (k.equals("seed"))          seed = Long.parseLong(v);
+			if (k.equals("decision_time")) decision_time = Integer.parseInt(v);
+		}
+
+		return new MonteCarloPlayer(name, seed, decision_time);
 	}
 
 	private boolean outOfTime = false;
@@ -21,7 +38,7 @@ public class MonteCarloPlayer extends Player {
 			public void run() {
 				outOfTime = true;
 			}
-		}, MAX_DECISION_TIME);
+		}, decision_time * 1000);
 
 		int simulation_count = 0;
 		Node tree = new Node();
