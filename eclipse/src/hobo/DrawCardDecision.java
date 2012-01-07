@@ -37,10 +37,10 @@ public class DrawCardDecision extends Decision {
 	public static Set<Decision> availableTo(State s, PlayerState ps, Set<Decision> ds) {
 		if (ps.drawn_missions != null)
 			return ds;
-		
-		for (Color c: Color.all)
-			if (s.open_deck.contains(c))
-				ds.add(new DrawCardDecision(ps.handle, c));
+
+		// this will add duplicates, but ds is a set
+		for (Color c: s.open_deck)
+			ds.add(new DrawCardDecision(ps.handle, c));
 
 		if (!s.deck.isEmpty())
 			ds.add(new DrawCardDecision(ps.handle, null));
@@ -85,12 +85,17 @@ public class DrawCardDecision extends Decision {
 				last_draw = true;
 		}
 
+		// this is not according to the rules, but don't know what to do else
+		if (s.deck.isEmpty() && s.open_deck.isEmpty())
+			last_draw = true;
+
 		if (undoably) a.drawn_card = p.drawn_card;
 		p.hand.add(p.drawn_card);
 		
 		s.restoreDecks();
 
 		if (last_draw) {
+			if (undoably) a.was_last_draw = true;
 			p.drawn_card = null;
 			s.switchTurns();
 		}
@@ -101,13 +106,14 @@ public class DrawCardDecision extends Decision {
 	private class Application extends AppliedDecision {
 		private Color old_drawn_card; // card drawn before
 		private Color drawn_card; // card drawn during
+		private boolean was_last_draw;
 		
 		public Application(Decision d, State s) { super(d, s); }
 
 		@Override public void undo() {
-			// second draw or single open deck draw
-			if (old_drawn_card != null || color == Color.GREY)
+			if (was_last_draw)
 				state.unswitchTurns();
+
 			PlayerState p = state.playerState(player);
 			state.unrestoreDecks();
 			
