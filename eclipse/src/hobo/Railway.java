@@ -48,7 +48,7 @@ public enum Railway {
 	SaltLakeCity_Denver_1(3 ,Color.RED),
 	Phoenix_Denver_1(5, Color.WHITE),
 	SantaFe_Denver_1(2, Color.GREY),
-	Denver_OklahomaCity_1(3, Color.RED),
+	Denver_OklahomaCity_1(4, Color.RED),
 	Denver_KansasCity_2(4, Color.ORANGE),
 	Denver_KansasCity_1(4, Color.BLACK),
 	Denver_Omaha_1(4, Color.PURPLE),
