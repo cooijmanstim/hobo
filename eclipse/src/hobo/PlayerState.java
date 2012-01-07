@@ -98,7 +98,7 @@ public class PlayerState implements Cloneable {
 				if (railways.contains(r))
 					length += r.length;
 			}
-			u += m.value * length * 2.0 / LENGTH - 1;
+			u += m.value * (length * 2.0 / LENGTH - 1);
 		}
 
 		int mPoints = 0;
