@@ -200,7 +200,7 @@ public class MonteCarloPlayer extends Player {
 					value = n.populate(s);
 				}
 			}
-			
+
 			total_value += value;
 			visit_count++;
 			return value;
@@ -211,7 +211,8 @@ public class MonteCarloPlayer extends Player {
 				Decision d = chooseDecision(s);
 				d.apply(s, false);
 			}
-			int value = (int)Math.signum(s.aheadness(handle)); // more than just win or loss
+			//int value = (int)Math.signum(s.aheadness(handle)); // more than just win or loss
+			int value = s.aheadness(handle);
 			total_value += value;
 			visit_count++;
 			return value;
@@ -226,7 +227,7 @@ public class MonteCarloPlayer extends Player {
 				ds = KeepMissionsDecision.availableTo(s, ps, ds);
 			} else {
 				// endpoints for probability integral
-				double dcd_end = 2 * Util.logsig(-ps.hand.size()),
+				double dcd_end = 2 * Util.logsig(-ps.hand.size() / 10.0),
 				       crd_end = 0.99;
 				while (ds.isEmpty()) {
 					double x = Math.random();
