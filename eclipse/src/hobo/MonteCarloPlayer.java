@@ -226,7 +226,7 @@ public class MonteCarloPlayer extends Player {
 				ds = KeepMissionsDecision.availableTo(s, ps, ds);
 			} else {
 				// endpoints for probability integral
-				double dcd_end = 0.5 + Util.logsig(-ps.hand.size()),
+				double dcd_end = 2 * Util.logsig(-ps.hand.size()),
 				       crd_end = 0.99;
 				while (ds.isEmpty()) {
 					double x = Math.random();
@@ -271,7 +271,12 @@ public class MonteCarloPlayer extends Player {
 		// conditioned on type
 		public double weight(Decision d, State s) {
 			if (d instanceof ClaimRailwayDecision) {
-				return ((ClaimRailwayDecision)d).railway.score() * 1.0 / Railway.MAX_SCORE;
+				Railway r = ((ClaimRailwayDecision)d).railway;
+				PlayerState ps = s.playerState(d.player);
+				double relevance = Double.NEGATIVE_INFINITY;
+				for (Mission m: ps.missions)
+					relevance = Math.max(relevance, r.relevanceFor(m));
+				return (1 + relevance) * ((ClaimRailwayDecision)d).railway.score();
 			} else if (d instanceof DrawCardDecision) {
 				DrawCardDecision dcd = (DrawCardDecision)d;
 				CardBag hand = s.playerState(d.player).hand;

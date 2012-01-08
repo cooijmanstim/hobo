@@ -180,4 +180,31 @@ public enum Railway {
 		return "Railway(source: "+source+", destination: "+destination+", color: "+color+")";
 	}
 
+	public double relevanceFor(Mission m) {
+		double[] a = { m.source.x, m.source.y },
+		         b = { m.destination.x, m.destination.y },
+		         c = { this.source.x, this.source.y },
+		         d = { this.destination.x, this.destination.y };
+		       // don't let alongness count for too much -- add a constant
+		return (3 + Util.segmentAlongness(a, b, c, d))
+		       // punish if the railway strays too far
+		       // (but sqrt for diminishing punishment over distance)
+		     / (1 + Math.sqrt(Math.max(Util.distanceOfPointToSegment(c, a, b),
+		                               Util.distanceOfPointToSegment(d, a, b))));
+	}
+	
+	public static void main(String[] args) {
+		// have a look at the relevance landscape for some mission
+		Mission m = Mission.Seattle_LosAngeles;
+		for (Railway r: all) {
+			double[] a = { m.source.x, m.source.y },
+			         b = { m.destination.x, m.destination.y },
+			         c = { r.source.x, r.source.y },
+			         d = { r.destination.x, r.destination.y };
+			double alongness = Util.segmentAlongness(a, b, c, d);
+			double distance = Math.max(Util.distanceOfPointToSegment(c, a, b),
+			                           Util.distanceOfPointToSegment(d, a, b));
+			System.out.println(r.relevanceFor(m)+"\t"+distance+"\t"+alongness+"\t"+r);
+		}
+	}
 }

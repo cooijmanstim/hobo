@@ -152,4 +152,56 @@ public class Util {
 		}
 		return entries;
 	}
+
+	public static double segmentAlongness(double[] a, double[] b, double[] c, double[] d) {
+		return Math.abs(dot(unit(minus(b, a)), unit(minus(d, c))));
+	}
+	
+	public static double distanceOfPointToSegment(double[] p, double[] a, double[] b) {
+		double[] dab = minus(b, a);
+		double x = dot(minus(p, a), unit(dab));
+		if (x > norm(dab))
+			x = norm(dab);
+		if (x < 0)
+			x = 0;
+		double[] c = plus(a, times(x, unit(dab)));
+		return norm(minus(p, c));
+	}
+	
+	public static double[] unit(double[] u) {
+		return times(1 / norm(u), u);
+	}
+
+	public static double norm(double[] u) {
+		return Math.sqrt(dot(u, u));
+	}
+
+	public static double dot(double[] u, double[] v) {
+		double x = 0;
+		for (int i = 0; i < u.length; i++)
+			x += u[i] * v[i];
+		return x;
+	}
+
+	// java sucks...
+	public static double[] times(double x, double[] v) {
+		double[] w = new double[v.length];
+		for (int i = 0; i < v.length; i++)
+			w[i] = x * v[i];
+		return w;
+	}
+	
+	public static double[] plus(double[] u, double[] v) {
+		double[] w = new double[v.length];
+		for (int i = 0; i < v.length; i++)
+			w[i] = u[i] + v[i];
+		return w;
+	}
+
+	public static double[] minus(double[] u, double[] v) {
+		double[] w = new double[v.length];
+		for (int i = 0; i < v.length; i++)
+			w[i] = u[i] - v[i];
+		return w;
+	}
 }
