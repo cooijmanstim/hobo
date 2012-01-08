@@ -3,6 +3,7 @@ package hobo;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 public class PlayerState implements Cloneable {
@@ -93,10 +94,13 @@ public class PlayerState implements Cloneable {
 		for (Mission m: missions) {
 			int length = 0;
 			int LENGTH = 0;
-			for (Railway r: Util.shortestPath(m.source, m.destination, usable_railways)) {
-				LENGTH += r.length;
-				if (railways.contains(r))
-					length += r.length;
+			List<Railway> shortest_path = Util.shortestPath(m.source, m.destination, usable_railways);
+			if (shortest_path != null) {
+				for (Railway r: shortest_path) {
+					LENGTH += r.length;
+					if (railways.contains(r))
+						length += r.length;
+				}
 			}
 			u += m.value * (length * 2.0 / LENGTH - 1);
 		}
