@@ -29,17 +29,22 @@ public class CityPanel extends JPanel implements Visualization {
 		setBounds((int)city.x-5, (int)city.y-5, 10, 10);
 		addMouseListener(new MouseAdapter() {
 			@Override public void mouseClicked(MouseEvent e) {
-				// this is decision-making stuff
+				if (!gamePanel.awaitingDecision())
+					return;
 				if(!railways.isEmpty())
 					new RailChooserFrame(city, railways, gamePanel, mapPanel);
 			}
 
 			@Override public void mouseEntered(MouseEvent e) {
+				if (!gamePanel.awaitingDecision())
+					return;
 				mapPanel.makeVisible(railways);
 				mapPanel.repaint();
 			}
 
 			@Override public void mouseExited(MouseEvent e) {
+				if (!gamePanel.awaitingDecision())
+					return;
 				mapPanel.clearVisible();
 				mapPanel.repaint();
 			}
