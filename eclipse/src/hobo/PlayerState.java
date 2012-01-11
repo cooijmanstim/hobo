@@ -16,6 +16,8 @@ public class PlayerState implements Cloneable {
 	public CardBag hand = new CardBag();
 	public Set<Mission> missions = EnumSet.noneOf(Mission.class);
 	public Set<Railway> railways = EnumSet.noneOf(Railway.class);
+	//The Set of Railways a player needs to build to finish all the missions. Should be updated on a regular basis
+	public Set<Railway> railwaysWanted = EnumSet.noneOf(Railway.class);
 
 	// when ncars drops below this at the end of a player's turn, the game
 	// goes on for one last round.
