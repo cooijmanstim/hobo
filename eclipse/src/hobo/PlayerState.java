@@ -74,6 +74,8 @@ public class PlayerState implements Cloneable {
 		missionScore = 0;
 		for(Mission m : completedMissions)
 			missionScore += m.value;
+		for(Mission m : missions)
+			missionScore -= m.value;
 	}
 	
 	public boolean missionCompleted(Mission m) {
