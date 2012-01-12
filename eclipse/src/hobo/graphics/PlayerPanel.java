@@ -28,6 +28,7 @@ public class PlayerPanel extends JPanel implements Visualization {
 
 	@Override public void reflect(State s) {
 		PlayerState ps = s.playerState(handle);
+		ps.updatePlayerState();
 
 		// this really only needs to be done once, but who cares
 		name.setText(ps.name);

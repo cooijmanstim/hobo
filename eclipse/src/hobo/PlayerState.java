@@ -76,6 +76,7 @@ public class PlayerState implements Cloneable {
 			missionScore += m.value;
 		for(Mission m : missions)
 			missionScore -= m.value;
+		score = lengthScore + missionScore;
 	}
 	
 	public boolean missionCompleted(Mission m) {
@@ -95,7 +96,6 @@ public class PlayerState implements Cloneable {
 		lengthScore += r.score();
 		railways.add(r);
 		updatePlayerState();
-		score = lengthScore + missionScore;
 	}
 
 	public void unclaim(Railway r) {
@@ -103,7 +103,6 @@ public class PlayerState implements Cloneable {
 		lengthScore -= r.score();
 		ncars += r.length;
 		updatePlayerState();
-		score = lengthScore + missionScore;
 	}
 	
 	public void updateWantedRailways() {
