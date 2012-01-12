@@ -114,6 +114,7 @@ public class PlayerState implements Cloneable {
 
 		Set<Railway> usable_railways = s.usableRailwaysFor(handle);
 		double u = 0.0;
+//		List<Railway> shortest_path = Util.getSpanningTree(this, s);
 		for (Mission m: missions) {
 			int length = 0;
 			int LENGTH = 0;
@@ -127,7 +128,7 @@ public class PlayerState implements Cloneable {
 			}
 			u += m.value * (length * 2.0 / LENGTH - 1);
 		}
-
+		
 		int mPoints = 0;
 		if (missions.size() > 3) {
 			mPoints += 10*(missions.size()-3);

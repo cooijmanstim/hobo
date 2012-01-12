@@ -137,7 +137,7 @@ public class Main {
 					if (impl.equals("random"))
 						players.add(RandomPlayer.fromConfiguration(s));
 					else if (impl.equals("human"))
-						players.add(HumanPlayer.fromConfiguration(s));
+						players.add(HumanPlayer.fromConfiguration(s));						
 					else if (impl.equals("minimax"))
 						players.add(MinimaxPlayer.fromConfiguration(s));
 					else if (impl.equals("maxn"))

@@ -144,6 +144,36 @@ public class Util {
 		return rails;
 	}
 	
+	public static City getClosestCity(ArrayList<Railway> rails, City toCity) {
+		double smallestEuclidianDistance = Double.POSITIVE_INFINITY;
+		City city = null;
+		for(Railway r : rails) {
+			if(smallestEuclidianDistance < euclideanDistance(r.source, toCity)) {
+				city = r.source;
+			} else if(smallestEuclidianDistance < euclideanDistance(r.destination, toCity)) {
+				city = r.destination;
+			}
+		}
+		return city;
+	}
+	
+	public static ArrayList<Railway> getSpanningTree(PlayerState ps, State s) {
+		ArrayList<Railway> rails = new ArrayList<Railway>();
+		ArrayList<Mission> missions = new ArrayList<Mission>();
+		if(!ps.missions.isEmpty()) {
+			for(Mission m : ps.missions) {
+				missions.add(m);
+			}
+			rails = getShortestWay(missions.get(0).source, missions.get(0).destination, rails, s);
+			for(int i = 1; i < missions.size(); i++) {
+				rails.addAll(getShortestWay(missions.get(i).source, getClosestCity(rails, missions.get(i).source), rails, s));
+				rails.addAll(getShortestWay(missions.get(i).destination, getClosestCity(rails, missions.get(i).destination), rails, s));
+			}
+			return rails;
+		}
+		return null;
+	}
+	
 	private static double euclideanDistance(City city1, City city2) {
 		return Math.sqrt(Math.pow(city2.x-city1.x,2)+Math.pow(city2.y-city1.y,2));
 	}
