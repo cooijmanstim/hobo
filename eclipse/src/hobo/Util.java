@@ -66,7 +66,6 @@ public class Util {
 		fringe.offer(new AStarNode(a, null, null, b));
 		AStarNode x;
 		while ((x = fringe.poll()) != null) {
-			System.out.println(x);
 			if (seen.contains(x.city))
 				continue;
 			seen.add(x.city);
@@ -81,7 +80,13 @@ public class Util {
 		return null;
 	}
 	
-	
+	//Sort of Spanning Tree
+	public static List<Railway> getSpanningTree(PlayerState ps) {
+		Set<Mission> missionsLeft = ps.missions;
+		
+		
+		return null;
+	}
 	
 	private static class AStarNode implements Comparable<AStarNode> {
 		public final Railway railway;

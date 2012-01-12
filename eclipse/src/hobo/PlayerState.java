@@ -12,9 +12,12 @@ public class PlayerState implements Cloneable {
 	public final int handle;
 	public final String name;
 	public final Color color;
-	public int ncars = 45, score = 0;
+	public int ncars = 45, score = 0, missionScore = 0, lengthScore = 0;
 	public CardBag hand = new CardBag();
 	public Set<Mission> missions = EnumSet.noneOf(Mission.class);
+	
+	public Set<Mission> completedMissions = EnumSet.noneOf(Mission.class);
+	
 	public Set<Railway> railways = EnumSet.noneOf(Railway.class);
 	//The Set of Railways a player needs to build to finish all the missions. Should be updated on a regular basis
 	public Set<Railway> railwaysWanted = EnumSet.noneOf(Railway.class);
@@ -61,6 +64,18 @@ public class PlayerState implements Cloneable {
 		this.name = name;
 	}
 	
+	public void updatePlayerState() {
+		for(Mission m : missions) {
+			if(missionCompleted(m)) {
+				missions.remove(m);
+				completedMissions.add(m); 
+			}
+		}
+		missionScore = 0;
+		for(Mission m : completedMissions)
+			missionScore += m.value;
+	}
+	
 	public boolean missionCompleted(Mission m) {
 		return Util.shortestPath(m.source, m.destination, railways) != null;
 	}
@@ -70,22 +85,27 @@ public class PlayerState implements Cloneable {
 	}
    
 	public int finalScore() {
-		int score = this.score;
-		for (Mission m: missions)
-			score += m.value * (missionCompleted(m) ? 1 : -1);
 		return score;
 	}
 
 	public void claim(Railway r) {
 		ncars -= r.length;
-		score += r.score();
+		lengthScore += r.score();
 		railways.add(r);
+		updatePlayerState();
+		score = lengthScore + missionScore;
 	}
 
 	public void unclaim(Railway r) {
 		railways.remove(r);
-		score -= r.score();
+		lengthScore -= r.score();
 		ncars += r.length;
+		updatePlayerState();
+		score = lengthScore + missionScore;
+	}
+	
+	public void updateWantedRailways() {
+		
 	}
 
 	public double utility(State s) {
