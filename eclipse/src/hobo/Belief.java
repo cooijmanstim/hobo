@@ -6,6 +6,30 @@ import java.util.List;
 public class Belief {
 	private final Random random;
 
+	// this keeps track of which card is where.  the open deck and discard
+	// pile are assumed to be visible, as are the size of the deck and of
+	// the players' hands.
+	// we get partial knowledge about the players' cards by looking at the
+	// cards they draw from the open deck.  we get partial knowledge about
+	// the content of the deck when the discard pile is reshuffled and
+	// becomes the deck.
+	// we lose knowledge when a player draws a card from the closed deck.
+	// when sampling, we construct the deck and players' hands by first
+	// taking the bag of cards that we know for certain are in there, and
+	// then add cards from cards_of_unknown_location such that the sampled
+	// hand has the same size as the real hand.
+	// we could use the observations we get more efficiently by keeping,
+	// for each card in some hidden bag, a probability distribution over
+	// the colors.  this would greatly complicate likelihood calculation and
+	// sampling.
+	// the present less accurate way actually works surprisingly well, so
+	// it's probably good enough.  it works well because the players tend
+	// to draw lots of open cards, keep small hands, and often end up with
+	// empty hands after claiming some railway.  in a 1v1 game where one of
+	// the players' hands is visible, the other player's hand being empty
+	// means the location of each card is known, and the likelihood of
+	// reality is 1.
+
 	private int player; // beliefs of which player?
 	private PlayerBelief[] players;
 	private CardBag known_deck_cards;
