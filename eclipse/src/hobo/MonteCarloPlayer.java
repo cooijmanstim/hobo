@@ -67,7 +67,12 @@ public class MonteCarloPlayer extends Player {
 		public Node() {}
 
 		public double expectedValue() {
-			return total_value * 1.0 / visit_count;
+			// need to constrain it to [-1,1] to avoid drowning out the
+			// uct value.  the default logsig saturates at -6 and +6,
+			// so divide by 25 to keep some more information.
+			// (this needs tuning, and there is a paper that says that
+			// just using -1 or 1 instead actual final score is better)
+			return Util.logsig(total_value * 1.0 / visit_count / 25);
 		}
 
 		public Node childFor(Decision d) {
