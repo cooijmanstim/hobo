@@ -131,7 +131,7 @@ public class Main {
 						j = s.length();
 					String impl = s.substring(0, j);
 					s = s.substring(j);
-
+					
 					if (impl.equals("random"))
 						players.add(RandomPlayer.fromConfiguration(s));
 					else if (impl.equals("human"))

@@ -8,6 +8,14 @@ public class State implements Cloneable {
 	                        INITIAL_MISSION_COUNT = 3,
 	                        OPEN_DECK_SIZE = 5;
 
+	public static final CardBag INITIAL_DECK = new CardBag() {{
+		for (Color c: Color.values())
+			add(c, NCARDS_PER_COLOR);
+		// two more grey cards than other colors
+		add(Color.GREY);
+		add(Color.GREY);
+	}};
+	
 	public Random random = new Random(0);
 
 	// the index into this array is used to refer to a player in many places here.
@@ -100,21 +108,14 @@ public class State implements Cloneable {
 	}
 
 	public void setup() {
-		for (Color c: Color.values())
-			deck.addAll(Collections.nCopies(NCARDS_PER_COLOR, c));
-		// two more grey cards than other colors
-		deck.add(Color.GREY); deck.add(Color.GREY);
-
+		deck = INITIAL_DECK.clone();
+		open_deck.addAll(deck.remove_sample(OPEN_DECK_SIZE, random));
 		missions.addAll(Arrays.asList(Mission.values()));
 
 		for (PlayerState p: players) {
-			for (int i = 0; i < INITIAL_HAND_SIZE; i++)
-				p.hand.add(deck.draw(random));
+			p.hand.addAll(deck.remove_sample(INITIAL_HAND_SIZE, random));
 			p.missions.addAll(Util.remove_sample(missions, INITIAL_MISSION_COUNT, random, EnumSet.noneOf(Mission.class)));
 		}
-
-		for (int i = 0; i < OPEN_DECK_SIZE; i++)
-			open_deck.add(deck.draw(random));
 	}
 
 	public void switchTurns() {
@@ -231,8 +232,8 @@ public class State implements Cloneable {
 	}
 
 	// restoreDecks undo info
-	private final Deque<CardBag> deck_restorations = new LinkedList<CardBag>();
-	private final Deque<CardBag> discardeds = new LinkedList<CardBag>();
+	public final Deque<CardBag> deck_restorations = new LinkedList<CardBag>();
+	public final Deque<CardBag> discardeds = new LinkedList<CardBag>();
 
 	public void restoreDecks() {
 		int k = OPEN_DECK_SIZE - open_deck.size();
@@ -259,9 +260,9 @@ public class State implements Cloneable {
 		}
 	}
 	
-	public void applyDecision(Decision d) throws IllegalDecisionException {
+	public AppliedDecision applyDecision(Decision d) throws IllegalDecisionException {
 		d.requireLegal(this);
-		d.apply(this, false);
+		return d.apply(this, true);
 	}
 	
 	public Set<Decision> allPossibleDecisions() {

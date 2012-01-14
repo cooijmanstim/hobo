@@ -68,7 +68,7 @@ public class DrawCardDecision extends Decision {
 	}
 	
 	@Override public AppliedDecision apply(State s, boolean undoably) {
-		Application a = undoably ? new Application(this, s) : null;
+		AppliedDecision a = undoably ? new AppliedDecision(this, s) : null;
 
 		s.switchToPlayer(player);
 		PlayerState p = s.playerState(player);
@@ -103,12 +103,12 @@ public class DrawCardDecision extends Decision {
 		return a;
 	}
 
-	private class Application extends AppliedDecision {
-		private Color old_drawn_card; // card drawn before
-		private Color drawn_card; // card drawn during
-		private boolean was_last_draw;
+	public class AppliedDecision extends hobo.AppliedDecision {
+		public Color old_drawn_card; // card drawn before
+		public Color drawn_card; // card drawn during
+		public boolean was_last_draw;
 		
-		public Application(Decision d, State s) { super(d, s); }
+		public AppliedDecision(Decision d, State s) { super(d, s); }
 
 		@Override public void undo() {
 			if (was_last_draw)
@@ -128,6 +128,10 @@ public class DrawCardDecision extends Decision {
 			p.drawn_card = old_drawn_card;
 			
 			super.undo();
+		}
+		
+		@Override public String toString() {
+			return "DrawCardDecision.AppliedDecision(drawn_card: "+drawn_card+")";
 		}
 	}
 }

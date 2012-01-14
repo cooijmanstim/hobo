@@ -143,25 +143,43 @@ public class CardBag implements Cloneable, Iterable<Color> {
 	
 	// weighted but otherwise uniformly random selection
 	public Color draw(Random random) {
+		Color c = sample(random);
+		ks[c.ordinal()]--;
+		size--;
+		return c;
+	}
+	
+	public Color sample(Random random) {
 		assert(!isEmpty());
 		double x = random.nextDouble();
 		int m = 0;
 		for (int i = 0; i < Color.all.length; i++) {
 			m += ks[i];
 			if (x < ((double)m)/size) {
-				ks[i]--;
-				size--;
 				return Color.all[i];
 			}
 		}
 		throw new RuntimeException();
 	}
+	
+	public CardBag sample(int k, Random random) {
+		return clone().remove_sample(k, random);
+	}
 
+	public CardBag remove_sample(int k, Random random) {
+		CardBag subbag = new CardBag();
+		for (int i = 0; i < k && size > 0; i++)
+			subbag.add(draw(random));
+		return subbag;
+	}
+
+	public double probabilityOfSample(CardBag that) {
+		return Util.multivariate_hypergeometric(that.ks, this.ks);
+	}
+	
 	// see what kind of card would be drawn next
 	public Color cardOnTop(Random random) {
-		Color c = draw(random.clone());
-		add(c);
-		return c;
+		return sample(random.clone());
 	}
 
 	public CardBag draw(int k, Random random) {

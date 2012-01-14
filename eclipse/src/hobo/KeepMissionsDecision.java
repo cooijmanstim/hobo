@@ -48,7 +48,7 @@ public class KeepMissionsDecision extends Decision {
 	}
 	
 	@Override public AppliedDecision apply(State s, boolean undoably) {
-		Application a = undoably ? new Application(this, s) : null;
+		AppliedDecision a = undoably ? new AppliedDecision(this, s) : null;
 		
 		s.switchToPlayer(player);
 		PlayerState p = s.playerState(player);
@@ -66,10 +66,10 @@ public class KeepMissionsDecision extends Decision {
 		return a;
 	}
 
-	private class Application extends AppliedDecision {
+	public class AppliedDecision extends hobo.AppliedDecision {
 		private Set<Mission> drawn_missions = null;
 		
-		public Application(Decision d, State s) { super(d, s); }
+		public AppliedDecision(Decision d, State s) { super(d, s); }
 
 		@Override public void undo() {
 			state.unswitchTurns();
@@ -80,6 +80,10 @@ public class KeepMissionsDecision extends Decision {
 			p.drawn_missions = drawn_missions;
 
 			super.undo();
+		}
+		
+		@Override public String toString() {
+			return "KeepMissionsDecision.AppliedDecision(drawn_missions: "+drawn_missions+")";
 		}
 	}
 }

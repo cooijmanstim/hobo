@@ -6,9 +6,9 @@ public class Game {
 	private final State state;
 	private final Player[] players;
 	private final List<GameObserver> observers = new ArrayList<GameObserver>();
-	
-	// this is useful for comparing two AIs that should behave exactly equally
-	public final List<Decision> decisionSequence = new ArrayList<Decision>();
+
+	// testing belief
+	private final Belief belief = new Belief(0);
 
 	public Game(String configuration, Player... players) {
 		this.players = players;
@@ -24,6 +24,7 @@ public class Game {
 
 	public void play() {
 		state.setup();
+		belief.initialize(state);
 
 		while (true) {
 			try {
@@ -56,26 +57,38 @@ public class Game {
 		Player p = players[state.currentPlayer()];
 	
 		Decision d;
+		AppliedDecision ad;
 		while (true) {
 			d = p.decide(state);
-			decisionSequence.add(d);
 			System.out.println(p.name()+" decided "+d);
 			if (d == null) {
 				abort();
 				return;
 			}
 			try {
-				state.applyDecision(d);
+				ad = state.applyDecision(d);
 				break;
 			} catch (IllegalDecisionException e) {
 				System.out.println("illegal decision: "+d.reasonForIllegality(state));
 				p.illegal(state, d, e.reason);
 			}
 		}
-	
-		Event e = new Event(state, p, d);
+
+		Event e = new Event(state, p, d, ad);
 		notifyPlayers(e);
 		notifyObservers(e);
+
+		// testing belief system
+		belief.update(e);
+		System.out.println("belief accuracy: "+belief.likelihoodOf(e.state));
+		State sampled_state = belief.sample(e.state);
+		if (belief.likelihoodOf(e.state) == 1.0 && !e.state.equals(sampled_state)) {
+			System.err.println("reality has likelihood 1 but sample differs from reality");
+			System.err.println("sampled deck: "+sampled_state.deck+" actual deck: "+e.state.deck);
+			for (int i = 0; i < players.length; i++)
+				System.err.println("player "+i+" sampled hand: "+sampled_state.playerState(i).hand+" actual hand: "+e.state.playerState(i).hand);
+			throw new RuntimeException();
+		}
 	}
 	
 	public void printScores() {

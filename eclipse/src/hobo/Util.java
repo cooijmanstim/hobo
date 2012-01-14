@@ -204,4 +204,64 @@ public class Util {
 			w[i] = u[i] - v[i];
 		return w;
 	}
+
+	// ns contains the number of marbles of each color in the urn,
+	// ks describes the desired selection
+	// this is used for cardbags, so the numbers are hopefully manageable
+	// speed was assumed to be not too important
+	public static double multivariate_hypergeometric(int[] ks, int[] ns) {
+		assert(ns.length == ks.length);
+		
+		System.out.println(Arrays.toString(ks));
+		System.out.println(Arrays.toString(ns));
+
+		// collect the factorials
+		int N = 0, K = 0;
+		// need boxed type because of the reverse sort later... (java sucks)
+		// numerator is sum(ks)! * (sum(ns) - sum(ks))! * n1! * n2! * ...
+		Integer[]   numerator_factorials = new Integer[ns.length * 1 + 2];
+		// denominator is sum(ns)! * k1! * (n1 - k1)! * k2! * (n2 - k2)! * ...
+		Integer[] denominator_factorials = new Integer[ns.length * 2 + 1];
+		for (int i = 0; i < ns.length; i++) {
+			N += ns[i];
+			K += ks[i];
+			numerator_factorials[i*1+2] = ns[i];
+			denominator_factorials[i*2+1] = ks[i];
+			denominator_factorials[i*2+2] = ns[i] - ks[i];
+		}
+		numerator_factorials[0] = K;
+		numerator_factorials[1] = N - K;
+		denominator_factorials[0] = N;
+
+		// ensure we factorial-divide numbers that are like in
+		// size -- this way factorial_divide can skip many
+		// multiplications
+		Arrays.sort(numerator_factorials,   Collections.reverseOrder());
+		Arrays.sort(denominator_factorials, Collections.reverseOrder());
+
+		double probability = 1;
+
+		// go through the two arrays and pairwise factorial-divide the elements
+		int i, I;
+		for (i = 0, I = Math.min(numerator_factorials.length, denominator_factorials.length); i < I; i++)
+			probability *= factorial_divide(numerator_factorials[i], denominator_factorials[i]);
+
+		// handle leftovers
+		for (; i < numerator_factorials.length; i++)
+			probability *= factorial_divide(numerator_factorials[i], 0);
+		for (; i < denominator_factorials.length; i++)
+			probability *= factorial_divide(0, denominator_factorials[i]);
+
+		return probability;
+	}
+
+	// compute n! / d!
+	public static double factorial_divide(int n, int d) {
+		if (n == d) return 1;
+		double y = 1;
+		// if n < d, iterate from n + 1 to d, otherwise from d + 1 to n
+		for (int i = Math.max(1, Math.min(n, d) + 1), I = Math.max(n, d); i <= I; i++)
+			y *= i;
+		return n > d ? y : 1/y;
+	}
 }

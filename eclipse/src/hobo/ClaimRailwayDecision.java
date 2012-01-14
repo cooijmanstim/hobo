@@ -64,7 +64,7 @@ public class ClaimRailwayDecision extends Decision {
 	}
 
 	@Override public AppliedDecision apply(State s, boolean undoably) {
-		Application a = undoably ? new Application(this, s) : null;
+		AppliedDecision a = undoably ? new AppliedDecision(this, s) : null;
 		
 		s.switchToPlayer(player);
 		PlayerState p = s.playerState(player);
@@ -81,8 +81,8 @@ public class ClaimRailwayDecision extends Decision {
 		return a;
 	}
 
-	private class Application extends AppliedDecision {
-		public Application(Decision d, State s) { super(d, s); }
+	public class AppliedDecision extends hobo.AppliedDecision {
+		public AppliedDecision(Decision d, State s) { super(d, s); }
 
 		@Override public void undo() {
 			PlayerState p = state.playerState(player);
@@ -96,6 +96,10 @@ public class ClaimRailwayDecision extends Decision {
 			p.hand.addAll(cards);
 
 			super.undo();
+		}
+
+		@Override public String toString() {
+			return "ClaimRailwayDecision.AppliedDecision()";
 		}
 	}
 }
