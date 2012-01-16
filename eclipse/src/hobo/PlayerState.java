@@ -38,6 +38,7 @@ public class PlayerState implements Cloneable {
 		that.score = this.score;
 		that.hand.addAll(this.hand);
 		that.missions.addAll(this.missions);
+		that.completedMissions.addAll(this.completedMissions);
 		that.railways.addAll(this.railways);
 		that.drawn_card = this.drawn_card;
 		that.drawn_missions = this.drawn_missions;
@@ -52,6 +53,7 @@ public class PlayerState implements Cloneable {
 		if (this.score != that.score) return false;
 		if (!this.hand.equals(that.hand)) return false;
 		if (!this.missions.equals(that.missions)) return false;
+		if (!this.completedMissions.equals(that.completedMissions)) return false;
 		if (!this.railways.equals(that.railways)) return false;
 		if (this.drawn_card != that.drawn_card) return false;
 		if (this.drawn_missions == null && that.drawn_missions != null) return false;
@@ -66,20 +68,18 @@ public class PlayerState implements Cloneable {
 	}
 	
 	public void updatePlayerState() {
-		Set<Mission> totalMissions = EnumSet.noneOf(Mission.class);
-		totalMissions.addAll(missions);
-		totalMissions.addAll(completedMissions);
-		missions = EnumSet.noneOf(Mission.class);
 		completedMissions = EnumSet.noneOf(Mission.class);
-		for(Mission m : totalMissions) {
+		for(Mission m : this.missions) {
 			if(missionCompleted(m)) completedMissions.add(m);
-			else missions.add(m);
 		}
 		missionScore = 0;
-		for(Mission m : completedMissions)
-			missionScore += m.value;
-		for(Mission m : missions)
-			missionScore -= m.value;
+		for(Mission m : missions) {
+			if(completedMissions.contains(m))
+				missionScore += m.value;
+			else {
+				missionScore -= m.value;
+			}
+		}
 		score = lengthScore + missionScore;
 	}
 	
@@ -114,11 +114,11 @@ public class PlayerState implements Cloneable {
 
 		Set<Railway> usable_railways = s.usableRailwaysFor(handle);
 		double u = 0.0;
-//		List<Railway> shortest_path = Util.getSpanningTree(this, s);
+		List<Railway> shortest_path = Util.getSpanningTree(this, s);
 		for (Mission m: missions) {
 			int length = 0;
 			int LENGTH = 0;
-			List<Railway> shortest_path = Util.shortestPath(m.source, m.destination, usable_railways);
+//			List<Railway> shortest_path = Util.shortestPath(m.source, m.destination, usable_railways);
 			if (shortest_path != null) {
 				for (Railway r: shortest_path) {
 					LENGTH += r.length;

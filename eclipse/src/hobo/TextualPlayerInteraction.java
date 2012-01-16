@@ -11,7 +11,7 @@ public class TextualPlayerInteraction implements PlayerInteraction {
 	
 	public Decision askDecision(Player p, State s) {
 		PlayerState ps = s.currentPlayerState();
-
+		
 		System.out.println("---");
 		System.out.println("player: "+p.name());
 		System.out.println("railways: "+ps.railways);

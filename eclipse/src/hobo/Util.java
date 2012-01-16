@@ -131,7 +131,13 @@ public class Util {
 //		System.out.println(allRailways.size());
 		for (Railway r : city1.railways) {
 			City city = r.otherCity(city1);
-			double distance = euclideanDistance(city, city2);
+			if(city == null) {
+				System.out.println("city="+city); throw new RuntimeException();
+			}
+			if(city2 == null) {
+				System.out.println("city2="+city2); throw new RuntimeException();
+			}
+			double distance = euclideanDistance(city, city2);				
 			if (dist > distance) {
 				dist = distance;
 				railwayChoose = r;
@@ -144,34 +150,42 @@ public class Util {
 		return rails;
 	}
 	
-	public static City getClosestCity(ArrayList<Railway> rails, City toCity) {
+	public static City getClosestCity(Set<Railway> rails, City toCity) {
 		double smallestEuclidianDistance = Double.POSITIVE_INFINITY;
 		City city = null;
 		for(Railway r : rails) {
-			if(smallestEuclidianDistance < euclideanDistance(r.source, toCity)) {
+			if(smallestEuclidianDistance > euclideanDistance(r.source, toCity)) {
 				city = r.source;
-			} else if(smallestEuclidianDistance < euclideanDistance(r.destination, toCity)) {
+			} else if(smallestEuclidianDistance > euclideanDistance(r.destination, toCity)) {
 				city = r.destination;
 			}
 		}
 		return city;
 	}
 	
-	public static ArrayList<Railway> getSpanningTree(PlayerState ps, State s) {
-		ArrayList<Railway> rails = new ArrayList<Railway>();
+	public static List<Railway> getSpanningTree(PlayerState ps, State s) {
+		Set<Railway> rails = EnumSet.allOf(Railway.class);
+		List<Railway> rails2 = new ArrayList<Railway>();
+		for(Railway r : ps.railways) {
+			rails.add(r);
+		}
 		ArrayList<Mission> missions = new ArrayList<Mission>();
 		if(!ps.missions.isEmpty()) {
 			for(Mission m : ps.missions) {
-				missions.add(m);
+				if(!ps.completedMissions.contains(m)) missions.add(m);
 			}
-			rails = getShortestWay(missions.get(0).source, missions.get(0).destination, rails, s);
+			rails2 = shortestPath(missions.get(0).source, missions.get(0).destination, rails);
 			for(int i = 1; i < missions.size(); i++) {
-				rails.addAll(getShortestWay(missions.get(i).source, getClosestCity(rails, missions.get(i).source), rails, s));
-				rails.addAll(getShortestWay(missions.get(i).destination, getClosestCity(rails, missions.get(i).destination), rails, s));
+				rails2.addAll(shortestPath(missions.get(i).source, getClosestCity(rails, missions.get(i).source), rails));
+				rails2.addAll(shortestPath(missions.get(i).destination, getClosestCity(rails, missions.get(i).destination), rails));
 			}
-			return rails;
+			return rails2;
 		}
 		return null;
+	}
+	
+	public static void main(String[] args) {
+		
 	}
 	
 	private static double euclideanDistance(City city1, City city2) {
