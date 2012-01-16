@@ -16,6 +16,7 @@ public class PlayerState implements Cloneable {
 	public CardBag hand = new CardBag();
 	public Set<Mission> missions = EnumSet.noneOf(Mission.class);
 	
+	
 	public Set<Mission> completedMissions = EnumSet.noneOf(Mission.class);
 	
 	public Set<Railway> railways = EnumSet.noneOf(Railway.class);
@@ -65,11 +66,14 @@ public class PlayerState implements Cloneable {
 	}
 	
 	public void updatePlayerState() {
-		for(Mission m : missions) {
-			if(missionCompleted(m)) {
-				missions.remove(m);
-				completedMissions.add(m); 
-			}
+		Set<Mission> totalMissions = EnumSet.noneOf(Mission.class);
+		totalMissions.addAll(missions);
+		totalMissions.addAll(completedMissions);
+		missions = EnumSet.noneOf(Mission.class);
+		completedMissions = EnumSet.noneOf(Mission.class);
+		for(Mission m : totalMissions) {
+			if(missionCompleted(m)) completedMissions.add(m);
+			else missions.add(m);
 		}
 		missionScore = 0;
 		for(Mission m : completedMissions)
@@ -103,10 +107,6 @@ public class PlayerState implements Cloneable {
 		lengthScore -= r.score();
 		ncars += r.length;
 		updatePlayerState();
-	}
-	
-	public void updateWantedRailways() {
-		
 	}
 
 	public double utility(State s) {
