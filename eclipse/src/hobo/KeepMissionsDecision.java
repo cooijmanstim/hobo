@@ -67,8 +67,8 @@ public class KeepMissionsDecision extends Decision {
 	}
 
 	public class AppliedDecision extends hobo.AppliedDecision {
-		private Set<Mission> drawn_missions = null;
-		
+		public Set<Mission> drawn_missions = null;
+
 		public AppliedDecision(Decision d, State s) { super(d, s); }
 
 		@Override public void undo() {
@@ -81,7 +81,7 @@ public class KeepMissionsDecision extends Decision {
 
 			super.undo();
 		}
-		
+
 		@Override public String toString() {
 			return "KeepMissionsDecision.AppliedDecision(drawn_missions: "+drawn_missions+")";
 		}

@@ -212,9 +212,6 @@ public class Util {
 	public static double multivariate_hypergeometric(int[] ks, int[] ns) {
 		assert(ns.length == ks.length);
 		
-		System.out.println(Arrays.toString(ks));
-		System.out.println(Arrays.toString(ns));
-
 		// collect the factorials
 		int N = 0, K = 0;
 		// need boxed type because of the reverse sort later... (java sucks)
@@ -263,5 +260,33 @@ public class Util {
 		for (int i = Math.max(1, Math.min(n, d) + 1), I = Math.max(n, d); i <= I; i++)
 			y *= i;
 		return n > d ? y : 1/y;
+	}
+	
+	public static void normalize(double[] xs) {
+		double sum = 0;
+		for (int i = 0; i < xs.length; i++)
+			sum += xs[i];
+		for (int i = 0; i < xs.length; i++)
+			xs[i] /= sum;
+	}
+	
+	public static void normalize(double[][] xs) {
+		double sum = 0;
+		for (int i = 0; i < xs.length; i++)
+			for (int j = 0; j < xs[i].length; j++)
+				sum += xs[i][j];
+		for (int i = 0; i < xs.length; i++)
+			for (int j = 0; j < xs[i].length; j++)
+				xs[i][j] /= sum;
+	}
+
+	public static double[][] clone(double[][] xs) {
+		double[][] ys = new double[xs.length][0];
+		for (int i = 0; i < xs.length; i++) {
+			ys[i] = new double[xs[i].length];
+			for (int j = 0; j < xs[i].length; j++)
+				ys[i][j] = xs[i][j];
+		}
+		return ys;
 	}
 }

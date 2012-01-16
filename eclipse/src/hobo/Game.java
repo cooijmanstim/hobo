@@ -82,6 +82,11 @@ public class Game {
 		belief.update(e);
 		System.out.println("belief accuracy: "+belief.likelihoodOf(e.state));
 		State sampled_state = belief.sample(e.state);
+
+		System.out.println("sampled missions deck: "+sampled_state.missions+" actual mission deck: "+e.state.missions);
+		for (int i = 0; i < players.length; i++)
+			System.err.println("player "+i+" sampled missions: "+sampled_state.playerState(i).missions+" actual missions: "+e.state.playerState(i).missions);
+
 		if (belief.likelihoodOf(e.state) == 1.0 && !e.state.equals(sampled_state)) {
 			System.err.println("reality has likelihood 1 but sample differs from reality");
 			System.err.println("sampled deck: "+sampled_state.deck+" actual deck: "+e.state.deck);
