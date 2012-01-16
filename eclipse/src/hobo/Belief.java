@@ -37,7 +37,10 @@ public class Belief {
 	// for missions, we infer a probability distribution over the whereabouts
 	// of each mission.  a mission can either be in the mission deck or in
 	// possession of one of the players.  the inference of the distribution
-	// is wildly heuristic.
+	// is wildly heuristic: the non-normalized probability of each player-
+	// mission pair is the sum of the relevances to the missions of each
+	// railway that has been claimed by the player, times the number of
+	// missions that the player has.
 
 	// finally, we make no attempt to infer the random state, so in sample,
 	// a random random state is chosen.
@@ -53,7 +56,7 @@ public class Belief {
 	// denotes how likely a player is to have that mission.  this is used
 	// to construct a joint probability matrix for sampling and likelihood
 	// calculation.
-	private double[][] missions;
+	private double[][] player_mission_suspicion;
 
 	private List<Event> events;
 
@@ -73,14 +76,14 @@ public class Belief {
 		for (int i = 0; i < players.length; i++)
 			players[i] = new PlayerBelief(s.playerState(i));
 
-		missions = new double[Mission.all.length][players.length];
+		player_mission_suspicion = new double[Mission.all.length][players.length];
 		for (Mission m: Mission.all) {
-			double[] ps = missions[m.ordinal()];
+			double[] ps = player_mission_suspicion[m.ordinal()];
 			// a priori, all missions are equally likely to be in
 			// possession of any player or in the deck.  use some
 			// small positive number.
 			for (int i = 0; i < players.length; i++)
-				ps[i] = 1e-3;
+				ps[i] = 1e-5;
 			// except the ones we have ourselves, of course
 			if (s.playerState(player).missions.contains(m))
 				ps[player] = Double.POSITIVE_INFINITY;
@@ -138,7 +141,7 @@ public class Belief {
 		handleDeckRestoration(s);
 		
 		for (Mission m: Mission.all)
-			missions[m.ordinal()][d.player] += d.railway.relevanceFor(m);
+			player_mission_suspicion[m.ordinal()][d.player] += d.railway.relevanceFor(m);
 	}
 	
 	public void update(DrawMissionsDecision d, DrawMissionsDecision.AppliedDecision ad, State s) {
@@ -147,7 +150,7 @@ public class Belief {
 	public void update(KeepMissionsDecision d, KeepMissionsDecision.AppliedDecision ad, State s) {
 		if (d.player == player) {
 			for (Mission m: ad.drawn_missions) {
-				double[] ps = missions[m.ordinal()];
+				double[] ps = player_mission_suspicion[m.ordinal()];
 
 				// the missions drawn but not kept are certainly in the
 				// deck at this point, but not forever.  just set the
@@ -159,7 +162,7 @@ public class Belief {
 				// have trouble sampling (because the probability ends
 				// up 0).  just use some small positive number.
 				for (int i = 0; i < players.length; i++)
-					ps[i] = 1e-3;
+					ps[i] = 1e-5;
 
 				// the kept missions are certainly ours
 				if (d.missions.contains(m))
@@ -225,7 +228,7 @@ public class Belief {
 		s.missions = EnumSet.allOf(Mission.class);
 
 		// get a working copy of this matrix
-		double[][] missions = Util.clone(this.missions);
+		double[][] player_mission_suspicion = Util.clone(this.player_mission_suspicion);
 		sampling: while (true) {
 			// should terminate?
 			boolean samples_needed = false;
@@ -240,7 +243,7 @@ public class Belief {
 
 			// determine non-normalized joint probability distribution
 			double total = 0;
-			double[][] jpd = Util.clone(missions);
+			double[][] jpd = Util.clone(player_mission_suspicion);
 			for (int i = 0; i < jpd.length; i++) {
 				for (int j = 0; j < jpd[i].length; j++) {
 					// more probability to the players that need more missions
@@ -268,7 +271,7 @@ public class Belief {
 						ns[j]--; // one fewer mission needed for this player
 						// this mission will no longer be sampled
 						for (int k = 0; k < players.length; k++)
-							missions[i][k] = 0;
+							player_mission_suspicion[i][k] = 0;
 						continue sampling;
 					}
 				}
@@ -312,19 +315,19 @@ public class Belief {
 		// missions (this stuff is GROSS)
 
 		// get a working copy of this matrix
-		double[][] missions = Util.clone(this.missions);
+		double[][] player_mission_suspicion = Util.clone(this.player_mission_suspicion);
 
 		// determine how many missions we need to sample for each player
 		int[] ns = new int[players.length];
 		// collect the player/mission pairs we want (think 2D enumset)
-		boolean[][] pairs = new boolean[missions.length][players.length];
+		boolean[][] pairs = new boolean[player_mission_suspicion.length][players.length];
 		for (int j = 0; j < players.length; j++) {
 			for (Mission m: s.playerState(j).missions) {
 				int i = m.ordinal();
-				if (missions[i][j] == Double.POSITIVE_INFINITY) {
+				if (player_mission_suspicion[i][j] == Double.POSITIVE_INFINITY) {
 					// we are certain that this mission is with this player
 					for (int k = 0; k < players.length; k++)
-						missions[i][k] = 0;
+						player_mission_suspicion[i][k] = 0;
 				} else {
 					ns[j]++;
 					pairs[i][j] = true;
@@ -337,7 +340,7 @@ public class Belief {
 				if (pairs[i][j]) {
 					// determine non-normalized joint probability distribution
 					double total = 0;
-					double[][] jpd = Util.clone(missions);
+					double[][] jpd = Util.clone(player_mission_suspicion);
 					for (int k = 0; k < jpd.length; k++) {
 						for (int l = 0; l < jpd[k].length; l++) {
 							// more probability to the players that need more missions
@@ -345,7 +348,7 @@ public class Belief {
 							total += jpd[k][l];
 							if (Double.isNaN(total)) {
 								System.out.println("total just became NaN.  last term: "+jpd[k][l]+" was multiplied by "+ns[l]);
-								System.out.println("original distribution: "+Arrays.deepToString(this.missions));
+								System.out.println("original distribution: "+Arrays.deepToString(this.player_mission_suspicion));
 								throw new RuntimeException();
 							}							
 						}
@@ -354,14 +357,14 @@ public class Belief {
 					p *= jpd[i][j] / total;
 					if (Double.isNaN(p)) {
 						System.out.println("p just became NaN.  last factor: "+jpd[i][j]+"/"+total);
-						System.out.println("original distribution: "+Arrays.deepToString(this.missions));
+						System.out.println("original distribution: "+Arrays.deepToString(this.player_mission_suspicion));
 						throw new RuntimeException();
 					}
 					
 					ns[j]--; // one fewer mission needed for this player
 					// this mission will no longer be sampled
 					for (int k = 0; k < players.length; k++)
-						missions[i][k] = 0;
+						player_mission_suspicion[i][k] = 0;
 				}
 			}
 		}
