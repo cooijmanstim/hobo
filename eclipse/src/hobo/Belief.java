@@ -183,23 +183,19 @@ public class Belief {
 	public State sample(State s) {
 		s = s.clone();
 		//s.random = new Random(random.nextLong());
-		
 		sampleCards(s);
 		sampleMissions(s);
-		
 		return s;
 	}
-	
+
 	// return the likelihood (a probability) of a state given that this belief is true
 	public double likelihoodOf(State s) {
 		double p = 1;
-
 		p *= likelihoodOfCards(s);
 		p *= likelihoodOfMissions(s);
-		
 		return p;
 	}
-	
+
 	// modifies s
 	public void sampleCards(State s) {
 		CardBag unknown = cards_of_unknown_location.clone();
@@ -288,7 +284,7 @@ public class Belief {
 						System.err.println("inconsistent certainty");
 						throw new RuntimeException();
 					}
-					jpd[i][j] *= ns[j];// * 1.0 / (1 + s.playerState(j).railways.size());
+					jpd[i][j] *= ns[j] * 1.0 / (1 + s.playerState(j).railways.size());
 					if (jpd[i][j] < 0 || Double.isNaN(jpd[i][j])) {
 						System.err.println("negative or NaN weight in non-normalized distribution: "+jpd[i][j]+" (originally "+player_mission_suspicion[i][j]+")");
 						System.err.println("last factor: "+ns[j]+"/"+(1 + s.playerState(j).railways.size()));
