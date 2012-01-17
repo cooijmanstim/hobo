@@ -179,10 +179,19 @@ public class Belief {
 		}
 	}
 	
+	// return the most likely state according to the distribution defined by this belief
+	public State maximumLikelihoodState(State s) {
+		s = s.clone();
+		//s.random = new Random(random.nextLong());
+		sampleCards(s);
+		maximumLikelihoodMissions(s);
+		return s;
+	}
+	
 	// return a possible state according to the distribution defined by this belief
 	public State sample(State s) {
 		s = s.clone();
-		//s.random = new Random(random.nextLong());
+		s.random = new Random(random.nextLong());
 		sampleCards(s);
 		sampleMissions(s);
 		return s;
@@ -331,6 +340,73 @@ public class Belief {
 			System.err.println(x+" of mass left. distribution:");
 			System.err.println(Arrays.deepToString(jpd));
 			throw new RuntimeException();
+		}
+	}
+
+	// modifies s
+	public void maximumLikelihoodMissions(State s) {
+		// determine how many missions we need to sample for each player
+		int[] ns = new int[players.length];
+		for (int i = 0; i < players.length; i++) {
+			PlayerState ps = s.playerState(i);
+			ns[i] = ps.missions.size();
+			ps.missions = EnumSet.noneOf(Mission.class);
+		}
+
+		// players' missions will be removed from this as we go along
+		s.missions = EnumSet.allOf(Mission.class);
+
+		// get a working copy of this matrix
+		double[][] player_mission_suspicion = Util.clone(this.player_mission_suspicion);
+		sampling: while (true) {
+			// should terminate?
+			boolean samples_needed = false;
+			for (int i = 0; i < players.length; i++) {
+				if (ns[i] > 0) {
+					samples_needed = true;
+					break;
+				}
+			}
+			if (!samples_needed)
+				break sampling;
+
+			// maximize likelihood
+			double pbest = 0;
+			int ibest = -1, jbest = -1;
+			double[][] jpd = Util.clone(player_mission_suspicion);
+			for (int i = 0; i < jpd.length; i++) {
+				for (int j = 0; j < jpd[i].length; j++) {
+					// more probability to the players that need more missions,
+					// less probability to those that have more railways (to avoid bias,
+					// and to generally take the average of the relevance of the claimed
+					// railways)
+					if (ns[j] == 0 && jpd[i][j] == Double.POSITIVE_INFINITY) {
+						System.err.println("inconsistent certainty");
+						throw new RuntimeException();
+					}
+					jpd[i][j] *= ns[j] * 1.0 / (1 + s.playerState(j).railways.size());
+					if (jpd[i][j] < 0 || Double.isNaN(jpd[i][j])) {
+						System.err.println("negative or NaN weight in non-normalized distribution: "+jpd[i][j]+" (originally "+player_mission_suspicion[i][j]+")");
+						System.err.println("last factor: "+ns[j]+"/"+(1 + s.playerState(j).railways.size()));
+						System.err.println("original distribution: "+Arrays.deepToString(player_mission_suspicion));
+						throw new RuntimeException();
+					}
+					if (jpd[i][j] >= pbest) {
+						pbest = jpd[i][j];
+						ibest = i;
+						jbest = j;
+					}
+				}
+			}
+
+			Mission m = Mission.all[ibest];
+			s.missions.remove(m);
+			s.playerState(jbest).missions.add(m);
+			ns[jbest]--; // one fewer mission needed for this player
+			// this mission will no longer be sampled
+			for (int k = 0; k < players.length; k++)
+				player_mission_suspicion[ibest][k] = 0;
+			continue sampling;
 		}
 	}
 

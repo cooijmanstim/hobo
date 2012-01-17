@@ -12,7 +12,6 @@ public class RandomPlayer extends Player {
 	
 	public static RandomPlayer fromConfiguration(String configuration) {
 		String name = "carlo";
-		int decision_time = 5;
 		long seed = System.currentTimeMillis();
 		
 		for (Map.Entry<String,String> entry: Util.parseConfiguration(configuration).entrySet()) {
@@ -29,5 +28,12 @@ public class RandomPlayer extends Player {
 		if (ds.isEmpty())
 				return null;
 		return Util.sample(ds, random);
+	}
+
+	// pfft
+	@Override public void setDecisionTime(int t) {}
+	@Override public void setVerbose(boolean v) {}
+	@Override public Set<EvaluatedDecision> evaluateDecisions(Set<Decision> ds, State s) {
+		return null;
 	}
 }

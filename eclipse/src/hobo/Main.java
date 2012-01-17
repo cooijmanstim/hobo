@@ -126,24 +126,7 @@ public class Main {
 					if (s.isEmpty())
 						continue;
 
-					int j = s.indexOf(' ');
-					if (j == -1)
-						j = s.length();
-					String impl = s.substring(0, j);
-					s = s.substring(j);
-					
-					if (impl.equals("random"))
-						players.add(RandomPlayer.fromConfiguration(s));
-					else if (impl.equals("human"))
-						players.add(HumanPlayer.fromConfiguration(s));
-					else if (impl.equals("minimax"))
-						players.add(MinimaxPlayer.fromConfiguration(s));
-					else if (impl.equals("maxn"))
-						players.add(MaxNPlayer.fromConfiguration(s));
-					else if (impl.equals("montecarlo"))
-						players.add(MonteCarloPlayer.fromConfiguration(s));
-					else
-						throw new RuntimeException("no such player implementation: "+impl);
+					players.add(Player.fromConfiguration(s));
 				}
 				
 				newGame(configurations[0], players.toArray(new Player[0]));
