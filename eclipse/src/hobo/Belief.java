@@ -38,7 +38,7 @@ public class Belief {
 	// of each mission.  a mission can either be in the mission deck or in
 	// possession of one of the players.  the inference of the distribution
 	// is wildly heuristic: the non-normalized probability of each player-
-	// mission pair is the sum of the relevances to the missions of each
+	// mission pair is the average of the relevances to the missions of each
 	// railway that has been claimed by the player, times the number of
 	// missions that the player has.
 
@@ -152,18 +152,6 @@ public class Belief {
 			for (Mission m: ad.drawn_missions) {
 				double[] ps = player_mission_suspicion[m.ordinal()];
 
-				// the missions drawn but not kept are certainly in the
-				// deck at this point, but not forever.  just set the
-				// score to 0 everywhere; this corresponds to concluding
-				// that all the railway claiming that happened before
-				// this decision was not relevant to any of these
-				// missions.  future claiming will be counted as usual.
-				// actually, scratch that, if we set it to 0 we might
-				// have trouble sampling (because the probability ends
-				// up 0).  just use some small positive number.
-				for (int i = 0; i < players.length; i++)
-					ps[i] = 1e-5;
-
 				// the kept missions are certainly ours
 				if (d.missions.contains(m))
 					ps[player] = Double.POSITIVE_INFINITY;
@@ -193,10 +181,28 @@ public class Belief {
 	
 	// return a possible state according to the distribution defined by this belief
 	public State sample(State s) {
-		// sample cards
-		CardBag unknown = cards_of_unknown_location.clone();
 		s = s.clone();
 		//s.random = new Random(random.nextLong());
+		
+		sampleCards(s);
+		sampleMissions(s);
+		
+		return s;
+	}
+	
+	// return the likelihood (a probability) of a state given that this belief is true
+	public double likelihoodOf(State s) {
+		double p = 1;
+
+		p *= likelihoodOfCards(s);
+		p *= likelihoodOfMissions(s);
+		
+		return p;
+	}
+	
+	// modifies s
+	public void sampleCards(State s) {
+		CardBag unknown = cards_of_unknown_location.clone();
 
 		CardBag deck = known_deck_cards.clone();
 		deck.addAll(unknown.remove_sample(s.deck.size() - known_deck_cards.size(), random));
@@ -213,9 +219,37 @@ public class Belief {
 		}
 
 		assert(unknown.isEmpty());
+	}
 
-		// sample missions
+	public double likelihoodOfCards(State s) {
+		double p = 1;
 
+		CardBag unknown = cards_of_unknown_location.clone();
+
+		CardBag unknown_deck_cards = s.deck.clone();
+		assert(unknown_deck_cards.containsAll(known_deck_cards));
+		unknown_deck_cards.removeAll(known_deck_cards);
+
+		p *= unknown.probabilityOfSample(unknown_deck_cards);
+		unknown.removeAll(unknown_deck_cards);
+
+		for (int i = 0; i < players.length; i++) {
+			if (i == player)
+				continue;
+
+			CardBag unknown_hand_cards = s.playerState(i).hand.clone();
+			assert(unknown_hand_cards.containsAll(players[i].known_cards));
+			unknown_hand_cards.removeAll(players[i].known_cards);
+
+			p *= unknown.probabilityOfSample(unknown_hand_cards);
+			unknown.removeAll(unknown_hand_cards);
+		}
+		
+		return p;
+	}
+	
+	// modifies s
+	public void sampleMissions(State s) {
 		// determine how many missions we need to sample for each player
 		int[] ns = new int[players.length];
 		for (int i = 0; i < players.length; i++) {
@@ -246,14 +280,28 @@ public class Belief {
 			double[][] jpd = Util.clone(player_mission_suspicion);
 			for (int i = 0; i < jpd.length; i++) {
 				for (int j = 0; j < jpd[i].length; j++) {
-					// more probability to the players that need more missions
-					jpd[i][j] *= ns[j];
+					// more probability to the players that need more missions,
+					// less probability to those that have more railways (to avoid bias,
+					// and to generally take the average of the relevance of the claimed
+					// railways)
+					if (ns[j] == 0 && jpd[i][j] == Double.POSITIVE_INFINITY) {
+						System.err.println("inconsistent certainty");
+						throw new RuntimeException();
+					}
+					jpd[i][j] *= ns[j];// * 1.0 / (1 + s.playerState(j).railways.size());
+					if (jpd[i][j] < 0 || Double.isNaN(jpd[i][j])) {
+						System.err.println("negative or NaN weight in non-normalized distribution: "+jpd[i][j]+" (originally "+player_mission_suspicion[i][j]+")");
+						System.err.println("last factor: "+ns[j]+"/"+(1 + s.playerState(j).railways.size()));
+						System.err.println("original distribution: "+Arrays.deepToString(player_mission_suspicion));
+						throw new RuntimeException();
+					}
 					total += jpd[i][j];
 				}
 			}
-			if (total < 0) {
-				System.err.println("non-normalized probability distribution sums to x < 0");
-				System.err.println("distribution: "+Arrays.deepToString(jpd));
+			if (total < 0 || Double.isNaN(total)) {
+				System.err.println("non-normalized probability distribution sums to "+total);
+				System.err.println("original distribution: "+Arrays.deepToString(player_mission_suspicion));
+				System.err.println("jpd: "+Arrays.deepToString(jpd));
 				throw new RuntimeException();
 			}
 
@@ -274,6 +322,12 @@ public class Belief {
 							player_mission_suspicion[i][k] = 0;
 						continue sampling;
 					}
+					if (Double.isNaN(x)) {
+						System.out.println("x just became NaN, last subtraction: "+jpd[i][j]);
+						System.out.println("original distribution: "+Arrays.deepToString(player_mission_suspicion));
+						System.out.println("jpd: "+Arrays.deepToString(jpd));
+						throw new RuntimeException();
+					}
 				}
 			}
 
@@ -282,38 +336,11 @@ public class Belief {
 			System.err.println(Arrays.deepToString(jpd));
 			throw new RuntimeException();
 		}
-
-		return s;
 	}
 
-	// return the likelihood (a probability) of a state given that this belief is true
-	public double likelihoodOf(State s) {
+	public double likelihoodOfMissions(State s) {
 		double p = 1;
-
-		// cards
-		CardBag unknown = cards_of_unknown_location.clone();
-
-		CardBag unknown_deck_cards = s.deck.clone();
-		assert(unknown_deck_cards.containsAll(known_deck_cards));
-		unknown_deck_cards.removeAll(known_deck_cards);
-
-		p *= unknown.probabilityOfSample(unknown_deck_cards);
-		unknown.removeAll(unknown_deck_cards);
-
-		for (int i = 0; i < players.length; i++) {
-			if (i == player)
-				continue;
-
-			CardBag unknown_hand_cards = s.playerState(i).hand.clone();
-			assert(unknown_hand_cards.containsAll(players[i].known_cards));
-			unknown_hand_cards.removeAll(players[i].known_cards);
-
-			p *= unknown.probabilityOfSample(unknown_hand_cards);
-			unknown.removeAll(unknown_hand_cards);
-		}
 		
-		// missions (this stuff is GROSS)
-
 		// get a working copy of this matrix
 		double[][] player_mission_suspicion = Util.clone(this.player_mission_suspicion);
 
@@ -424,5 +451,17 @@ public class Belief {
 				known_cards = new CardBag();
 			}
 		}
+	}
+
+	public static double zeroKnowledgeLikelihoodOfMissions(State state) {
+		double p = 1;
+		int n = Mission.all.length;
+		for (PlayerState ps: state.playerStates()) {
+			int k = ps.missions.size();
+			p *= Util.factorial(k) * 1.0 / Util.binomial_coefficient(k, n);
+			n -= k;
+		}
+		// the rest are all in the mission deck
+		return p;
 	}
 }

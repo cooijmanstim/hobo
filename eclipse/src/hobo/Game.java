@@ -80,7 +80,8 @@ public class Game {
 
 		// testing belief system
 		belief.update(e);
-		System.out.println("belief accuracy: "+belief.likelihoodOf(e.state));
+		System.out.println("belief accuracy: "+belief.likelihoodOf(e.state)+" ("+belief.likelihoodOfCards(e.state)+" * "+belief.likelihoodOfMissions(e.state)+")");
+		System.out.println("zero knowledge missions likelihood: "+Belief.zeroKnowledgeLikelihoodOfMissions(e.state));
 		State sampled_state = belief.sample(e.state);
 
 		System.out.println("sampled missions deck: "+sampled_state.missions+" actual mission deck: "+e.state.missions);

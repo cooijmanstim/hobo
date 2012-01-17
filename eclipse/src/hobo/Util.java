@@ -205,6 +205,12 @@ public class Util {
 		return w;
 	}
 
+	public static long binomial_coefficient(int k, int n) {
+		if (k == 0 || k == n) return 1;
+		if (n == 0 || k > n) return 0;
+		return binomial_coefficient(k - 1, n - 1) + binomial_coefficient(k, n - 1);
+	}
+	
 	// ns contains the number of marbles of each color in the urn,
 	// ks describes the desired selection
 	// this is used for cardbags, so the numbers are hopefully manageable
@@ -260,6 +266,13 @@ public class Util {
 		for (int i = Math.max(1, Math.min(n, d) + 1), I = Math.max(n, d); i <= I; i++)
 			y *= i;
 		return n > d ? y : 1/y;
+	}
+	
+	public static long factorial(int n) {
+		long f = 1;
+		for (; n > 1; n--)
+			f *= n;
+		return f;
 	}
 	
 	public static void normalize(double[] xs) {
