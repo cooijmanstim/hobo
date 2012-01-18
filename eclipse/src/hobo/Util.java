@@ -88,8 +88,8 @@ public class Util {
 
 		public AStarNode(City city, Railway railway, AStarNode prev, City target) {
 			this.city = city; this.railway = railway; this.prev = prev;
-			h = euclideanDistance(city, target);
-			g = (prev == null ? 0 : prev.g + euclideanDistance(prev.city, city));
+			h = city.distances[target.ordinal()];
+			g = (prev == null ? 0 : prev.g + prev.city.distances[city.ordinal()]);
 			f = g + h;
 		}
 
@@ -129,7 +129,7 @@ public class Util {
 			if(city2 == null) {
 				System.out.println("city2="+city2); throw new RuntimeException();
 			}
-			double distance = euclideanDistance(city, city2);				
+			double distance = city.distances[city2.ordinal()];				
 			if (dist > distance) {
 				dist = distance;
 				railwayChoose = r;
@@ -146,12 +146,10 @@ public class Util {
 		double smallestEuclidianDistance = Double.POSITIVE_INFINITY;
 		City city = null;
 		for(Railway r : rails) {
-			if(smallestEuclidianDistance > euclideanDistance(r.source, toCity)) {
+			if(smallestEuclidianDistance > r.source.distances[toCity.ordinal()]) {
 				city = r.source;
-				smallestEuclidianDistance = euclideanDistance(r.source, toCity);
-			} else if(smallestEuclidianDistance > euclideanDistance(r.destination, toCity)) {
+			} else if(smallestEuclidianDistance > r.destination.distances[toCity.ordinal()]) {
 				city = r.destination;
-				smallestEuclidianDistance = euclideanDistance(r.destination, toCity);
 			}
 		}
 		return city;
@@ -274,22 +272,7 @@ public class Util {
 		}
 	}
 	
-//	public static void main(String[] args) {
-//		Set<Mission> set = EnumSet.noneOf(Mission.class);
-//		set.add(Mission.LosAngeles_NewYork);
-//		set.add(Mission.SanFrancisco_Atlanta);
-//		set.add(Mission.Calgary_SaltLakeCity);
-//		PlayerState ps = new PlayerState(1, "TestPlayer", Color.GREEN);
-//		ps.missions = set;
-//		List<Railway> rSet = getSpanningTree(ps);
-//		for(Railway r : rSet) {
-//			System.out.println(r);
-//		}
-//
-//		
-//	}
-	
-	private static double euclideanDistance(City city1, City city2) {
+	public static double euclideanDistance(City city1, City city2) {
 		return Math.sqrt(Math.pow(city2.x-city1.x,2)+Math.pow(city2.y-city1.y,2));
 	}
 	
