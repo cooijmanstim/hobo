@@ -312,7 +312,9 @@ public class MonteCarloPlayer extends Player {
 				PlayerState ps = s.playerState(d.player);
 				double relevance = Double.NEGATIVE_INFINITY;
 				for (Mission m: ps.missions)
-					relevance = Math.max(relevance, r.relevanceFor(m));
+					relevance = Math.max(relevance, 
+										m.railwayRelevance[r.ordinal()]);
+										/*r.relevanceFor(m));*/
 				return (1 + relevance) * ((ClaimRailwayDecision)d).railway.score();
 			} else if (d instanceof DrawCardDecision) {
 				DrawCardDecision dcd = (DrawCardDecision)d;

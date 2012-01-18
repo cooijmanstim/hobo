@@ -17,10 +17,18 @@ public enum Mission {
 	Winnipeg_Houston(12), Duluth_Houston(8), KansasCity_Houston(5);
 	
 	public static final Mission[] all = values();
+	
+	static{
+		for (int i = 0; i < all.length; i++) {
+			Mission m = all[i];
+			m.initiateRelevance();	
+		}
+	}
 
 	public final City source, destination;
 	public final int value;
 	public final String imagePath;
+	public double[] railwayRelevance;
 
 	private Mission(int value) {
 		this.value = value;
@@ -30,6 +38,16 @@ public enum Mission {
 		String[] parts = name().split("_");
 		source = City.valueOf(parts[0]);
 		destination = City.valueOf(parts[1]);
+	}
+	
+	public void initiateRelevance() {
+		Railway[] railways = Railway.values();
+		double[]railwayRelevance = new double[railways.length];
+		for (int i = 0; i < railways.length; i++) {
+			railwayRelevance[i] = railways[i].relevanceFor(this);
+			
+		}
+		this.railwayRelevance = railwayRelevance;
 	}
 
 	public static Mission connecting(City c, City d) {
