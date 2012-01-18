@@ -18,11 +18,9 @@ public enum Mission {
 	
 	public static final Mission[] all = values();
 	
-	static{
-		for (int i = 0; i < all.length; i++) {
-			Mission m = all[i];
-			m.initiateRelevance();	
-		}
+	static {
+		for (Mission m: all)
+			m.initiateRelevance();
 	}
 
 	public final City source, destination;
@@ -41,12 +39,9 @@ public enum Mission {
 	}
 	
 	public void initiateRelevance() {
-		Railway[] railways = Railway.values();
-		double[]railwayRelevance = new double[railways.length];
-		for (int i = 0; i < railways.length; i++) {
-			railwayRelevance[i] = railways[i].relevanceFor(this);
-			
-		}
+		double[]railwayRelevance = new double[Railway.all.length];
+		for (int i = 0; i < Railway.all.length; i++)
+			railwayRelevance[i] = Railway.all[i].relevanceFor(this);
 		this.railwayRelevance = railwayRelevance;
 	}
 
