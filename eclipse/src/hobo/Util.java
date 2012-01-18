@@ -120,7 +120,7 @@ public class Util {
 				xmin = r.source.distances[i];
 			} else if(xmin > r.destination.distances[i]) {
 				city = r.destination;
-				xmin = r.source.distances[i];
+				xmin = r.destination.distances[i];
 			}
 		}
 		return city;
