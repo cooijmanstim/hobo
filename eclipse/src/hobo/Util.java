@@ -267,10 +267,8 @@ public class Util {
 	public static double distanceOfPointToSegment(double[] p, double[] a, double[] b) {
 		double[] dab = minus(b, a);
 		double x = dot(minus(p, a), unit(dab));
-		if (x > norm(dab))
-			x = norm(dab);
-		if (x < 0)
-			x = 0;
+		x = Math.min(x, norm(dab));
+		x = Math.max(x, 0);
 		double[] c = plus(a, times(x, unit(dab)));
 		return norm(minus(p, c));
 	}
