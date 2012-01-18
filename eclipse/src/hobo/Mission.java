@@ -51,4 +51,8 @@ public enum Mission {
 	public String toString() {
 		return "Mission(source: "+source+", destination: "+destination+", value: "+value+")";
 	}
+	
+	public String coordinatesString() {
+		return "source x="+source.x+", y="+source.y+"---destination x"+destination.x+", y="+destination.y;
+	}
 }

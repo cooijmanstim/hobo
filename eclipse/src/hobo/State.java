@@ -22,7 +22,7 @@ public class State implements Cloneable {
 
 	// deck of destination tickets
 	public Set<Mission> missions = EnumSet.noneOf(Mission.class);
-
+	
 	private boolean game_over = false;
 	private int last_player = -1;
 	
