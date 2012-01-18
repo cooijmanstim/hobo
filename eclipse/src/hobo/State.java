@@ -217,7 +217,7 @@ public class State implements Cloneable {
 	public boolean isClaimed(Railway r) {
 		return owner_by_railway.containsKey(r);
 	}
-	
+
 	public Set<Railway> usableRailwaysFor(int player) {
 		Set<Railway> result = EnumSet.copyOf(players[player].railways);
 		for (Railway r: Railway.all) {

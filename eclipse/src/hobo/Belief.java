@@ -60,8 +60,8 @@ public class Belief {
 
 	private List<Event> events;
 
-	public Belief(int player) {
-		this.random = new Random();
+	public Belief(int player, long seed) {
+		this.random = new Random(seed);
 		this.events = new ArrayList<Event>();
 		this.player = player;
 	}
