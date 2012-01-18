@@ -47,6 +47,8 @@ public class Belief {
 
 	private int player; // beliefs of which player?
 	
+	private double relevance_weight;
+	
 	private PlayerBelief[] players;
 	
 	private CardBag known_deck_cards;
@@ -60,10 +62,11 @@ public class Belief {
 
 	private List<Event> events;
 
-	public Belief(int player, long seed) {
+	public Belief(int player, long seed, double relevance_weight) {
 		this.random = new MersenneTwisterFast(seed);
 		this.events = new ArrayList<Event>();
 		this.player = player;
+		this.relevance_weight = relevance_weight;
 	}
 
 	public void initialize(State s) {
@@ -141,9 +144,9 @@ public class Belief {
 		handleDeckRestoration(s);
 		
 		for (Mission m: Mission.all)
-			player_mission_suspicion[m.ordinal()][d.player] += d.railway.relevanceFor(m);
+			player_mission_suspicion[m.ordinal()][d.player] += relevance_weight * d.railway.relevanceFor(m);
 	}
-	
+
 	public void update(DrawMissionsDecision d, DrawMissionsDecision.AppliedDecision ad, State s) {
 	}
 
@@ -182,12 +185,12 @@ public class Belief {
 	// return the most likely state according to the distribution defined by this belief
 	public State maximumLikelihoodState(State s) {
 		s = s.clone();
-		//s.random = new Random(random.nextLong());
+		s.random = new MersenneTwisterFast(random.nextLong());
 		sampleCards(s);
 		maximumLikelihoodMissions(s);
 		return s;
 	}
-	
+
 	// return a possible state according to the distribution defined by this belief
 	public State sample(State s) {
 		s = s.clone();

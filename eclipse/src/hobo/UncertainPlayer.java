@@ -40,7 +40,7 @@ public class UncertainPlayer extends Player {
 			belief.update(e);
 		}
 	}
-	
+
 	@Override public Decision decide(State s) {
 		if (sample_size < 0)
 			return decideByAssumption(s);
@@ -51,7 +51,7 @@ public class UncertainPlayer extends Player {
 	@Override public void setHandle(int handle) {
 		super.setHandle(handle);
 		player.setHandle(handle);
-		belief = new Belief(handle, seed);
+		belief = new Belief(handle, seed, 2);
 	}
 	
 	@Override public void setDecisionTime(int decision_time) {
