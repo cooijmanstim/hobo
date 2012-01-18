@@ -109,38 +109,6 @@ public class Util {
 			return city.toString();
 		}
 	}
-	
-	public static ArrayList<Railway> getShortestWay(City city1, City city2, ArrayList<Railway> rails, State s) {
-		if (rails.size() > 0 && rails.get(rails.size()-1).connects(city2))
-				return rails;
-		Railway railwayChoose = null;
-		double dist = Double.POSITIVE_INFINITY;
-		
-//		Set<Railway> OccupiedRailways = s.owner_by_railway.keySet();
-//		Set<Railway> allRailways = new HashSet<Railway>(city1.railways);
-//		allRailways.removeAll(OccupiedRailways);
-//		System.out.println(city1);
-//		System.out.println(allRailways.size());
-		for (Railway r : city1.railways) {
-			City city = r.otherCity(city1);
-			if(city == null) {
-				System.out.println("city="+city); throw new RuntimeException();
-			}
-			if(city2 == null) {
-				System.out.println("city2="+city2); throw new RuntimeException();
-			}
-			double distance = city.distances[city2.ordinal()];				
-			if (dist > distance) {
-				dist = distance;
-				railwayChoose = r;
-			}
-		}
-		rails.add(railwayChoose);
-
-		getShortestWay(railwayChoose.otherCity(city1), city2, rails, s);					
-		
-		return rails;
-	}
 
 	public static City getClosestCity(List<Railway> rails, City toCity) {
 		double xmin = Double.POSITIVE_INFINITY;
