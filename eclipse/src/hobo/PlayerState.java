@@ -1,8 +1,10 @@
 package hobo;
 
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.EnumSet;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -12,16 +14,11 @@ public class PlayerState implements Cloneable {
 	public final int handle;
 	public final String name;
 	public final Color color;
-	public int ncars = 45, score = 0, missionScore = 0, lengthScore = 0;
+	public int ncars = 45, score = 0;
 	public CardBag hand = new CardBag();
-	public Set<Mission> missions = EnumSet.noneOf(Mission.class);
-	
-	
+	public Set<Mission> missions = EnumSet.noneOf(Mission.class);	
 	public Set<Mission> completedMissions = EnumSet.noneOf(Mission.class);
-	
 	public Set<Railway> railways = EnumSet.noneOf(Railway.class);
-	//The Set of Railways a player needs to build to finish all the missions. Should be updated on a regular basis
-	public Set<Railway> railwaysWanted = EnumSet.noneOf(Railway.class);
 
 	// when ncars drops below this at the end of a player's turn, the game
 	// goes on for one last round.
@@ -66,25 +63,9 @@ public class PlayerState implements Cloneable {
 		this.handle = handle;
 		this.name = name;
 	}
-	
-	public void updatePlayerState() {
-		completedMissions = EnumSet.noneOf(Mission.class);
-		for(Mission m : this.missions) {
-			if(missionCompleted(m)) completedMissions.add(m);
-		}
-		missionScore = 0;
-		for(Mission m : missions) {
-			if(completedMissions.contains(m))
-				missionScore += m.value;
-			else {
-				missionScore -= m.value;
-			}
-		}
-		score = lengthScore + missionScore;
-	}
-	
+
 	public boolean missionCompleted(Mission m) {
-		return Util.shortestPath(m.source, m.destination, railways) != null;
+		return completedMissions.contains(m);
 	}
 	
 	public boolean almostOutOfCars() {
@@ -95,18 +76,63 @@ public class PlayerState implements Cloneable {
 		return score;
 	}
 
+	// completedMissions undo info
+	Deque<Set<Mission>> completions = new LinkedList<Set<Mission>>();
+	
 	public void claim(Railway r) {
-		ncars -= r.length;
-		lengthScore += r.score();
 		railways.add(r);
-		updatePlayerState();
+
+		ncars -= r.length;
+		score += r.score();
+
+		Set<Mission> ms = missionsCompletedBy(r);
+		completedMissions.addAll(ms);
+		for (Mission m: ms)
+			score += 2 * m.value;
+		completions.push(ms);
 	}
 
 	public void unclaim(Railway r) {
-		railways.remove(r);
-		lengthScore -= r.score();
+		Set<Mission> ms = completions.pop();
+		completedMissions.removeAll(ms);
+		for (Mission m: ms)
+			score -= 2 * m.value;
+
+		score -= r.score();
 		ncars += r.length;
-		updatePlayerState();
+
+		railways.remove(r);
+	}
+	
+	public Set<Mission> missionsCompletedBy(Railway r) {
+		Set<Mission> ms = EnumSet.noneOf(Mission.class);
+		for (Mission m: missions) {
+			if (missionCompleted(m))
+				continue;
+			if (Util.shortestPath(m.source, m.destination, railways) != null)
+				ms.add(m);
+		}
+		return ms;
+	}
+	
+	public void receiveMissions(Set<Mission> ms) {
+		missions.addAll(ms);
+		for (Mission m: ms) {
+			if (Util.shortestPath(m.source, m.destination, railways) != null) {
+				completedMissions.add(m);
+				score += 2 * m.value;
+			}
+		}
+	}
+	
+	public void unreceiveMissions(Set<Mission> ms) {
+		for (Mission m: ms) {
+			if (completedMissions.contains(m)) {
+				score -= 2 * m.value;
+				completedMissions.remove(m);
+			}
+		}
+		missions.removeAll(ms);
 	}
 
 	public int getMissionPoints() {
@@ -115,11 +141,10 @@ public class PlayerState implements Cloneable {
 			i += m.value;
 		return i;
 	}
-	
+
 	public double utility(State s) {
 		if (s.gameOver()) return finalScore();
 
-		Set<Railway> usable_railways = s.usableRailwaysFor(handle);
 		double u = 0.0;
 		List<Railway> shortest_path = Util.getSpanningTree(this, s);
 		int length = 0;

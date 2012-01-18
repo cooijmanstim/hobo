@@ -62,7 +62,6 @@ public class Main {
 				mainFrame.add(b, BorderLayout.PAGE_END);
 				mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 				mainFrame.pack();
-				System.out.println("test");
 				mainFrame.setVisible(true);
 			}
 
@@ -80,8 +79,8 @@ public class Main {
 				
 				final JTextField[] fields = {
 					new JTextField("seed:0"),
-					new JTextField("uncertain montecarlo sample_size:10 name:carlo  decision_time:5"),
-					new JTextField("uncertain minimax sample_size:10 name:joshua decision_time:5"),
+					new JTextField("uncertain montecarlo name:carlo  decision_time:5"),
+					new JTextField("uncertain minimax name:joshua decision_time:5"),
 					new JTextField(""),
 					new JTextField(""),
 					new JTextField(""),
@@ -101,7 +100,6 @@ public class Main {
 						for (JTextField field: fields)
 							configurations[i++] = field.getText();
 						newGame(configurations);
-						System.out.println(Arrays.toString(mainFrame.getComponents()));
 						f.setVisible(false);
 					}
 				});
@@ -170,7 +168,6 @@ public class Main {
 				mainFrame.validate();
 				mainFrame.pack();
 				
-
 				gameThread = new Thread(new Runnable() {
 					public void run() { g.play(); }
 				});

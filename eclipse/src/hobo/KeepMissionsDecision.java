@@ -54,11 +54,10 @@ public class KeepMissionsDecision extends Decision {
 		PlayerState p = s.playerState(player);
 
 		// XXX: don't modify p.drawn_missions
-		p.missions.addAll(missions);
-		p.updatePlayerState();
+		p.receiveMissions(missions);
 		s.missions.addAll(p.drawn_missions);
 		s.missions.removeAll(missions);
-
+		
 		if (undoably) a.drawn_missions = p.drawn_missions;
 		p.drawn_missions = null;
 
@@ -76,8 +75,7 @@ public class KeepMissionsDecision extends Decision {
 			state.unswitchTurns();
 			PlayerState p = state.playerState(player);
 
-			p.missions.removeAll(drawn_missions);
-			p.updatePlayerState();
+			p.unreceiveMissions(drawn_missions);
 			state.missions.removeAll(drawn_missions);
 			p.drawn_missions = drawn_missions;
 

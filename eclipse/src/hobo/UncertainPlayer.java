@@ -18,7 +18,7 @@ public class UncertainPlayer extends Player {
 	
 	public static UncertainPlayer fromConfiguration(String configuration) {
 		String name = "uncertain";
-		int sample_size = 100;
+		int sample_size = -1;
 		int decision_time = 5;
 		long seed = System.currentTimeMillis();
 
