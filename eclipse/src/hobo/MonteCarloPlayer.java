@@ -211,8 +211,8 @@ public class MonteCarloPlayer extends Player {
 				Decision d = chooseDecision(s);
 				d.apply(s, false);
 			}
-			//int value = (int)Math.signum(s.aheadness(handle)); // more than just win or loss
-			int value = s.aheadness(handle);
+			int value = (int)Math.signum(s.aheadness(handle)); // more than just win or loss
+			//int value = s.aheadness(handle);
 			total_value += value;
 			visit_count++;
 			return value;
@@ -227,10 +227,15 @@ public class MonteCarloPlayer extends Player {
 				ds = KeepMissionsDecision.availableTo(s, ps, ds);
 			} else {
 				// endpoints for probability integral
-				double dcd_end = 2 * Util.logsig(-ps.hand.size() / 10.0),
-				       crd_end = 0.99;
+						double dcd_end = 2 * Util.logsig(-ps.hand.size() / 20.0),
+						crd_end = 0.995;
+						//int totalCards = 110;
+						//double dcd_end = 1 - ps.hand.size() / totalCards ,
+						//crd_end = 0.99;
+				
+
 				while (ds.isEmpty()) {
-					double x = Math.random();
+					double x = random.nextDouble();
 					if (x < dcd_end) {
 						ds = DrawCardDecision.availableTo(s, ps, ds);
 						if (ds.isEmpty())
@@ -287,7 +292,7 @@ public class MonteCarloPlayer extends Player {
 				double newu = hand.utilityAsHand();
 				hand.remove(c);
 				double du = newu - oldu;
-				return Util.logsig(du);
+				return Util.logsig(du); // keep the log-function because of negative values
 			} else if (d instanceof DrawMissionsDecision) {
 				return 1;
 			} else if (d instanceof KeepMissionsDecision) {
