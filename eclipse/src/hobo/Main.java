@@ -21,8 +21,8 @@ public class Main {
 		long totalndecisions = 0;
 		for (int i = 0; i < 10; i++) {
 			Game g = new Game("",
-			                  Player.fromConfiguration("uncertain montecarlo sample_size:-1 name:carlo  decision_time:5"),
-			                  Player.fromConfiguration("uncertain minimax sample_size:-1 name:joshua decision_time:5"));
+			                  Player.fromConfiguration("uncertain montecarlo name:carlo strategic:false decision_time:5"),
+			                  Player.fromConfiguration("uncertain minimax name:joshua decision_time:5"));
 			g.play();
 			totalndecisions += g.ndecisions;
 		}
@@ -79,7 +79,7 @@ public class Main {
 				
 				final JTextField[] fields = {
 					new JTextField("seed:0"),
-					new JTextField("uncertain montecarlo name:carlo  decision_time:5"),
+					new JTextField("uncertain montecarlo name:carlo strategic:false decision_time:5"),
 					new JTextField("uncertain minimax name:joshua decision_time:5"),
 					new JTextField(""),
 					new JTextField(""),

@@ -4,20 +4,21 @@ import java.util.*;
 
 public class MonteCarloPlayer extends Player {
 	private int decision_time;
-	private boolean verbose;
+	private boolean verbose, strategic;
 	private final MersenneTwisterFast random;
 
-	public MonteCarloPlayer(String name, long seed, int decision_time, boolean verbose) {
+	public MonteCarloPlayer(String name, long seed, int decision_time, boolean verbose, boolean strategic) {
 		this.name = name;
 		this.decision_time = decision_time;
 		this.verbose = verbose;
+		this.strategic = strategic;
 		this.random = new MersenneTwisterFast(seed);
 	}
 	
 	public static MonteCarloPlayer fromConfiguration(String configuration) {
 		String name = "carlo";
 		int decision_time = 5;
-		boolean verbose = true;
+		boolean verbose = true, strategic = false;
 		long seed = System.currentTimeMillis();
 		
 		for (Map.Entry<String,String> entry: Util.parseConfiguration(configuration).entrySet()) {
@@ -26,9 +27,10 @@ public class MonteCarloPlayer extends Player {
 			if (k.equals("seed"))          seed = Long.parseLong(v);
 			if (k.equals("decision_time")) decision_time = Integer.parseInt(v);
 			if (k.equals("verbose"))       verbose = Boolean.parseBoolean(v);
+			if (k.equals("strategic"))     strategic = Boolean.parseBoolean(v);
 		}
 
-		return new MonteCarloPlayer(name, seed, decision_time, verbose);
+		return new MonteCarloPlayer(name, seed, decision_time, verbose, strategic);
 	}
 	
 	@Override public void setDecisionTime(int decision_time) {
@@ -248,10 +250,12 @@ public class MonteCarloPlayer extends Player {
 			visit_count++;
 			return value;
 		}
-		
+
 		public Decision chooseDecision(State s) {
-			Set<Decision> ds = new LinkedHashSet<Decision>(50);
 			PlayerState ps = s.currentPlayerState();
+			if (!strategic)
+				return Util.sample(s.allPossibleDecisions(), random);
+			Set<Decision> ds = new LinkedHashSet<Decision>(50);
 			if (ps.drawn_card != null) {
 				ds = DrawCardDecision.availableTo(s, ps, ds);
 			} else if (ps.drawn_missions != null) {
