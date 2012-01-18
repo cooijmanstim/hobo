@@ -53,6 +53,13 @@ public class MinimaxPlayer extends Player {
 	public void output(String s) {
 		if (verbose) System.out.println(s);
 	}
+	
+	private long total_ndecisions = 0;
+	private long total_depth = 0;
+	private long total_depth_nterms = 0;
+	private long total_nbranches = 0;
+	private long total_nbranches_nterms = 0;
+	private long killer_hits = 0, killer_tries = 0;
 
 	public Decision decide(State s) {
 		State t = s.clone(); // to be sure we don't mess with the real state
@@ -68,6 +75,7 @@ public class MinimaxPlayer extends Player {
 			System.out.println("killer hit rate: "+(killer_hits*1.0/killer_tries)+"; "+killer_hits+"/"+killer_tries);
 		}
 		assert(t.equals(s)); // to know when the undo code is broken
+		total_ndecisions++;
 		return ed.decision;
 	}
 
@@ -82,8 +90,9 @@ public class MinimaxPlayer extends Player {
 		}, decision_time * 1000);
 
 		EvaluatedDecision ed = null;
+		int depth = 0;
 		try {
-			for (int depth = 0; depth <= max_depth; depth++) {
+			for (depth = 0; depth <= max_depth; depth++) {
 				ed = minimax(s, depth, ply,
 				             Double.NEGATIVE_INFINITY,
 				             Double.POSITIVE_INFINITY,
@@ -92,6 +101,9 @@ public class MinimaxPlayer extends Player {
 			}
 		} catch (OutOfTimeException e) {
 			if (verbose) System.out.println("out of time");
+		} finally {
+			total_depth += depth;
+			total_depth_nterms++;
 		}
 		
 		if (!outOfTime)
@@ -99,10 +111,6 @@ public class MinimaxPlayer extends Player {
 		
 		return ed;
 	}
-
-	private long total_nbranches = 0;
-	private long total_nbranches_nterms = 0;
-	private long killer_hits = 0, killer_tries = 0;
 
 	private final Decision[][] killer_moves;
 
@@ -302,5 +310,17 @@ public class MinimaxPlayer extends Player {
 		for (PlayerState ps: s.playerStates())
 			u += (coalition[ps.handle] ? 1 : -1) * ps.utility(s);
 		return u;
+	}
+	
+	public double averageBranchingFactor() {
+		return total_nbranches * 1.0 / total_nbranches_nterms;
+	}
+	
+	public double averageDepth() {
+		return total_depth * 1.0 / total_depth_nterms;
+	}
+	
+	public double averageNodesPerDecision() {
+		return total_nbranches * 1.0 / total_ndecisions;
 	}
 }

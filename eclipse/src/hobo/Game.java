@@ -87,6 +87,13 @@ public class Game {
 		}
 	}
 
+	public int[] scores() {
+		int[] scores = new int[players.length];
+		for (int i = 0; i < players.length; i++)
+			scores[i] = state.playerState(i).finalScore();
+		return scores;
+	}
+
 	private boolean aborted = false;
 	public void abort() {
 		aborted = true;

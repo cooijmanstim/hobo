@@ -41,6 +41,18 @@ public class MonteCarloPlayer extends Player {
 		this.verbose = verbose;
 	}
 
+	private long total_ndecisions = 0;
+	private long total_nnodes = 0;
+	private long total_nsimulations = 0;
+	
+	public double averageNodesPerDecision() {
+		return total_nnodes * 1.0 / total_ndecisions;
+	}
+	
+	public double averageSimulations() {
+		return total_nsimulations * 1.0 / total_ndecisions;
+	}
+
 	private boolean outOfTime = false;
 
 	@Override public Decision decide(State s) {
@@ -49,6 +61,7 @@ public class MonteCarloPlayer extends Player {
 			System.out.println(name+" ("+handle+") deciding...");
 		}
 		Node tree = buildTree(s, null);
+		total_ndecisions++;
 		return tree.decide();
 	}
 
@@ -72,6 +85,7 @@ public class MonteCarloPlayer extends Player {
 			tree.all_possible_decisions = ds;
 		while (!outOfTime) {
 			tree.populate(s.clone());
+			total_nsimulations++;
 			simulation_count++;
 		}
 		if (verbose) {
@@ -237,6 +251,7 @@ public class MonteCarloPlayer extends Player {
 
 			total_value += value;
 			visit_count++;
+			total_nnodes++;
 			return value;
 		}
 
@@ -244,6 +259,7 @@ public class MonteCarloPlayer extends Player {
 			while (!s.gameOver()) {
 				Decision d = chooseDecision(s);
 				d.apply(s, false);
+				total_nnodes++;
 			}
 			int value = (int)Math.signum(s.aheadness(handle)); // more than just win or loss
 			total_value += value;
