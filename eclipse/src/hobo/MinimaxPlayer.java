@@ -205,27 +205,50 @@ public class MinimaxPlayer extends Player {
 	}
 
 	@Override public Set<EvaluatedDecision> evaluateDecisions(Set<Decision> ds, State s) {
-		Set<EvaluatedDecision> eds = new HashSet<EvaluatedDecision>(ds.size());
-
-		int ply = 0;
-		boolean[] coalition = selectCoalition(s);
-
-		for (Decision d: ds) {
-			AppliedDecision ad = d.apply(s, true);
-
-			try {
-				// next ply if decision ended a turn
-				int newply = ply;
-				if (s.currentPlayer() != d.player)
-					newply++;
-
-				eds.add(new EvaluatedDecision(d, deepenIteratively(s, newply, coalition).utility));
-			} finally {
-				// recursion might throw outoftime
-				ad.undo();
+		outOfTime = false;
+		Timer t = new Timer();
+		t.schedule(new TimerTask() {
+			public void run() {
+				outOfTime = true;
 			}
+		}, decision_time * 1000);
+
+		Set<EvaluatedDecision> edsbest = null;
+		try {
+			for (int depth = 0; depth <= max_depth; depth++) {
+				Set<EvaluatedDecision> eds = new HashSet<EvaluatedDecision>(ds.size());
+
+				int ply = 0;
+				boolean[] coalition = selectCoalition(s);
+
+				for (Decision d: ds) {
+					AppliedDecision ad = d.apply(s, true);
+
+					// next ply if decision ended a turn
+					int newply = ply;
+					if (s.currentPlayer() != d.player)
+						newply++;
+
+					EvaluatedDecision ed = minimax(s, depth, newply,
+					                               Double.NEGATIVE_INFINITY,
+					                               Double.POSITIVE_INFINITY,
+					                               coalition);
+
+					ad.undo();
+
+					eds.add(new EvaluatedDecision(d, ed.utility));
+				}
+
+				edsbest = eds;
+			}
+		} catch (OutOfTimeException e) {
+			if (verbose) System.out.println("out of time");
 		}
-		return eds;
+
+		if (!outOfTime)
+			t.cancel();
+
+		return edsbest;
 	}
 
 	// decisions stored in the killer moves table should never be applied/undone

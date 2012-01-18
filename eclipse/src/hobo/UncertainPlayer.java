@@ -61,7 +61,7 @@ public class UncertainPlayer extends Player {
 	public Decision decideByAssumption(State s) {
 		player.setDecisionTime(decision_time);
 		State t = belief.maximumLikelihoodState(s);
-		return player.decide(s);
+		return player.decide(t);
 	}
 
 	public Decision decideBySampling(State s) {
