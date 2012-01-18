@@ -219,7 +219,7 @@ public class MinimaxPlayer extends Player {
 				if (s.currentPlayer() != d.player)
 					newply++;
 
-				eds.add(deepenIteratively(s, newply, coalition));
+				eds.add(new EvaluatedDecision(d, deepenIteratively(s, newply, coalition).utility));
 			} finally {
 				// recursion might throw outoftime
 				ad.undo();

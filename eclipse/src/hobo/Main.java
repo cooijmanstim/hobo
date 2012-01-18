@@ -83,8 +83,8 @@ public class Main {
 				
 				final JTextField[] fields = {
 					new JTextField("seed:0"),
-					new JTextField("montecarlo name:carlo  decision_time:5"),
-					new JTextField("minimax    name:joshua decision_time:5"),
+					new JTextField("uncertain montecarlo sample_size:10 name:carlo  decision_time:5"),
+					new JTextField("uncertain minimax sample_size:10 name:joshua decision_time:5"),
 					new JTextField(""),
 					new JTextField(""),
 					new JTextField(""),

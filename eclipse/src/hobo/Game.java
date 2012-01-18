@@ -7,9 +7,6 @@ public class Game {
 	private final Player[] players;
 	private final List<GameObserver> observers = new ArrayList<GameObserver>();
 
-	// testing belief
-	private final Belief belief = new Belief(0);
-
 	public Game(String configuration, Player... players) {
 		this.players = players;
 
@@ -24,7 +21,9 @@ public class Game {
 
 	public void play() {
 		state.setup();
-		belief.initialize(state);
+		Event e = new Event(state, null, null, null);
+		notifyPlayers(e);
+		notifyObservers(e);
 
 		while (true) {
 			try {
@@ -47,8 +46,8 @@ public class Game {
 					}
 					break;
 				}
-			} catch (IllegalDecisionException e) {
-				e.printStackTrace();
+			} catch (IllegalDecisionException ex) {
+				ex.printStackTrace();
 			}
 		}
 	}
@@ -77,10 +76,6 @@ public class Game {
 		Event e = new Event(state, p, d, ad);
 		notifyPlayers(e);
 		notifyObservers(e);
-
-		// testing belief system
-		belief.update(e);
-		System.out.println("belief accuracy: "+belief.likelihoodOf(e.state)+" ("+belief.likelihoodOfCards(e.state)+" * "+belief.likelihoodOfMissions(e.state)+")");
 	}
 	
 	public void printScores() {

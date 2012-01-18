@@ -23,6 +23,8 @@ public abstract class Player {
 	public void illegal(State s, Decision d, String reason) {}
 
 	public static Player fromConfiguration(String s) {
+		s = s.trim();
+		
 		int j = s.indexOf(' ');
 		if (j == -1)
 			j = s.length();
