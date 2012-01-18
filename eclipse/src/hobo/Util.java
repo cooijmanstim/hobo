@@ -146,8 +146,8 @@ public class Util {
 						if(!mA.equals(t)) {
 							if(!pots.get(index).contains(t) && lineIntersect(mA, t))
 								pots.get(index).missions.add(t);
-						}		
-					}				
+						}
+					}
 				}
 			}
 		}
@@ -204,45 +204,19 @@ public class Util {
 		}
 		return null;
 	}
-	
+
+	// nicked from http://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect
+	public static boolean segmentsIntersect(double[] p0, double[] p1, double[] p2, double[] p3) {
+		double[] s1 = minus(p1, p0), s2 = minus(p3, p2);
+		double s = (-s1[1] * (p0[0] - p2[0]) + s1[0] * (p0[1] - p2[1])) / (-s2[0] * s1[1] + s1[0] * s2[1]),
+		       t = ( s2[0] * (p0[1] - p2[1]) - s2[1] * (p0[0] - p2[0])) / (-s2[0] * s1[1] + s1[0] * s2[1]);
+		return s >= 0 && s <= 1 && t >= 0 && t <= 1;
+	}
+
 	public static boolean lineIntersect(Mission mission1, Mission mission2) {
-		Equation eq1 = getEquation(mission1);
-		Equation eq2 = getEquation(mission2);
-		
-		eq2.b -=eq1.b;
-		eq1.b = 0;
-		eq1.m -= eq2.m;
-		eq2.m = 0;
-		eq2.b = eq2.b/eq1.m;
-		if(eq2.b > 0 && eq2.b < 968) return true; else return false;
+		return Mission.intersections[mission1.ordinal()][mission2.ordinal()];
 	}
-	
-	private static Equation getEquation(Mission m) {
-		City mission1LeftCity = cityMostLeft(m);
-		City mission1RightCity;
-		if(mission1LeftCity == m.source)
-			mission1RightCity = m.destination;
-		else
-			mission1RightCity = m.source;
-		return new Equation(calculateSlope(mission1LeftCity, mission1RightCity), mission1LeftCity.y);
-	}
-	
-	private static double calculateSlope(City leftCity, City rightCity) {
-		return ((rightCity.y-leftCity.y)/(rightCity.x-leftCity.x));
-	}
-	
-	private static City cityMostLeft(Mission mission) { if(mission.source.x > mission.destination.x) return mission.destination; else return mission.source;}
-	
-	private static class Equation {
-		double m;
-		double b;
-		
-		public Equation(double m, double b) {
-			this.m = m;
-			this.b = b;
-		}
-	}
-	
+
 	public static double log2(double number) {
 		return (Math.log10(number)/Math.log10(2));
 	}

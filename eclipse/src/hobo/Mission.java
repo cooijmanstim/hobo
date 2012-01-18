@@ -18,9 +18,21 @@ public enum Mission {
 	
 	public static final Mission[] all = values();
 	
+	public static final boolean[][] intersections = new boolean[all.length][all.length];
+
 	static {
 		for (Mission m: all)
 			m.initiateRelevance();
+				
+		for (Mission m: all) {
+			for (Mission n: all) {
+				double[] p0 = { m.source.x, m.source.y },
+				         p1 = { m.destination.x, m.destination.y },
+				         p2 = { n.source.x, n.source.y },
+				         p3 = { n.destination.x, n.destination.y };
+				intersections[m.ordinal()][n.ordinal()] = Util.segmentsIntersect(p0, p1, p2, p3);
+			}
+		}
 	}
 
 	public final City source, destination;
