@@ -161,11 +161,15 @@ public class Util {
 		for (Set<Mission> cluster: missionClusters) {
 			Set<Railway> subtree = EnumSet.noneOf(Railway.class);
 			for (Mission m: cluster) {
+				List<Railway> rs;
 				if(subtree.isEmpty()) {
-					subtree.addAll(shortestPath(m.source, m.destination, railways));
+					rs = shortestPath(m.source, m.destination, railways);
+					if (rs != null) subtree.addAll(rs);
 				} else {
-					subtree.addAll(shortestPath(m.source, getClosestCity(subtree, m.source), railways));
-					subtree.addAll(shortestPath(m.destination, getClosestCity(subtree, m.destination), railways));							
+					rs = shortestPath(m.source, getClosestCity(subtree, m.source), railways);
+					if (rs != null) subtree.addAll(rs);
+					rs = shortestPath(m.destination, getClosestCity(subtree, m.destination), railways);
+					if (rs != null) subtree.addAll(rs);
 				}
 			}
 			tree.addAll(subtree);
