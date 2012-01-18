@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 public class Belief {
-	private final Random random;
+	private final MersenneTwisterFast random;
 
 	// this keeps track of which card is where.  the open deck and discard
 	// pile are assumed to be visible, as are the size of the deck and of
@@ -61,7 +61,7 @@ public class Belief {
 	private List<Event> events;
 
 	public Belief(int player, long seed) {
-		this.random = new Random(seed);
+		this.random = new MersenneTwisterFast(seed);
 		this.events = new ArrayList<Event>();
 		this.player = player;
 	}
@@ -191,7 +191,7 @@ public class Belief {
 	// return a possible state according to the distribution defined by this belief
 	public State sample(State s) {
 		s = s.clone();
-		s.random = new Random(random.nextLong());
+		s.random = new MersenneTwisterFast(random.nextLong());
 		sampleCards(s);
 		sampleMissions(s);
 		return s;

@@ -3,11 +3,11 @@ package hobo;
 import java.util.*;
 
 public class RandomPlayer extends Player {
-	private final Random random;
+	private final MersenneTwisterFast random;
 
 	public RandomPlayer(String name, long seed) {
 		this.name = name;
-		this.random = new Random(seed);
+		this.random = new MersenneTwisterFast(seed);
 	}
 	
 	public static RandomPlayer fromConfiguration(String configuration) {

@@ -142,14 +142,14 @@ public class CardBag implements Cloneable, Iterable<Color> {
 	}
 	
 	// weighted but otherwise uniformly random selection
-	public Color draw(Random random) {
+	public Color draw(MersenneTwisterFast random) {
 		Color c = sample(random);
 		ks[c.ordinal()]--;
 		size--;
 		return c;
 	}
 	
-	public Color sample(Random random) {
+	public Color sample(MersenneTwisterFast random) {
 		assert(!isEmpty());
 		double x = random.nextDouble();
 		int m = 0;
@@ -162,11 +162,11 @@ public class CardBag implements Cloneable, Iterable<Color> {
 		throw new RuntimeException();
 	}
 	
-	public CardBag sample(int k, Random random) {
+	public CardBag sample(int k, MersenneTwisterFast random) {
 		return clone().remove_sample(k, random);
 	}
 
-	public CardBag remove_sample(int k, Random random) {
+	public CardBag remove_sample(int k, MersenneTwisterFast random) {
 		CardBag subbag = new CardBag();
 		for (int i = 0; i < k && size > 0; i++)
 			subbag.add(draw(random));
@@ -178,11 +178,11 @@ public class CardBag implements Cloneable, Iterable<Color> {
 	}
 	
 	// see what kind of card would be drawn next
-	public Color cardOnTop(Random random) {
+	public Color cardOnTop(MersenneTwisterFast random) {
 		return sample(random.clone());
 	}
 
-	public CardBag draw(int k, Random random) {
+	public CardBag draw(int k, MersenneTwisterFast random) {
 		k = Math.min(k, size);
 		CardBag cs = new CardBag();
 		for (; k > 0; k--)

@@ -6,6 +6,7 @@ public class Game {
 	private final State state;
 	private final Player[] players;
 	private final List<GameObserver> observers = new ArrayList<GameObserver>();
+	public int ndecisions = 0;
 
 	public Game(String configuration, Player... players) {
 		this.players = players;
@@ -64,6 +65,7 @@ public class Game {
 				abort();
 				return;
 			}
+			ndecisions++;
 			try {
 				ad = state.applyDecision(d);
 				break;

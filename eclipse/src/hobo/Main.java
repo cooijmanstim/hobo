@@ -18,21 +18,17 @@ public class Main {
 
 	public static void headless() {
 		long then = System.currentTimeMillis();
-		for (int i = 0; i < 1000; i++) {
-			new Game("",
-			         RandomPlayer.fromConfiguration("name:igor"),
-			         RandomPlayer.fromConfiguration("name:iwan")).play();
+		long totalndecisions = 0;
+		for (int i = 0; i < 10; i++) {
+			Game g = new Game("",
+			                  Player.fromConfiguration("uncertain montecarlo sample_size:-1 name:carlo  decision_time:5"),
+			                  Player.fromConfiguration("uncertain minimax sample_size:-1 name:joshua decision_time:5"));
+			g.play();
+			totalndecisions += g.ndecisions;
 		}
 		long now = System.currentTimeMillis();
 		System.out.println(now - then);
-		//System.out.println(PlayerState.hits + "/" + PlayerState.tries + ": "+(PlayerState.hits * 1.0 / PlayerState.tries));
-		
-		/*Game g = new Game(new MinimaxPlayer("joshua", 1, false, 30),
-		                  new MinimaxPlayer("maarten", 1, true, 30));
-		g.play();
-		g.printScores();
-		for (Decision d: g.decisionSequence)
-			System.out.println(d);*/
+		System.out.println((totalndecisions*1.0/1000)+" ("+totalndecisions+"/"+1000+") decisions per game on average");
 	}
 
 	public static void textual() {

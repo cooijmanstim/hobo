@@ -16,7 +16,7 @@ public class State implements Cloneable {
 		add(Color.GREY);
 	}};
 	
-	public Random random = new Random(0);
+	public MersenneTwisterFast random = new MersenneTwisterFast(0);
 
 	// the index into this array is used to refer to a player in many places here.
 	private PlayerState[] players;
@@ -64,7 +64,7 @@ public class State implements Cloneable {
 			players[i] = new PlayerState(i, player_names[i], colors[next_color_index++]);
 		current_player = 0;
 		
-		random = new Random(seed);
+		random = new MersenneTwisterFast(seed);
 	}
 	
 	public static State fromConfiguration(String configuration, String... player_names) {
@@ -86,7 +86,7 @@ public class State implements Cloneable {
 		if (this == o) return true;
 		if (!(o instanceof State)) return false;
 		State that = (State)o;
-		if (this.random.getSeed() != that.random.getSeed()) return false;
+		if (!this.random.stateEquals(that.random)) return false;
 		if (!Arrays.deepEquals(this.players, that.players)) return false;
 		if (this.current_player != that.current_player) return false;
 		if (!this.owner_by_railway.equals(that.owner_by_railway)) return false;

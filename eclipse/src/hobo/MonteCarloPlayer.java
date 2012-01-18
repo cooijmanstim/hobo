@@ -5,13 +5,13 @@ import java.util.*;
 public class MonteCarloPlayer extends Player {
 	private int decision_time;
 	private boolean verbose;
-	private final Random random;
+	private final MersenneTwisterFast random;
 
 	public MonteCarloPlayer(String name, long seed, int decision_time, boolean verbose) {
 		this.name = name;
 		this.decision_time = decision_time;
 		this.verbose = verbose;
-		this.random = new Random(seed);
+		this.random = new MersenneTwisterFast(seed);
 	}
 	
 	public static MonteCarloPlayer fromConfiguration(String configuration) {

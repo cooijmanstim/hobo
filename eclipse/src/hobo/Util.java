@@ -23,7 +23,7 @@ public class Util {
 	}
 	
 	// XXX: this runs in linear time
-	public static <E> E sample(Set<E> xs, Random random) {
+	public static <E> E sample(Set<E> xs, MersenneTwisterFast random) {
 		int i = random.nextInt(xs.size());
 		for (E x: xs) {
 			if (i == 0)
@@ -35,7 +35,7 @@ public class Util {
 
 	// the sample will be put into ys; this is so that the caller can choose the set implementation
 	@SuppressWarnings("unchecked")
-	public static <E> Set<E> sample(Set<E> xs, int k, Random random, Set<E> ys) {
+	public static <E> Set<E> sample(Set<E> xs, int k, MersenneTwisterFast random, Set<E> ys) {
 		if (xs.size() <= k) {
 			ys.addAll(xs);
 		} else {
@@ -47,7 +47,7 @@ public class Util {
 		return ys;
 	}
 	
-	public static <E> Set<E> remove_sample(Set<E> xs, int k, Random random, Set<E> ys) {
+	public static <E> Set<E> remove_sample(Set<E> xs, int k, MersenneTwisterFast random, Set<E> ys) {
 		sample(xs, k, random, ys);
 		xs.removeAll(ys);
 		return ys;
