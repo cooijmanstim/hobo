@@ -141,15 +141,18 @@ public class Util {
 		
 		return rails;
 	}
-	
+
 	public static City getClosestCity(List<Railway> rails, City toCity) {
-		double smallestEuclidianDistance = Double.POSITIVE_INFINITY;
+		double xmin = Double.POSITIVE_INFINITY;
 		City city = null;
+		int i = toCity.ordinal();
 		for(Railway r : rails) {
-			if(smallestEuclidianDistance > r.source.distances[toCity.ordinal()]) {
+			if(xmin > r.source.distances[i]) {
 				city = r.source;
-			} else if(smallestEuclidianDistance > r.destination.distances[toCity.ordinal()]) {
+				xmin = r.source.distances[i];
+			} else if(xmin > r.destination.distances[i]) {
 				city = r.destination;
+				xmin = r.source.distances[i];
 			}
 		}
 		return city;
@@ -270,10 +273,6 @@ public class Util {
 			this.m = m;
 			this.b = b;
 		}
-	}
-	
-	public static double euclideanDistance(City city1, City city2) {
-		return Math.sqrt(Math.pow(city2.x-city1.x,2)+Math.pow(city2.y-city1.y,2));
 	}
 	
 	public static double log2(double number) {

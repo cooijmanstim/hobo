@@ -43,11 +43,9 @@ public enum City {
 	
 	public static final City[] all = values();
 	
-	static{
-		for (int i = 0; i < all.length; i++) {
-			City city = all[i];
+	static {
+		for (City city: all)
 			city.cacheDistances();	
-		}
 	}
 
 	public final double x, y;
@@ -73,13 +71,11 @@ public enum City {
 	 * Initiates a list of euclidian distances from this city to all other cities
 	 */
 	private void cacheDistances(){
-		City[] cities = this.values();
-		double[] distances = new double[cities.length];
-		
-		for (int i = 0; i < cities.length; i++) {
-			distances[i] = Util.euclideanDistance(this, cities[i]);
-		}
-		this.distances = distances;
+		City[] cities = City.values();
+		distances = new double[cities.length];
+		for (int i = 0; i < cities.length; i++)
+			distances[i] = Math.sqrt(Math.pow(cities[i].x - this.x, 2)
+			                       + Math.pow(cities[i].y - this.y, 2));
 	}
 	
 	public void registerRailway(Railway r) {
