@@ -110,7 +110,7 @@ public class Util {
 		}
 	}
 
-	public static City getClosestCity(List<Railway> rails, City toCity) {
+	public static City getClosestCity(Set<Railway> rails, City toCity) {
 		double xmin = Double.POSITIVE_INFINITY;
 		City city = null;
 		int i = toCity.ordinal();
@@ -125,84 +125,52 @@ public class Util {
 		}
 		return city;
 	}
-	
-	public static ArrayList<Pot> clusterMissions(Set<Mission> missions) {
-		ArrayList<Pot> pots = new ArrayList<Util.Pot>();
-		int index = -1;
-		for(Mission m : missions) {
-			Mission mA = m;
-			boolean isInPot = false;
-			for(int k = 0; k < pots.size(); k++) {
-				isInPot = pots.get(k).contains(mA);
-				if(isInPot)
-					break;
-			}
-			if(!isInPot) {
-				index++;
-				pots.add(new Pot());
-				pots.get(index).missions.add(mA);
-				for(int i = 0; i < pots.get(index).missions.size(); i++) {
-					for(Mission t : missions) {
-						if(!mA.equals(t)) {
-							if(!pots.get(index).contains(t) && lineIntersect(mA, t))
-								pots.get(index).missions.add(t);
-						}
-					}
+
+	public static Set<Set<Mission>> clusterMissions(Set<Mission> missions) {
+		Set<Set<Mission>> clusters = new HashSet<Set<Mission>>();
+		Set<Mission> unclustered_missions = EnumSet.copyOf(missions);
+		while (!unclustered_missions.isEmpty()) {
+			Iterator<Mission> i = unclustered_missions.iterator();
+
+			// take an unclustered mission
+			Mission m = i.next();
+
+			// put it into a new cluster
+			Set<Mission> cluster = EnumSet.of(m);
+			i.remove();
+			
+			// put all suitable leftovers into the cluster
+			while (i.hasNext()) {
+				Mission n = i.next();
+				if (lineIntersect(m, n)) {
+					cluster.add(n);
+					i.remove();
 				}
 			}
+
+			clusters.add(cluster);
 		}
-		
-		
-		return pots;
+		return clusters;
 	}
-	
-	private static class Pot {
-		Set<Mission> missions;
-		public Pot() {
-			missions = EnumSet.noneOf(Mission.class);
-		}
-		
-		public boolean contains(Mission m) {
-			if(missions.contains(m)) return true; else return false;
-		}
-		
-		public String toString() {
-			String s = "";
-			for(Mission m : missions) {
-				s += m;
-			}
-			return s;
-		}
-	}
-	
-	public static List<Railway> getSpanningTree(PlayerState ps, State s) {
-		if(!ps.missions.isEmpty()) {
-			Set<Railway> allAvailableRails = s.usableRailwaysFor(ps.handle);
-			List<Railway> endSet = new ArrayList<Railway>();
-			ArrayList<Pot> missionClusters = clusterMissions(ps.missions);
-			for(int i = 0; i < missionClusters.size(); i++) {
-				if(missionClusters.get(i).missions.size() == 1) {
-					endSet = shortestPath(missionClusters.get(i).missions.iterator().next().source, missionClusters.get(i).missions.iterator().next().destination, allAvailableRails);
+
+	public static Set<Railway> getSpanningTree(Set<Mission> missions, Set<Railway> railways) {
+		Set<Railway> tree = EnumSet.noneOf(Railway.class);
+		if(missions.isEmpty())
+			return tree;
+		Set<Set<Mission>> missionClusters = clusterMissions(missions);
+		for (Set<Mission> cluster: missionClusters) {
+			Set<Railway> subtree = EnumSet.noneOf(Railway.class);
+			for (Mission m: cluster) {
+				if(subtree.isEmpty()) {
+					subtree.addAll(shortestPath(m.source, m.destination, railways));
 				} else {
-					ArrayList<Mission> missionArray = new ArrayList<Mission>();
-					missionArray.addAll(missionClusters.get(i).missions);
-//					System.out.println(allAvailableRails);
-					List<Railway> tempRailwayList = new ArrayList<Railway>();
-					for(int k = 0; k < missionArray.size(); k++) {
-						if(k == 0) {
-//							System.out.println(shortestPath(missionArray.get(k).source, missionArray.get(k).destination, allAvailableRails));
-							tempRailwayList.addAll(shortestPath(missionArray.get(k).source, missionArray.get(k).destination, allAvailableRails));
-						} else {
-							tempRailwayList.addAll(shortestPath(missionArray.get(k).source, getClosestCity(tempRailwayList, missionArray.get(k).source), allAvailableRails));
-							tempRailwayList.addAll(shortestPath(missionArray.get(k).destination, getClosestCity(tempRailwayList, missionArray.get(k).destination), allAvailableRails));							
-						}
-					}
-					endSet.addAll(tempRailwayList);
+					subtree.addAll(shortestPath(m.source, getClosestCity(subtree, m.source), railways));
+					subtree.addAll(shortestPath(m.destination, getClosestCity(subtree, m.destination), railways));							
 				}
 			}
-			return endSet;
+			tree.addAll(subtree);
 		}
-		return null;
+		return tree;
 	}
 
 	// nicked from http://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect
