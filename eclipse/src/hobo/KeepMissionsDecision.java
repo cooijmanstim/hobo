@@ -75,7 +75,7 @@ public class KeepMissionsDecision extends Decision {
 			state.unswitchTurns();
 			PlayerState p = state.playerState(player);
 
-			p.unreceiveMissions(drawn_missions);
+			p.unreceiveMissions(missions);
 			state.missions.removeAll(drawn_missions);
 			p.drawn_missions = drawn_missions;
 

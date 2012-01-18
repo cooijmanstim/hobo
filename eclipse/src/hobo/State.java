@@ -114,7 +114,7 @@ public class State implements Cloneable {
 
 		for (PlayerState p: players) {
 			p.hand.addAll(deck.remove_sample(INITIAL_HAND_SIZE, random));
-			p.missions.addAll(Util.remove_sample(missions, INITIAL_MISSION_COUNT, random, EnumSet.noneOf(Mission.class)));
+			p.receiveMissions(Util.remove_sample(missions, INITIAL_MISSION_COUNT, random, EnumSet.noneOf(Mission.class)));
 		}
 	}
 

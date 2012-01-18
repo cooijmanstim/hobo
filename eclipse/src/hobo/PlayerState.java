@@ -120,16 +120,20 @@ public class PlayerState implements Cloneable {
 		for (Mission m: ms) {
 			if (Util.shortestPath(m.source, m.destination, railways) != null) {
 				completedMissions.add(m);
-				score += 2 * m.value;
+				score += m.value;
+			} else {
+				score -= m.value;
 			}
 		}
 	}
-	
+
 	public void unreceiveMissions(Set<Mission> ms) {
 		for (Mission m: ms) {
 			if (completedMissions.contains(m)) {
-				score -= 2 * m.value;
+				score -= m.value;
 				completedMissions.remove(m);
+			} else {
+				score += m.value;
 			}
 		}
 		missions.removeAll(ms);
