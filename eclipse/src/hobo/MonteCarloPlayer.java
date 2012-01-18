@@ -3,13 +3,15 @@ package hobo;
 import java.util.*;
 
 public class MonteCarloPlayer extends Player {
-	private int decision_time;
+	private int decision_time, expansion_threshold, uct_weight;
 	private boolean verbose, strategic;
 	private final MersenneTwisterFast random;
 
-	public MonteCarloPlayer(String name, long seed, int decision_time, boolean verbose, boolean strategic) {
+	public MonteCarloPlayer(String name, long seed, int decision_time, int expansion_threshold, int uct_weight, boolean verbose, boolean strategic) {
 		this.name = name;
 		this.decision_time = decision_time;
+		this.expansion_threshold = expansion_threshold;
+		this.uct_weight = uct_weight;
 		this.verbose = verbose;
 		this.strategic = strategic;
 		this.random = new MersenneTwisterFast(seed);
@@ -17,20 +19,22 @@ public class MonteCarloPlayer extends Player {
 	
 	public static MonteCarloPlayer fromConfiguration(String configuration) {
 		String name = "carlo";
-		int decision_time = 5;
+		int decision_time = 5, expansion_threshold = 10, uct_weight = 1;
 		boolean verbose = true, strategic = false;
 		long seed = System.currentTimeMillis();
 		
 		for (Map.Entry<String,String> entry: Util.parseConfiguration(configuration).entrySet()) {
 			String k = entry.getKey(), v = entry.getValue();
-			if (k.equals("name"))          name = v;
-			if (k.equals("seed"))          seed = Long.parseLong(v);
-			if (k.equals("decision_time")) decision_time = Integer.parseInt(v);
-			if (k.equals("verbose"))       verbose = Boolean.parseBoolean(v);
-			if (k.equals("strategic"))     strategic = Boolean.parseBoolean(v);
+			if (k.equals("name"))                name = v;
+			if (k.equals("seed"))                seed = Long.parseLong(v);
+			if (k.equals("decision_time"))       decision_time = Integer.parseInt(v);
+			if (k.equals("expansion_threshold")) expansion_threshold = Integer.parseInt(v);
+			if (k.equals("uct_weight"))          uct_weight = Integer.parseInt(v);
+			if (k.equals("verbose"))             verbose = Boolean.parseBoolean(v);
+			if (k.equals("strategic"))           strategic = Boolean.parseBoolean(v);
 		}
 
-		return new MonteCarloPlayer(name, seed, decision_time, verbose, strategic);
+		return new MonteCarloPlayer(name, seed, decision_time, expansion_threshold, uct_weight, verbose, strategic);
 	}
 	
 	@Override public void setDecisionTime(int decision_time) {
@@ -96,8 +100,6 @@ public class MonteCarloPlayer extends Player {
 	}
 
 	private class Node {
-		private static final int FULL_EXPANSION_THRESHOLD = 10;
-		
 		private int visit_count = 0;
 		private int total_value = 0;
 		private boolean fully_expanded = false;
@@ -203,7 +205,7 @@ public class MonteCarloPlayer extends Player {
 			//if (all_possible_decisions != null)
 			//	assert(all_possible_decisions.equals(s.allPossibleDecisions()));
 
-			if (visit_count >= FULL_EXPANSION_THRESHOLD)
+			if (visit_count >= expansion_threshold)
 				fullyExpand();
 			
 			int value;
@@ -225,7 +227,7 @@ public class MonteCarloPlayer extends Player {
 					} else {
 						double eu = n.expectedValue();
 						u = (maximizing ? 1 : -1) * eu;
-						u += Math.sqrt(2 * Math.log(visit_count) / n.visit_count); // UCT
+						u += 2 * uct_weight * Math.sqrt(Math.log(visit_count) / n.visit_count); // UCT
 					}
 
 					if (Double.isNaN(u) || u > ubest) {
