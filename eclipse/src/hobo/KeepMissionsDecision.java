@@ -55,6 +55,7 @@ public class KeepMissionsDecision extends Decision {
 
 		// XXX: don't modify p.drawn_missions
 		p.missions.addAll(missions);
+		p.updatePlayerState();
 		s.missions.addAll(p.drawn_missions);
 		s.missions.removeAll(missions);
 
@@ -76,6 +77,7 @@ public class KeepMissionsDecision extends Decision {
 			PlayerState p = state.playerState(player);
 
 			p.missions.removeAll(drawn_missions);
+			p.updatePlayerState();
 			state.missions.removeAll(drawn_missions);
 			p.drawn_missions = drawn_missions;
 

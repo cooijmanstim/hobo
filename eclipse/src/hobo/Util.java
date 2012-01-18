@@ -104,6 +104,10 @@ public class Util {
 			path.add(railway);
 			return path;
 		}
+		
+		public String toString() {
+			return city.toString();
+		}
 	}
 	
 	public static ArrayList<Railway> getShortestWay(City city1, City city2, ArrayList<Railway> rails, State s) {
@@ -119,7 +123,13 @@ public class Util {
 //		System.out.println(allRailways.size());
 		for (Railway r : city1.railways) {
 			City city = r.otherCity(city1);
-			double distance = euclideanDistance(city, city2);
+			if(city == null) {
+				System.out.println("city="+city); throw new RuntimeException();
+			}
+			if(city2 == null) {
+				System.out.println("city2="+city2); throw new RuntimeException();
+			}
+			double distance = euclideanDistance(city, city2);				
 			if (dist > distance) {
 				dist = distance;
 				railwayChoose = r;
@@ -131,6 +141,153 @@ public class Util {
 		
 		return rails;
 	}
+	
+	public static City getClosestCity(List<Railway> rails, City toCity) {
+		double smallestEuclidianDistance = Double.POSITIVE_INFINITY;
+		City city = null;
+		for(Railway r : rails) {
+			if(smallestEuclidianDistance > euclideanDistance(r.source, toCity)) {
+				city = r.source;
+				smallestEuclidianDistance = euclideanDistance(r.source, toCity);
+			} else if(smallestEuclidianDistance > euclideanDistance(r.destination, toCity)) {
+				city = r.destination;
+				smallestEuclidianDistance = euclideanDistance(r.destination, toCity);
+			}
+		}
+		return city;
+	}
+	
+	public static ArrayList<Pot> clusterMissions(Set<Mission> missions) {
+		ArrayList<Pot> pots = new ArrayList<Util.Pot>();
+		int index = -1;
+		for(Mission m : missions) {
+			Mission mA = m;
+			boolean isInPot = false;
+			for(int k = 0; k < pots.size(); k++) {
+				isInPot = pots.get(k).contains(mA);
+				if(isInPot)
+					break;
+			}
+			if(!isInPot) {
+				index++;
+				pots.add(new Pot());
+				pots.get(index).missions.add(mA);
+				for(int i = 0; i < pots.get(index).missions.size(); i++) {
+					for(Mission t : missions) {
+						if(!mA.equals(t)) {
+							if(!pots.get(index).contains(t) && lineIntersect(mA, t))
+								pots.get(index).missions.add(t);
+						}		
+					}				
+				}
+			}
+		}
+		
+		
+		return pots;
+	}
+	
+	private static class Pot {
+		Set<Mission> missions;
+		public Pot() {
+			missions = EnumSet.noneOf(Mission.class);
+		}
+		
+		public boolean contains(Mission m) {
+			if(missions.contains(m)) return true; else return false;
+		}
+		
+		public String toString() {
+			String s = "";
+			for(Mission m : missions) {
+				s += m;
+			}
+			return s;
+		}
+	}
+	
+	public static List<Railway> getSpanningTree(PlayerState ps, State s) {
+		if(!ps.missions.isEmpty()) {
+			Set<Railway> allAvailableRails = s.usableRailwaysFor(ps.handle);
+			List<Railway> endSet = new ArrayList<Railway>();
+			ArrayList<Pot> missionClusters = clusterMissions(ps.missions);
+			for(int i = 0; i < missionClusters.size(); i++) {
+				if(missionClusters.get(i).missions.size() == 1) {
+					endSet = shortestPath(missionClusters.get(i).missions.iterator().next().source, missionClusters.get(i).missions.iterator().next().destination, allAvailableRails);
+				} else {
+					ArrayList<Mission> missionArray = new ArrayList<Mission>();
+					missionArray.addAll(missionClusters.get(i).missions);
+//					System.out.println(allAvailableRails);
+					List<Railway> tempRailwayList = new ArrayList<Railway>();
+					for(int k = 0; k < missionArray.size(); k++) {
+						if(k == 0) {
+//							System.out.println(shortestPath(missionArray.get(k).source, missionArray.get(k).destination, allAvailableRails));
+							tempRailwayList.addAll(shortestPath(missionArray.get(k).source, missionArray.get(k).destination, allAvailableRails));
+						} else {
+							tempRailwayList.addAll(shortestPath(missionArray.get(k).source, getClosestCity(tempRailwayList, missionArray.get(k).source), allAvailableRails));
+							tempRailwayList.addAll(shortestPath(missionArray.get(k).destination, getClosestCity(tempRailwayList, missionArray.get(k).destination), allAvailableRails));							
+						}
+					}
+					endSet.addAll(tempRailwayList);
+				}
+			}
+			return endSet;
+		}
+		return null;
+	}
+	
+	public static boolean lineIntersect(Mission mission1, Mission mission2) {
+		Equation eq1 = getEquation(mission1);
+		Equation eq2 = getEquation(mission2);
+		
+		eq2.b -=eq1.b;
+		eq1.b = 0;
+		eq1.m -= eq2.m;
+		eq2.m = 0;
+		eq2.b = eq2.b/eq1.m;
+		if(eq2.b > 0 && eq2.b < 968) return true; else return false;
+	}
+	
+	private static Equation getEquation(Mission m) {
+		City mission1LeftCity = cityMostLeft(m);
+		City mission1RightCity;
+		if(mission1LeftCity == m.source)
+			mission1RightCity = m.destination;
+		else
+			mission1RightCity = m.source;
+		return new Equation(calculateSlope(mission1LeftCity, mission1RightCity), mission1LeftCity.y);
+	}
+	
+	private static double calculateSlope(City leftCity, City rightCity) {
+		return ((rightCity.y-leftCity.y)/(rightCity.x-leftCity.x));
+	}
+	
+	private static City cityMostLeft(Mission mission) { if(mission.source.x > mission.destination.x) return mission.destination; else return mission.source;}
+	
+	private static class Equation {
+		double m;
+		double b;
+		
+		public Equation(double m, double b) {
+			this.m = m;
+			this.b = b;
+		}
+	}
+	
+//	public static void main(String[] args) {
+//		Set<Mission> set = EnumSet.noneOf(Mission.class);
+//		set.add(Mission.LosAngeles_NewYork);
+//		set.add(Mission.SanFrancisco_Atlanta);
+//		set.add(Mission.Calgary_SaltLakeCity);
+//		PlayerState ps = new PlayerState(1, "TestPlayer", Color.GREEN);
+//		ps.missions = set;
+//		List<Railway> rSet = getSpanningTree(ps);
+//		for(Railway r : rSet) {
+//			System.out.println(r);
+//		}
+//
+//		
+//	}
 	
 	private static double euclideanDistance(City city1, City city2) {
 		return Math.sqrt(Math.pow(city2.x-city1.x,2)+Math.pow(city2.y-city1.y,2));
