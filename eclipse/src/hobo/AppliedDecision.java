@@ -4,7 +4,7 @@ package hobo;
 public abstract class AppliedDecision {
 	protected Decision decision;
 	protected State state; // state to which we were applied
-	protected Random old_random; // random state before
+	protected MersenneTwisterFast old_random; // random state before
 	protected int old_player; // current player before
 	
 	public AppliedDecision(Decision decision, State state) {

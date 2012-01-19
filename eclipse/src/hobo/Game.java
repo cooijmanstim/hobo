@@ -6,9 +6,7 @@ public class Game {
 	private final State state;
 	private final Player[] players;
 	private final List<GameObserver> observers = new ArrayList<GameObserver>();
-	
-	// this is useful for comparing two AIs that should behave exactly equally
-	public final List<Decision> decisionSequence = new ArrayList<Decision>();
+	public int ndecisions = 0;
 
 	public Game(String configuration, Player... players) {
 		this.players = players;
@@ -28,6 +26,9 @@ public class Game {
 	
 	public void play() {
 		state.setup();
+		Event e = new Event(state, null, null, null);
+		notifyPlayers(e);
+		notifyObservers(e);
 
 		while (true) {
 			try {
@@ -50,8 +51,8 @@ public class Game {
 					}
 					break;
 				}
-			} catch (IllegalDecisionException e) {
-				e.printStackTrace();
+			} catch (IllegalDecisionException ex) {
+				ex.printStackTrace();
 			}
 		}
 	}
@@ -60,24 +61,25 @@ public class Game {
 		Player p = players[state.currentPlayer()];
 	
 		Decision d;
+		AppliedDecision ad;
 		while (true) {
 			d = p.decide(state);
-			decisionSequence.add(d);
 			System.out.println(p.name()+" decided "+d);
 			if (d == null) {
 				abort();
 				return;
 			}
+			ndecisions++;
 			try {
-				state.applyDecision(d);
+				ad = state.applyDecision(d);
 				break;
 			} catch (IllegalDecisionException e) {
 				System.out.println("illegal decision: "+d.reasonForIllegality(state));
 				p.illegal(state, d, e.reason);
 			}
 		}
-	
-		Event e = new Event(state, p, d);
+
+		Event e = new Event(state, p, d, ad);
 		notifyPlayers(e);
 		notifyObservers(e);
 	}

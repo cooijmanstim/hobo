@@ -23,7 +23,7 @@ public class Util {
 	}
 	
 	// XXX: this runs in linear time
-	public static <E> E sample(Set<E> xs, Random random) {
+	public static <E> E sample(Set<E> xs, MersenneTwisterFast random) {
 		int i = random.nextInt(xs.size());
 		for (E x: xs) {
 			if (i == 0)
@@ -35,7 +35,7 @@ public class Util {
 
 	// the sample will be put into ys; this is so that the caller can choose the set implementation
 	@SuppressWarnings("unchecked")
-	public static <E> Set<E> sample(Set<E> xs, int k, Random random, Set<E> ys) {
+	public static <E> Set<E> sample(Set<E> xs, int k, MersenneTwisterFast random, Set<E> ys) {
 		if (xs.size() <= k) {
 			ys.addAll(xs);
 		} else {
@@ -47,7 +47,7 @@ public class Util {
 		return ys;
 	}
 	
-	public static <E> Set<E> remove_sample(Set<E> xs, int k, Random random, Set<E> ys) {
+	public static <E> Set<E> remove_sample(Set<E> xs, int k, MersenneTwisterFast random, Set<E> ys) {
 		sample(xs, k, random, ys);
 		xs.removeAll(ys);
 		return ys;
@@ -88,8 +88,8 @@ public class Util {
 
 		public AStarNode(City city, Railway railway, AStarNode prev, City target) {
 			this.city = city; this.railway = railway; this.prev = prev;
-			h = euclideanDistance(city, target);
-			g = (prev == null ? 0 : prev.g + euclideanDistance(prev.city, city));
+			h = city.distances[target.ordinal()];
+			g = (prev == null ? 0 : prev.g + prev.city.distances[city.ordinal()]);
 			f = g + h;
 		}
 
@@ -109,49 +109,18 @@ public class Util {
 			return city.toString();
 		}
 	}
-	
-	public static ArrayList<Railway> getShortestWay(City city1, City city2, ArrayList<Railway> rails, State s) {
-		if (rails.size() > 0 && rails.get(rails.size()-1).connects(city2))
-				return rails;
-		Railway railwayChoose = null;
-		double dist = Double.POSITIVE_INFINITY;
-		
-//		Set<Railway> OccupiedRailways = s.owner_by_railway.keySet();
-//		Set<Railway> allRailways = new HashSet<Railway>(city1.railways);
-//		allRailways.removeAll(OccupiedRailways);
-//		System.out.println(city1);
-//		System.out.println(allRailways.size());
-		for (Railway r : city1.railways) {
-			City city = r.otherCity(city1);
-			if(city == null) {
-				System.out.println("city="+city); throw new RuntimeException();
-			}
-			if(city2 == null) {
-				System.out.println("city2="+city2); throw new RuntimeException();
-			}
-			double distance = euclideanDistance(city, city2);				
-			if (dist > distance) {
-				dist = distance;
-				railwayChoose = r;
-			}
-		}
-		rails.add(railwayChoose);
 
-		getShortestWay(railwayChoose.otherCity(city1), city2, rails, s);					
-		
-		return rails;
-	}
-	
 	public static City getClosestCity(List<Railway> rails, City toCity) {
-		double smallestEuclidianDistance = Double.POSITIVE_INFINITY;
+		double xmin = Double.POSITIVE_INFINITY;
 		City city = null;
+		int i = toCity.ordinal();
 		for(Railway r : rails) {
-			if(smallestEuclidianDistance > euclideanDistance(r.source, toCity)) {
+			if(xmin > r.source.distances[i]) {
 				city = r.source;
-				smallestEuclidianDistance = euclideanDistance(r.source, toCity);
-			} else if(smallestEuclidianDistance > euclideanDistance(r.destination, toCity)) {
+				xmin = r.source.distances[i];
+			} else if(xmin > r.destination.distances[i]) {
 				city = r.destination;
-				smallestEuclidianDistance = euclideanDistance(r.destination, toCity);
+				xmin = r.destination.distances[i];
 			}
 		}
 		return city;
@@ -177,8 +146,8 @@ public class Util {
 						if(!mA.equals(t)) {
 							if(!pots.get(index).contains(t) && lineIntersect(mA, t))
 								pots.get(index).missions.add(t);
-						}		
-					}				
+						}
+					}
 				}
 			}
 		}
@@ -235,64 +204,19 @@ public class Util {
 		}
 		return null;
 	}
-	
+
+	// nicked from http://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect
+	public static boolean segmentsIntersect(double[] p0, double[] p1, double[] p2, double[] p3) {
+		double[] s1 = minus(p1, p0), s2 = minus(p3, p2);
+		double s = (-s1[1] * (p0[0] - p2[0]) + s1[0] * (p0[1] - p2[1])) / (-s2[0] * s1[1] + s1[0] * s2[1]),
+		       t = ( s2[0] * (p0[1] - p2[1]) - s2[1] * (p0[0] - p2[0])) / (-s2[0] * s1[1] + s1[0] * s2[1]);
+		return s >= 0 && s <= 1 && t >= 0 && t <= 1;
+	}
+
 	public static boolean lineIntersect(Mission mission1, Mission mission2) {
-		Equation eq1 = getEquation(mission1);
-		Equation eq2 = getEquation(mission2);
-		
-		eq2.b -=eq1.b;
-		eq1.b = 0;
-		eq1.m -= eq2.m;
-		eq2.m = 0;
-		eq2.b = eq2.b/eq1.m;
-		if(eq2.b > 0 && eq2.b < 968) return true; else return false;
+		return Mission.intersections[mission1.ordinal()][mission2.ordinal()];
 	}
-	
-	private static Equation getEquation(Mission m) {
-		City mission1LeftCity = cityMostLeft(m);
-		City mission1RightCity;
-		if(mission1LeftCity == m.source)
-			mission1RightCity = m.destination;
-		else
-			mission1RightCity = m.source;
-		return new Equation(calculateSlope(mission1LeftCity, mission1RightCity), mission1LeftCity.y);
-	}
-	
-	private static double calculateSlope(City leftCity, City rightCity) {
-		return ((rightCity.y-leftCity.y)/(rightCity.x-leftCity.x));
-	}
-	
-	private static City cityMostLeft(Mission mission) { if(mission.source.x > mission.destination.x) return mission.destination; else return mission.source;}
-	
-	private static class Equation {
-		double m;
-		double b;
-		
-		public Equation(double m, double b) {
-			this.m = m;
-			this.b = b;
-		}
-	}
-	
-//	public static void main(String[] args) {
-//		Set<Mission> set = EnumSet.noneOf(Mission.class);
-//		set.add(Mission.LosAngeles_NewYork);
-//		set.add(Mission.SanFrancisco_Atlanta);
-//		set.add(Mission.Calgary_SaltLakeCity);
-//		PlayerState ps = new PlayerState(1, "TestPlayer", Color.GREEN);
-//		ps.missions = set;
-//		List<Railway> rSet = getSpanningTree(ps);
-//		for(Railway r : rSet) {
-//			System.out.println(r);
-//		}
-//
-//		
-//	}
-	
-	private static double euclideanDistance(City city1, City city2) {
-		return Math.sqrt(Math.pow(city2.x-city1.x,2)+Math.pow(city2.y-city1.y,2));
-	}
-	
+
 	public static double log2(double number) {
 		return (Math.log10(number)/Math.log10(2));
 	}
@@ -305,7 +229,7 @@ public class Util {
 		Map<String,String> entries = new LinkedHashMap<String,String>();
 		for (String pair: configuration.trim().split("\\s+")) {
 			String[] kv = pair.split(":");
-			entries.put(kv[0], kv.length < 2 ? null : kv[1]);
+			entries.put(kv[0], kv.length > 1 ? kv[1] : null);
 		}
 		return entries;
 	}
@@ -317,10 +241,8 @@ public class Util {
 	public static double distanceOfPointToSegment(double[] p, double[] a, double[] b) {
 		double[] dab = minus(b, a);
 		double x = dot(minus(p, a), unit(dab));
-		if (x > norm(dab))
-			x = norm(dab);
-		if (x < 0)
-			x = 0;
+		x = Math.min(x, norm(dab));
+		x = Math.max(x, 0);
 		double[] c = plus(a, times(x, unit(dab)));
 		return norm(minus(p, c));
 	}
@@ -360,5 +282,103 @@ public class Util {
 		for (int i = 0; i < v.length; i++)
 			w[i] = u[i] - v[i];
 		return w;
+	}
+
+	public static long binomial_coefficient(int k, int n) {
+		if (k == 0 || k == n) return 1;
+		if (n == 0 || k > n) return 0;
+		return binomial_coefficient(k - 1, n - 1) + binomial_coefficient(k, n - 1);
+	}
+	
+	// ns contains the number of marbles of each color in the urn,
+	// ks describes the desired selection
+	// this is used for cardbags, so the numbers are hopefully manageable
+	// speed was assumed to be not too important
+	public static double multivariate_hypergeometric(int[] ks, int[] ns) {
+		assert(ns.length == ks.length);
+		
+		// collect the factorials
+		int N = 0, K = 0;
+		// need boxed type because of the reverse sort later... (java sucks)
+		// numerator is sum(ks)! * (sum(ns) - sum(ks))! * n1! * n2! * ...
+		Integer[]   numerator_factorials = new Integer[ns.length * 1 + 2];
+		// denominator is sum(ns)! * k1! * (n1 - k1)! * k2! * (n2 - k2)! * ...
+		Integer[] denominator_factorials = new Integer[ns.length * 2 + 1];
+		for (int i = 0; i < ns.length; i++) {
+			N += ns[i];
+			K += ks[i];
+			numerator_factorials[i*1+2] = ns[i];
+			denominator_factorials[i*2+1] = ks[i];
+			denominator_factorials[i*2+2] = ns[i] - ks[i];
+		}
+		numerator_factorials[0] = K;
+		numerator_factorials[1] = N - K;
+		denominator_factorials[0] = N;
+
+		// ensure we factorial-divide numbers that are like in
+		// size -- this way factorial_divide can skip many
+		// multiplications
+		Arrays.sort(numerator_factorials,   Collections.reverseOrder());
+		Arrays.sort(denominator_factorials, Collections.reverseOrder());
+
+		double probability = 1;
+
+		// go through the two arrays and pairwise factorial-divide the elements
+		int i, I;
+		for (i = 0, I = Math.min(numerator_factorials.length, denominator_factorials.length); i < I; i++)
+			probability *= factorial_divide(numerator_factorials[i], denominator_factorials[i]);
+
+		// handle leftovers
+		for (; i < numerator_factorials.length; i++)
+			probability *= factorial_divide(numerator_factorials[i], 0);
+		for (; i < denominator_factorials.length; i++)
+			probability *= factorial_divide(0, denominator_factorials[i]);
+
+		return probability;
+	}
+
+	// compute n! / d!
+	public static double factorial_divide(int n, int d) {
+		if (n == d) return 1;
+		double y = 1;
+		// if n < d, iterate from n + 1 to d, otherwise from d + 1 to n
+		for (int i = Math.max(1, Math.min(n, d) + 1), I = Math.max(n, d); i <= I; i++)
+			y *= i;
+		return n > d ? y : 1/y;
+	}
+	
+	public static long factorial(int n) {
+		long f = 1;
+		for (; n > 1; n--)
+			f *= n;
+		return f;
+	}
+	
+	public static void normalize(double[] xs) {
+		double sum = 0;
+		for (int i = 0; i < xs.length; i++)
+			sum += xs[i];
+		for (int i = 0; i < xs.length; i++)
+			xs[i] /= sum;
+	}
+	
+	public static void normalize(double[][] xs) {
+		double sum = 0;
+		for (int i = 0; i < xs.length; i++)
+			for (int j = 0; j < xs[i].length; j++)
+				sum += xs[i][j];
+		for (int i = 0; i < xs.length; i++)
+			for (int j = 0; j < xs[i].length; j++)
+				xs[i][j] /= sum;
+	}
+
+	public static double[][] clone(double[][] xs) {
+		double[][] ys = new double[xs.length][0];
+		for (int i = 0; i < xs.length; i++) {
+			ys[i] = new double[xs[i].length];
+			for (int j = 0; j < xs[i].length; j++)
+				ys[i][j] = xs[i][j];
+		}
+		return ys;
 	}
 }

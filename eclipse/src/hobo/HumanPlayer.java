@@ -1,6 +1,7 @@
 package hobo;
 
 import java.util.Map;
+import java.util.Set;
 
 public class HumanPlayer extends Player {
 	private PlayerInteraction ui;
@@ -39,4 +40,11 @@ public class HumanPlayer extends Player {
 	public void loss   (State s)             { ui.tellLoss   (this, s); }
 	public void win    (State s)             { ui.tellWin    (this, s); }
 	public void draw   (State s)             { ui.tellDraw   (this, s); }
+
+	// pfft
+	@Override public void setDecisionTime(int t) {}
+	@Override public void setVerbose(boolean v) {}
+	@Override public Set<EvaluatedDecision> evaluateDecisions(Set<Decision> ds, State s) {
+		return null;
+	}
 }

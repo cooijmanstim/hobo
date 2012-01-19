@@ -42,8 +42,14 @@ public enum City {
 	Miami        (925, 596);
 	
 	public static final City[] all = values();
+	
+	static {
+		for (City city: all)
+			city.cacheDistances();	
+	}
 
 	public final double x, y;
+	public double[] distances;
 
 	// initialized in registerRailway to avoid circularity
 	public /* pretend final */ Set<Railway> railways = null;
@@ -60,7 +66,18 @@ public enum City {
 				return c;
 		return null;
 	}
-
+	
+	/**
+	 * Initiates a list of euclidian distances from this city to all other cities
+	 */
+	private void cacheDistances(){
+		City[] cities = City.values();
+		distances = new double[cities.length];
+		for (int i = 0; i < cities.length; i++)
+			distances[i] = Math.sqrt(Math.pow(cities[i].x - this.x, 2)
+			                       + Math.pow(cities[i].y - this.y, 2));
+	}
+	
 	public void registerRailway(Railway r) {
 		if (railways == null)
 			railways = EnumSet.of(r);

@@ -6,13 +6,14 @@ public class MinimaxPlayer extends Player {
 	private static final int N_KILLER_MOVES = 3,
 	                         KILLER_MOVES_HORIZON = 2;
 	private final double paranoia;
-	private final int max_depth, decision_time;
-	private final boolean best_reply;
+	private int max_depth, decision_time;
+	private boolean best_reply, verbose;
 
-	public MinimaxPlayer(String name, double paranoia, boolean best_reply, int max_depth, int decision_time) {
+	public MinimaxPlayer(String name, double paranoia, boolean best_reply, boolean verbose, int max_depth, int decision_time) {
 		this.name = name;
 		this.paranoia = paranoia;
 		this.best_reply = best_reply;
+		this.verbose = verbose;
 		this.max_depth = max_depth;
 		this.decision_time = decision_time;
 		// store N_KILLER_MOVES killer moves per ply
@@ -24,6 +25,7 @@ public class MinimaxPlayer extends Player {
 		String name = "minimax";
 		double paranoia = 1;
 		boolean best_reply = false;
+		boolean verbose = true;
 		int max_depth = 25;
 		int decision_time = 5;
 		
@@ -32,28 +34,45 @@ public class MinimaxPlayer extends Player {
 			if (k.equals("name"))          name = v;
 			if (k.equals("paranoia"))      paranoia = Double.parseDouble(v);
 			if (k.equals("best_reply"))    best_reply = Boolean.parseBoolean(v);
+			if (k.equals("verbose"))       verbose = Boolean.parseBoolean(v);
 			if (k.equals("max_depth"))     max_depth = Integer.parseInt(v);
 			if (k.equals("decision_time")) decision_time = Integer.parseInt(v);
 		}
 		
-		return new MinimaxPlayer(name, paranoia, best_reply, max_depth, decision_time);
+		return new MinimaxPlayer(name, paranoia, best_reply, verbose, max_depth, decision_time);
+	}
+	
+	@Override public void setDecisionTime(int decision_time) {
+		this.decision_time = decision_time;
+	}
+	
+	@Override public void setVerbose(boolean verbose) {
+		this.verbose = verbose;
+	}
+
+	public void output(String s) {
+		if (verbose) System.out.println(s);
 	}
 
 	public Decision decide(State s) {
 		State t = s.clone(); // to be sure we don't mess with the real state
-		System.out.println("----------------------------------------------------");
-		System.out.println(name+" ("+handle+") deciding...");
+		if (verbose) {
+			System.out.println("----------------------------------------------------");
+			System.out.println(name+" ("+handle+") deciding...");
+		}
 		boolean[] coalition = selectCoalition(t);
-		System.out.println("assumed coalition "+Arrays.toString(coalition));
-		Decision d = deepenIteratively(t, coalition);
-		System.out.println("average branching factor: "+(total_nbranches * 1.0 / total_nbranches_nterms));
-		System.out.println("killer hit rate: "+(killer_hits*1.0/killer_tries)+"; "+killer_hits+"/"+killer_tries);
+		if (verbose) System.out.println("assumed coalition "+Arrays.toString(coalition));
+		EvaluatedDecision ed = deepenIteratively(t, 0, coalition);
+		if (verbose) {
+			System.out.println("average branching factor: "+(total_nbranches * 1.0 / total_nbranches_nterms));
+			System.out.println("killer hit rate: "+(killer_hits*1.0/killer_tries)+"; "+killer_hits+"/"+killer_tries);
+		}
 		assert(t.equals(s)); // to know when the undo code is broken
-		return d;
+		return ed.decision;
 	}
-	
+
 	private boolean outOfTime = false;
-	private Decision deepenIteratively(State s, boolean[] coalition) {
+	private EvaluatedDecision deepenIteratively(State s, int ply, boolean[] coalition) {
 		outOfTime = false;
 		Timer t = new Timer();
 		t.schedule(new TimerTask() {
@@ -62,24 +81,23 @@ public class MinimaxPlayer extends Player {
 			}
 		}, decision_time * 1000);
 
-		Decision d = null;
+		EvaluatedDecision ed = null;
 		try {
 			for (int depth = 0; depth <= max_depth; depth++) {
-				EvaluatedDecision ed = minimax(s, depth, 0,
-				                               Double.NEGATIVE_INFINITY,
-				                               Double.POSITIVE_INFINITY,
-				                               coalition);
-				System.out.println("depth "+depth+" "+ed.utility+"\t"+ed.decision);
-				d = ed.decision;
+				ed = minimax(s, depth, ply,
+				             Double.NEGATIVE_INFINITY,
+				             Double.POSITIVE_INFINITY,
+				             coalition);
+				if (verbose) System.out.println("depth "+depth+" "+ed.utility+"\t"+ed.decision);
 			}
 		} catch (OutOfTimeException e) {
-			System.out.println("out of time");
+			if (verbose) System.out.println("out of time");
 		}
 		
 		if (!outOfTime)
 			t.cancel();
 		
-		return d;
+		return ed;
 	}
 
 	private long total_nbranches = 0;
@@ -186,6 +204,53 @@ public class MinimaxPlayer extends Player {
 		return new EvaluatedDecision(dbest, maximizing ? a : b);
 	}
 
+	@Override public Set<EvaluatedDecision> evaluateDecisions(Set<Decision> ds, State s) {
+		outOfTime = false;
+		Timer t = new Timer();
+		t.schedule(new TimerTask() {
+			public void run() {
+				outOfTime = true;
+			}
+		}, decision_time * 1000);
+
+		Set<EvaluatedDecision> edsbest = null;
+		try {
+			for (int depth = 0; depth <= max_depth; depth++) {
+				Set<EvaluatedDecision> eds = new HashSet<EvaluatedDecision>(ds.size());
+
+				int ply = 0;
+				boolean[] coalition = selectCoalition(s);
+
+				for (Decision d: ds) {
+					AppliedDecision ad = d.apply(s, true);
+
+					// next ply if decision ended a turn
+					int newply = ply;
+					if (s.currentPlayer() != d.player)
+						newply++;
+
+					EvaluatedDecision ed = minimax(s, depth, newply,
+					                               Double.NEGATIVE_INFINITY,
+					                               Double.POSITIVE_INFINITY,
+					                               coalition);
+
+					ad.undo();
+
+					eds.add(new EvaluatedDecision(d, ed.utility));
+				}
+
+				edsbest = eds;
+			}
+		} catch (OutOfTimeException e) {
+			if (verbose) System.out.println("out of time");
+		}
+
+		if (!outOfTime)
+			t.cancel();
+
+		return edsbest;
+	}
+
 	// decisions stored in the killer moves table should never be applied/undone
 	// store them as clones of the decisions that were actually tried,
 	// and clone them again before trying them in new nodes
@@ -228,14 +293,6 @@ public class MinimaxPlayer extends Player {
 					ds.add(d);
 				}
 			}
-		}
-	}
-
-	private static class EvaluatedDecision {
-		public final Decision decision;
-		public final double utility;
-		public EvaluatedDecision(Decision d, double u) {
-			decision = d; utility = u;
 		}
 	}
 

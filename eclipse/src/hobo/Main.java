@@ -18,21 +18,17 @@ public class Main {
 
 	public static void headless() {
 		long then = System.currentTimeMillis();
-		for (int i = 0; i < 1000; i++) {
-			new Game("",
-			         RandomPlayer.fromConfiguration("name:igor"),
-			         RandomPlayer.fromConfiguration("name:iwan")).play();
+		long totalndecisions = 0;
+		for (int i = 0; i < 10; i++) {
+			Game g = new Game("",
+			                  Player.fromConfiguration("uncertain montecarlo sample_size:-1 name:carlo  decision_time:5"),
+			                  Player.fromConfiguration("uncertain minimax sample_size:-1 name:joshua decision_time:5"));
+			g.play();
+			totalndecisions += g.ndecisions;
 		}
 		long now = System.currentTimeMillis();
 		System.out.println(now - then);
-		//System.out.println(PlayerState.hits + "/" + PlayerState.tries + ": "+(PlayerState.hits * 1.0 / PlayerState.tries));
-		
-		/*Game g = new Game(new MinimaxPlayer("joshua", 1, false, 30),
-		                  new MinimaxPlayer("maarten", 1, true, 30));
-		g.play();
-		g.printScores();
-		for (Decision d: g.decisionSequence)
-			System.out.println(d);*/
+		System.out.println((totalndecisions*1.0/1000)+" ("+totalndecisions+"/"+1000+") decisions per game on average");
 	}
 
 	public static void textual() {
@@ -66,7 +62,6 @@ public class Main {
 				mainFrame.add(b, BorderLayout.PAGE_END);
 				mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 				mainFrame.pack();
-				System.out.println("test");
 				mainFrame.setVisible(true);
 			}
 
@@ -84,8 +79,8 @@ public class Main {
 				
 				final JTextField[] fields = {
 					new JTextField("seed:0"),
-					new JTextField("montecarlo name:carlo  decision_time:5"),
-					new JTextField("minimax    name:joshua decision_time:5"),
+					new JTextField("uncertain montecarlo name:carlo  decision_time:5"),
+					new JTextField("uncertain minimax name:joshua decision_time:5"),
 					new JTextField(""),
 					new JTextField(""),
 					new JTextField(""),
@@ -105,7 +100,6 @@ public class Main {
 						for (JTextField field: fields)
 							configurations[i++] = field.getText();
 						newGame(configurations);
-						System.out.println(Arrays.toString(mainFrame.getComponents()));
 						f.setVisible(false);
 					}
 				});
@@ -128,24 +122,7 @@ public class Main {
 					if (s.isEmpty())
 						continue;
 
-					int j = s.indexOf(' ');
-					if (j == -1)
-						j = s.length();
-					String impl = s.substring(0, j);
-					s = s.substring(j);
-
-					if (impl.equals("random"))
-						players.add(RandomPlayer.fromConfiguration(s));
-					else if (impl.equals("human"))
-						players.add(HumanPlayer.fromConfiguration(s));						
-					else if (impl.equals("minimax"))
-						players.add(MinimaxPlayer.fromConfiguration(s));
-					else if (impl.equals("maxn"))
-						players.add(MaxNPlayer.fromConfiguration(s));
-					else if (impl.equals("montecarlo"))
-						players.add(MonteCarloPlayer.fromConfiguration(s));
-					else
-						throw new RuntimeException("no such player implementation: "+impl);
+					players.add(Player.fromConfiguration(s));
 				}
 				
 				newGame(configurations[0], players.toArray(new Player[0]));
@@ -191,7 +168,6 @@ public class Main {
 				mainFrame.validate();
 				mainFrame.pack();
 				
-
 				gameThread = new Thread(new Runnable() {
 					public void run() { g.play(); }
 				});

@@ -142,29 +142,47 @@ public class CardBag implements Cloneable, Iterable<Color> {
 	}
 	
 	// weighted but otherwise uniformly random selection
-	public Color draw(Random random) {
+	public Color draw(MersenneTwisterFast random) {
+		Color c = sample(random);
+		ks[c.ordinal()]--;
+		size--;
+		return c;
+	}
+	
+	public Color sample(MersenneTwisterFast random) {
 		assert(!isEmpty());
 		double x = random.nextDouble();
 		int m = 0;
 		for (int i = 0; i < Color.all.length; i++) {
 			m += ks[i];
 			if (x < ((double)m)/size) {
-				ks[i]--;
-				size--;
 				return Color.all[i];
 			}
 		}
 		throw new RuntimeException();
 	}
-
-	// see what kind of card would be drawn next
-	public Color cardOnTop(Random random) {
-		Color c = draw(random.clone());
-		add(c);
-		return c;
+	
+	public CardBag sample(int k, MersenneTwisterFast random) {
+		return clone().remove_sample(k, random);
 	}
 
-	public CardBag draw(int k, Random random) {
+	public CardBag remove_sample(int k, MersenneTwisterFast random) {
+		CardBag subbag = new CardBag();
+		for (int i = 0; i < k && size > 0; i++)
+			subbag.add(draw(random));
+		return subbag;
+	}
+
+	public double probabilityOfSample(CardBag that) {
+		return Util.multivariate_hypergeometric(that.ks, this.ks);
+	}
+	
+	// see what kind of card would be drawn next
+	public Color cardOnTop(MersenneTwisterFast random) {
+		return sample(random.clone());
+	}
+
+	public CardBag draw(int k, MersenneTwisterFast random) {
 		k = Math.min(k, size);
 		CardBag cs = new CardBag();
 		for (; k > 0; k--)

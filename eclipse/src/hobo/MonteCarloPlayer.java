@@ -3,18 +3,21 @@ package hobo;
 import java.util.*;
 
 public class MonteCarloPlayer extends Player {
-	private final int decision_time;
-	private final Random random;
+	private int decision_time;
+	private boolean verbose;
+	private final MersenneTwisterFast random;
 
-	public MonteCarloPlayer(String name, long seed, int decision_time) {
+	public MonteCarloPlayer(String name, long seed, int decision_time, boolean verbose) {
 		this.name = name;
 		this.decision_time = decision_time;
-		this.random = new Random(seed);
+		this.verbose = verbose;
+		this.random = new MersenneTwisterFast(seed);
 	}
 	
 	public static MonteCarloPlayer fromConfiguration(String configuration) {
 		String name = "carlo";
 		int decision_time = 5;
+		boolean verbose = true;
 		long seed = System.currentTimeMillis();
 		
 		for (Map.Entry<String,String> entry: Util.parseConfiguration(configuration).entrySet()) {
@@ -22,17 +25,37 @@ public class MonteCarloPlayer extends Player {
 			if (k.equals("name"))          name = v;
 			if (k.equals("seed"))          seed = Long.parseLong(v);
 			if (k.equals("decision_time")) decision_time = Integer.parseInt(v);
+			if (k.equals("verbose"))       verbose = Boolean.parseBoolean(v);
 		}
 
-		return new MonteCarloPlayer(name, seed, decision_time);
+		return new MonteCarloPlayer(name, seed, decision_time, verbose);
+	}
+	
+	@Override public void setDecisionTime(int decision_time) {
+		this.decision_time = decision_time;
+	}
+
+	@Override public void setVerbose(boolean verbose) {
+		this.verbose = verbose;
 	}
 
 	private boolean outOfTime = false;
-	
-	public Decision decide(State s) {
-		System.out.println("----------------------------------------------------");
-		System.out.println(name+" ("+handle+") deciding...");
 
+	@Override public Decision decide(State s) {
+		if (verbose) {
+			System.out.println("----------------------------------------------------");
+			System.out.println(name+" ("+handle+") deciding...");
+		}
+		Node tree = buildTree(s, null);
+		return tree.decide();
+	}
+
+	@Override public Set<EvaluatedDecision> evaluateDecisions(Set<Decision> ds, State s) {
+		Node tree = buildTree(s, ds);
+		return tree.evaluatedDecisions();
+	}
+
+	public Node buildTree(State s, Set<Decision> ds) {
 		outOfTime = false;
 		new Timer().schedule(new TimerTask() {
 			public void run() {
@@ -42,16 +65,18 @@ public class MonteCarloPlayer extends Player {
 
 		int simulation_count = 0;
 		Node tree = new Node();
+		// ds is for speed only
+		if (ds != null)
+			tree.all_possible_decisions = ds;
 		while (!outOfTime) {
 			tree.populate(s.clone());
 			simulation_count++;
 		}
-		Decision d = tree.decide();
-		tree.printStatistics();
-		tree = null;
-
-		System.out.println("performed "+simulation_count+" simulations");
-		return d;
+		if (verbose) {
+			tree.printStatistics();
+			System.out.println("performed "+simulation_count+" simulations");
+		}
+		return tree;
 	}
 
 	private class Node {
@@ -146,6 +171,13 @@ public class MonteCarloPlayer extends Player {
 			}
 			return dbest;
 		}
+		
+		public Set<EvaluatedDecision> evaluatedDecisions() {
+			Set<EvaluatedDecision> eds = new HashSet<EvaluatedDecision>(children.size());
+			for (Map.Entry<Decision, Node> dn: children.entrySet())
+				eds.add(new EvaluatedDecision(dn.getKey(), dn.getValue().expectedValue()));
+			return eds;
+		}
 
 		public int populate(State s) {
 			// cache all possible decisions
@@ -212,7 +244,6 @@ public class MonteCarloPlayer extends Player {
 				d.apply(s, false);
 			}
 			int value = (int)Math.signum(s.aheadness(handle)); // more than just win or loss
-			//int value = s.aheadness(handle);
 			total_value += value;
 			visit_count++;
 			return value;
@@ -280,8 +311,9 @@ public class MonteCarloPlayer extends Player {
 				Railway r = ((ClaimRailwayDecision)d).railway;
 				PlayerState ps = s.playerState(d.player);
 				double relevance = Double.NEGATIVE_INFINITY;
+				int i = r.ordinal();
 				for (Mission m: ps.missions)
-					relevance = Math.max(relevance, r.relevanceFor(m));
+					relevance = Math.max(relevance, m.railwayRelevance[i]);
 				return (1 + relevance) * ((ClaimRailwayDecision)d).railway.score();
 			} else if (d instanceof DrawCardDecision) {
 				DrawCardDecision dcd = (DrawCardDecision)d;
