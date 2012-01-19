@@ -11,10 +11,9 @@ public class ParameterTuning {
 	}
 	
 	public static void tuneBelief() {
-		tuneByCrossEntropy(10, 3, 0.2, new double[]{ 1, 1, 1, 1 }, new double[]{ 1, 1, 1, 1 }, new Function<double[], Double>() {
+		tuneByCrossEntropy(10, 10, 0.2, new double[]{ 1, 1, 1, 1 }, new double[]{ 1, 1, 1, 1 }, new Function<double[], Double>() {
 			@Override public Double call(double[] xs) {
-				// we don't want no negative values here
-				if (xs[0] < 0)
+				if (xs[0] < 0 || xs[3] < 0)
 					return Double.NEGATIVE_INFINITY;
 				
 				try {
@@ -40,13 +39,13 @@ public class ParameterTuning {
 	public static void tuneMCTS() {
 		// need to tune it four times, for all combinations
 		// of strategic/use_signum
-		tuneByCrossEntropy(10, 3, 0.2, new double[]{ 15, 1, 70, 20 }, new double[]{ 5, 1, 10, 5 }, new Function<double[], Double>() {
+		tuneByCrossEntropy(10, 10, 0.2, new double[]{ 15, 1, 70, 20 }, new double[]{ 5, 1, 10, 5 }, new Function<double[], Double>() {
 			@Override public Double call(double[] xs) {
 				if (xs[0] < 0)
 					return Double.NEGATIVE_INFINITY;
 
 				try {
-					String parameters = " expansion_threshold:"+xs[0]
+					String parameters = " expansion_threshold:"+((int)Math.round(xs[0]))
 					                  + " uct_weight:"+xs[1]
 					                  + " sigmoid_steepness:"+(1/xs[2])
 					                  + " alpha:"+(1/xs[3])
