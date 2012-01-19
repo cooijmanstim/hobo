@@ -45,5 +45,7 @@ public abstract class Player {
 			return UncertainPlayer.fromConfiguration(s);
 		else
 			throw new RuntimeException("no such player implementation: "+impl);
-	};
+	}
+
+	public double[] statistics() { return null; };
 }

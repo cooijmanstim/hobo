@@ -68,6 +68,10 @@ public class MonteCarloPlayer extends Player {
 	public double averageSimulations() {
 		return total_nsimulations * 1.0 / total_ndecisions;
 	}
+	
+	@Override public double[] statistics() {
+		return new double[]{ averageNodesPerDecision(), averageSimulations() };
+	}
 
 	private boolean outOfTime = false;
 

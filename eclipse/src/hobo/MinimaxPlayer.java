@@ -323,4 +323,8 @@ public class MinimaxPlayer extends Player {
 	public double averageNodesPerDecision() {
 		return total_nbranches * 1.0 / total_ndecisions;
 	}
+	
+	@Override public double[] statistics() {
+		return new double[]{ averageNodesPerDecision(), averageBranchingFactor(), averageDepth() };
+	}
 }

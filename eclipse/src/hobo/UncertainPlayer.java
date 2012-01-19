@@ -112,4 +112,8 @@ public class UncertainPlayer extends Player {
 	@Override public Set<EvaluatedDecision> evaluateDecisions(Set<Decision> ds, State s) {
 		return null; // pfft
 	}
+	
+	@Override public double[] statistics() {
+		return player.statistics();
+	}
 }
