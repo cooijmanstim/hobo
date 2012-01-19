@@ -353,4 +353,45 @@ public class Util {
 		}
 		return ys;
 	}
+
+	// java sucks!
+	public static double[] toArrayOfPrimitives(Collection<Double> xs) {
+		double[] ys = new double[xs.size()];
+		int i = 0;
+		for (double y: xs)
+			ys[i++] = y;
+		return ys;
+	}
+
+	public static double stdev(double[] xs) {
+		xs = xs.clone();
+		double mean = mean(xs);
+		for (int i = 0; i < xs.length; i++)
+			xs[i] = Math.pow(xs[i] - mean, 2);
+		return Math.sqrt(stableSum(xs) / xs.length);
+	}
+	
+	public static double mean(double[] xs) {
+		return stableSum(xs) / xs.length;
+	}
+	
+	public static double stableSum(double[] xs) {
+		return stableSum(xs, 0, xs.length);
+	}
+	
+	public static double stableSum(double[] xs, int a, int b) {
+		int n = b - a;
+		if (n <= 0) return 0;
+		if (n == 1) return xs[a];
+		return stableSum(xs, a, a + n/2) + stableSum(xs, a + n/2, b);
+	}
+
+	public static double[][] transpose(double[][] xss) {
+		double[][] yss = new double[xss[0].length][xss.length];
+		for (int i = 0; i < xss.length; i++) {
+			for (int j = 0; j < xss[i].length; j++)
+				yss[j][i] = xss[i][j];
+		}
+		return yss;
+	}
 }

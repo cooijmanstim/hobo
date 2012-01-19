@@ -38,7 +38,7 @@ public class Belief {
 	// of each mission.  a mission can either be in the mission deck or in
 	// possession of one of the players.  the inference of the distribution
 	// is wildly heuristic: the non-normalized probability of each player-
-	// mission pair is the average of the relevances to the missions of each
+	// mission pair is the sum of the relevances to the missions of each
 	// railway that has been claimed by the player, times the number of
 	// missions that the player has.
 
@@ -93,6 +93,9 @@ public class Belief {
 		}
 	}
 
+	// for computing the "average likelihood of reality" statistic
+	List<Double> reality_likelihoods = new ArrayList<Double>();
+	
 	public void update(Event e) {
 		events.add(e);
 		
@@ -104,6 +107,12 @@ public class Belief {
 		else throw new RuntimeException("unknown decision type: "+d);
 
 		requireSanity(e.state);
+		
+		reality_likelihoods.add(likelihoodOf(e.state));
+	}
+
+	public double averageLikelihoodOfReality() {
+		return Util.mean(Util.toArrayOfPrimitives(reality_likelihoods));
 	}
 
 	public void update(DrawCardDecision d, DrawCardDecision.AppliedDecision ad, State s) {
@@ -296,7 +305,7 @@ public class Belief {
 						System.err.println("inconsistent certainty");
 						throw new RuntimeException();
 					}
-					jpd[i][j] *= ns[j] * 1.0 / (1 + s.playerState(j).railways.size());
+					jpd[i][j] *= ns[j];
 					if (jpd[i][j] < 0 || Double.isNaN(jpd[i][j])) {
 						System.err.println("negative or NaN weight in non-normalized distribution: "+jpd[i][j]+" (originally "+player_mission_suspicion[i][j]+")");
 						System.err.println("last factor: "+ns[j]+"/"+(1 + s.playerState(j).railways.size()));
@@ -387,7 +396,7 @@ public class Belief {
 						System.err.println("inconsistent certainty");
 						throw new RuntimeException();
 					}
-					jpd[i][j] *= ns[j] * 1.0 / (1 + s.playerState(j).railways.size());
+					jpd[i][j] *= ns[j];
 					if (jpd[i][j] < 0 || Double.isNaN(jpd[i][j])) {
 						System.err.println("negative or NaN weight in non-normalized distribution: "+jpd[i][j]+" (originally "+player_mission_suspicion[i][j]+")");
 						System.err.println("last factor: "+ns[j]+"/"+(1 + s.playerState(j).railways.size()));

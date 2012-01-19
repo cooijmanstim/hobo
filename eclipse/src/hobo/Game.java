@@ -4,9 +4,10 @@ import java.util.*;
 
 public class Game {
 	private final State state;
-	private final Player[] players;
+	public final Player[] players;
 	private final List<GameObserver> observers = new ArrayList<GameObserver>();
 	public int ndecisions = 0;
+	private boolean verbose = true;
 
 	public Game(String configuration, Player... players) {
 		this.players = players;
@@ -17,6 +18,12 @@ public class Game {
 			names[i] = players[i].name();
 			players[i].setHandle(i);
 		}
+
+		for (Map.Entry<String,String> entry: Util.parseConfiguration(configuration).entrySet()) {
+			String k = entry.getKey(), v = entry.getValue();
+			if (k.equals("verbose")) verbose = Boolean.parseBoolean(v);
+		}
+		
 		state = State.fromConfiguration(configuration, names);
 	}
 
@@ -60,7 +67,7 @@ public class Game {
 		AppliedDecision ad;
 		while (true) {
 			d = p.decide(state);
-			System.out.println(p.name()+" decided "+d);
+			if (verbose) System.out.println(p.name()+" decided "+d);
 			if (d == null) {
 				abort();
 				return;
@@ -70,7 +77,7 @@ public class Game {
 				ad = state.applyDecision(d);
 				break;
 			} catch (IllegalDecisionException e) {
-				System.out.println("illegal decision: "+d.reasonForIllegality(state));
+				if (verbose) System.out.println("illegal decision: "+d.reasonForIllegality(state));
 				p.illegal(state, d, e.reason);
 			}
 		}
