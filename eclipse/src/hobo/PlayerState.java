@@ -80,8 +80,6 @@ public class PlayerState implements Cloneable {
 	Deque<Set<Mission>> completions = new LinkedList<Set<Mission>>();
 	
 	public void claim(Railway r) {
-		railways.add(r);
-
 		ncars -= r.length;
 		score += r.score();
 
@@ -90,6 +88,8 @@ public class PlayerState implements Cloneable {
 		for (Mission m: ms)
 			score += 2 * m.value;
 		completions.push(ms);
+
+		railways.add(r);
 	}
 
 	public void unclaim(Railway r) {
@@ -102,17 +102,6 @@ public class PlayerState implements Cloneable {
 		ncars += r.length;
 
 		railways.remove(r);
-	}
-	
-	public Set<Mission> missionsCompletedBy(Railway r) {
-		Set<Mission> ms = EnumSet.noneOf(Mission.class);
-		for (Mission m: missions) {
-			if (missionCompleted(m))
-				continue;
-			if (Util.shortestPath(m.source, m.destination, railways) != null)
-				ms.add(m);
-		}
-		return ms;
 	}
 	
 	public void receiveMissions(Set<Mission> ms) {
@@ -137,6 +126,70 @@ public class PlayerState implements Cloneable {
 			}
 		}
 		missions.removeAll(ms);
+	}
+	
+	/** Finds the currently incomplete missions that would be completed by
+	* acquiring the railway r.
+	*
+	* For this to work correctly, r should not be contained by this.railways.
+	* The algorithm first builds two sets of cities, one containing all cities
+	* reachable from the source of r, and the other containing all cities
+	* reachable from the destination of r. These two sets are disjoint.
+	*
+	* Whichever of these two sets is built last may be empty; this indicates
+	* that the cities connected by r were already connected, and hence this
+	* railway will not complete any missions.
+	*
+	* Otherwise, the algorithm tries to find missions with one city in each
+	* of the two sets. Missions with both cities in one set were already
+	* completed. Missions with one city in neither set will not be completed.
+	*/
+	public Set<Mission> missionsCompletedBy(Railway r) {
+		// cities already visited
+		Set<City> explored = EnumSet.noneOf(City.class);
+
+		// all cities on the source side
+		Set<City> cities1 = citiesConnectedTo(r.source, explored);
+		// all cities on the destination side
+		Set<City> cities2 = citiesConnectedTo(r.destination, explored);
+
+		Set<Mission> newly_completed_missions = EnumSet.noneOf(Mission.class);
+		if (cities2.isEmpty())
+			return newly_completed_missions;
+
+		findMissions: for (Mission m: missions) {
+			if (missionCompleted(m))
+				continue;
+			for (City c1: cities1) {
+				if (!m.connects(c1))
+					continue;
+				for (City c2: cities2) {
+					if (m.connects(c1, c2)) {
+						newly_completed_missions.add(m);
+						continue findMissions;
+					}
+				}
+			}
+		}
+
+		return newly_completed_missions;
+	}
+
+	// NOTE: explored is modified
+	public Set<City> citiesConnectedTo(City c, Set<City> explored) {
+		Set<City> cities = EnumSet.noneOf(City.class);
+		cities.add(c);
+		explored.add(c);
+		for (Railway r: c.railways) {
+			if (railways.contains(r)) {
+				c = null;
+				if (!explored.contains(r.source)) c = r.source;
+				if (!explored.contains(r.destination)) c = r.destination;
+				if (c != null)
+					cities.addAll(citiesConnectedTo(c, explored));
+			}
+		}
+		return cities;
 	}
 
 	public int getMissionPoints() {
