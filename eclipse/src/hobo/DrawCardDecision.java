@@ -38,9 +38,9 @@ public class DrawCardDecision extends Decision {
 		if (ps.drawn_missions != null)
 			return ds;
 
-		// this will add duplicates, but ds is a set
-		for (Color c: s.open_deck)
-			ds.add(new DrawCardDecision(ps.handle, c));
+		for (Color c: Color.all)
+			if (s.open_deck.contains(c))
+				ds.add(new DrawCardDecision(ps.handle, c));
 
 		if (!s.deck.isEmpty())
 			ds.add(new DrawCardDecision(ps.handle, null));
