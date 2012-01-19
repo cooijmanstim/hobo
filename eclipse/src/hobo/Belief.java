@@ -47,7 +47,7 @@ public class Belief {
 
 	private int player; // beliefs of which player?
 	
-	private double relevance_weight;
+	private double relevance_weight, alpha, beta, gamma;
 	
 	private PlayerBelief[] players;
 	
@@ -62,11 +62,14 @@ public class Belief {
 
 	private List<Event> events;
 
-	public Belief(int player, long seed, double relevance_weight) {
+	public Belief(int player, long seed, double relevance_weight, double alpha, double beta, double gamma) {
 		this.random = new MersenneTwisterFast(seed);
 		this.events = new ArrayList<Event>();
 		this.player = player;
 		this.relevance_weight = relevance_weight;
+		this.alpha = alpha;
+		this.beta = beta;
+		this.gamma = gamma;
 	}
 
 	public void initialize(State s) {
@@ -152,8 +155,20 @@ public class Belief {
 
 		handleDeckRestoration(s);
 		
-		for (Mission m: Mission.all)
-			player_mission_suspicion[m.ordinal()][d.player] += relevance_weight * d.railway.relevanceFor(m);
+		Railway r = d.railway;
+		for (Mission m: Mission.all) {
+			double[] A = { m.source.x, m.source.y },
+			         B = { m.destination.x, m.destination.y },
+			         C = { r.source.x, r.source.y },
+			         D = { r.destination.x, r.destination.y };
+			       // don't let alongness count for too much -- add a constant
+			double relevance =  gamma * Math.pow(Util.segmentAlongness(A, B, C, D), alpha)
+			                    // punish if the railway strays too far
+			                    // (but sqrt for diminishing punishment over distance)
+			                  / (1 + Math.pow(Math.max(Util.distanceOfPointToSegment(C, A, B),
+			                		                   Util.distanceOfPointToSegment(D, A, B)), beta));
+			player_mission_suspicion[m.ordinal()][d.player] += relevance_weight * relevance;
+		}
 	}
 
 	public void update(DrawMissionsDecision d, DrawMissionsDecision.AppliedDecision ad, State s) {

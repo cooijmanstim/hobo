@@ -3,7 +3,7 @@ package hobo;
 import java.util.*;
 
 public class Game {
-	private final State state;
+	public final State state;
 	public final Player[] players;
 	private final List<GameObserver> observers = new ArrayList<GameObserver>();
 	public int ndecisions = 0;

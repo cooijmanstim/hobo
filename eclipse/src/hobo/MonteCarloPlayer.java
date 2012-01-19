@@ -3,24 +3,33 @@ package hobo;
 import java.util.*;
 
 public class MonteCarloPlayer extends Player {
-	private int decision_time, expansion_threshold, uct_weight;
-	private boolean verbose, strategic;
+	// if use_signum is true, only win/draw/loss will be recorded
+	// if false, aheadness will be recorded, and squashed by a sigmoid
+	// with weight sigmoid_steepness
+	// alpha is the sigmoid steepness for draw card probability in the playout
+	private int decision_time, expansion_threshold;
+	private double uct_weight, sigmoid_steepness, alpha;
+	private boolean verbose, strategic, use_signum;
 	private final MersenneTwisterFast random;
 
-	public MonteCarloPlayer(String name, long seed, int decision_time, int expansion_threshold, int uct_weight, boolean verbose, boolean strategic) {
+	public MonteCarloPlayer(String name, long seed, int decision_time, int expansion_threshold, double uct_weight, double sigmoid_steepness, double alpha, boolean verbose, boolean strategic, boolean use_signum) {
 		this.name = name;
 		this.decision_time = decision_time;
 		this.expansion_threshold = expansion_threshold;
 		this.uct_weight = uct_weight;
+		this.sigmoid_steepness = sigmoid_steepness;
+		this.alpha = alpha;
 		this.verbose = verbose;
 		this.strategic = strategic;
+		this.use_signum = use_signum;
 		this.random = new MersenneTwisterFast(seed);
 	}
 	
 	public static MonteCarloPlayer fromConfiguration(String configuration) {
 		String name = "carlo";
-		int decision_time = 5, expansion_threshold = 10, uct_weight = 1;
-		boolean verbose = true, strategic = false;
+		int decision_time = 5, expansion_threshold = 10;
+		double uct_weight = 1, sigmoid_steepness = 25, alpha = 1/20.0;
+		boolean verbose = true, strategic = false, use_signum = true;
 		long seed = System.currentTimeMillis();
 		
 		for (Map.Entry<String,String> entry: Util.parseConfiguration(configuration).entrySet()) {
@@ -29,12 +38,15 @@ public class MonteCarloPlayer extends Player {
 			if (k.equals("seed"))                seed = Long.parseLong(v);
 			if (k.equals("decision_time"))       decision_time = Integer.parseInt(v);
 			if (k.equals("expansion_threshold")) expansion_threshold = Integer.parseInt(v);
-			if (k.equals("uct_weight"))          uct_weight = Integer.parseInt(v);
+			if (k.equals("uct_weight"))          uct_weight = Double.parseDouble(v);
+			if (k.equals("sigmoid_steepness"))   sigmoid_steepness = Double.parseDouble(v);
+			if (k.equals("alpha"))               alpha = Double.parseDouble(v);
 			if (k.equals("verbose"))             verbose = Boolean.parseBoolean(v);
 			if (k.equals("strategic"))           strategic = Boolean.parseBoolean(v);
+			if (k.equals("use_signum"))          use_signum = Boolean.parseBoolean(v);
 		}
 
-		return new MonteCarloPlayer(name, seed, decision_time, expansion_threshold, uct_weight, verbose, strategic);
+		return new MonteCarloPlayer(name, seed, decision_time, expansion_threshold, uct_weight, sigmoid_steepness, alpha, verbose, strategic, use_signum);
 	}
 	
 	@Override public void setDecisionTime(int decision_time) {
@@ -110,7 +122,10 @@ public class MonteCarloPlayer extends Player {
 		public Node() {}
 
 		public double expectedValue() {
-			return total_value * 1.0 / visit_count;
+			double ev = total_value * 1.0 / visit_count;
+			if (!use_signum)
+				ev = Util.logsig(sigmoid_steepness * ev);
+			return ev;
 		}
 
 		public Node childFor(Decision d) {
@@ -263,7 +278,9 @@ public class MonteCarloPlayer extends Player {
 				d.apply(s, false);
 				total_nnodes++;
 			}
-			int value = (int)Math.signum(s.aheadness(handle)); // more than just win or loss
+			int value = s.aheadness(handle);
+			if (use_signum)
+				value = (int)Math.signum(value);
 			total_value += value;
 			visit_count++;
 			return value;
@@ -280,12 +297,8 @@ public class MonteCarloPlayer extends Player {
 				ds = KeepMissionsDecision.availableTo(s, ps, ds);
 			} else {
 				// endpoints for probability integral
-						double dcd_end = 2 * Util.logsig(-ps.hand.size() / 20.0),
-						crd_end = 0.995;
-						//int totalCards = 110;
-						//double dcd_end = 1 - ps.hand.size() / totalCards ,
-						//crd_end = 0.99;
-				
+				double dcd_end = 2 * Util.logsig(-ps.hand.size() * alpha),
+				       crd_end = 0.995;
 
 				while (ds.isEmpty()) {
 					double x = random.nextDouble();

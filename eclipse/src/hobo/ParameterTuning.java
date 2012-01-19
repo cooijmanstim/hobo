@@ -7,22 +7,59 @@ public class ParameterTuning {
 	public static final MersenneTwisterFast random = new MersenneTwisterFast();
 	
 	public static void main(String[] args) {
-		tuneBelief();
+		tuneMCTS();
 	}
 	
 	public static void tuneBelief() {
-		tuneByCrossEntropy(30, 10, 0.1, new double[]{ 2 }, new double[]{ 1 }, new Function<double[], Double>() {
+		tuneByCrossEntropy(10, 3, 0.2, new double[]{ 1, 1, 1, 1 }, new double[]{ 1, 1, 1, 1 }, new Function<double[], Double>() {
 			@Override public Double call(double[] xs) {
-				Game g = new Game("verbose:false",
-				                  Player.fromConfiguration("uncertain montecarlo name:carlo verbose:false decision_time:3 belief_relevance_weight:"+xs[0]),
-				                  Player.fromConfiguration("uncertain minimax    name:carlo verbose:false decision_time:3 belief_relevance_weight:"+xs[0]));
-				g.play();
-				double y = 0;
-				int n = g.players.length;
-				for (int i = 0; i < g.players.length; i++)
-					y += ((UncertainPlayer)g.players[i]).belief.averageLikelihoodOfReality();
-				y /= n;
-				return y;
+				// we don't want no negative values here
+				if (xs[0] < 0)
+					return Double.NEGATIVE_INFINITY;
+				
+				try {
+					Game g = new Game("verbose:false",
+					                  Player.fromConfiguration("uncertain montecarlo name:carlo verbose:false decision_time:1 belief_relevance_weight:"+xs[0]+" belief_alpha:"+xs[1]+" belief_beta:"+xs[2]+" belief_gamma:"+xs[3]),
+					                  Player.fromConfiguration("uncertain minimax    name:carlo verbose:false decision_time:1 belief_relevance_weight:"+xs[0]+" belief_alpha:"+xs[1]+" belief_beta:"+xs[2]+" belief gamma:"+xs[3]));
+					g.play();
+
+					double y = 0;
+					int n = g.players.length;
+					for (int i = 0; i < g.players.length; i++)
+						y += ((UncertainPlayer)g.players[i]).belief.averageLikelihoodOfReality();
+					y /= n;
+					return y;
+				} catch (Throwable t) {
+					t.printStackTrace();
+					return Double.NEGATIVE_INFINITY;
+				}
+			}
+		});
+	}
+	
+	public static void tuneMCTS() {
+		// need to tune it four times, for all combinations
+		// of strategic/use_signum
+		tuneByCrossEntropy(10, 3, 0.2, new double[]{ 15, 1, 70, 20 }, new double[]{ 5, 1, 10, 5 }, new Function<double[], Double>() {
+			@Override public Double call(double[] xs) {
+				if (xs[0] < 0)
+					return Double.NEGATIVE_INFINITY;
+
+				try {
+					String parameters = " expansion_threshold:"+xs[0]
+					                  + " uct_weight:"+xs[1]
+					                  + " sigmoid_steepness:"+(1/xs[2])
+					                  + " alpha:"+(1/xs[3])
+					                  + " strategic:false use_signum:false";
+					Game g = new Game("verbose:false",
+					                  Player.fromConfiguration("montecarlo name:carlo verbose:false decision_time:1"+parameters),
+					                  Player.fromConfiguration("minimax    name:carlo verbose:false decision_time:1"));
+					g.play();
+					return 1.0 * Math.signum(g.state.aheadness(0));
+				} catch (Throwable t) {
+					t.printStackTrace();
+					return Double.NEGATIVE_INFINITY;
+				}
 			}
 		});
 	}
