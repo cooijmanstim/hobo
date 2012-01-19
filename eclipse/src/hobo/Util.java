@@ -305,7 +305,7 @@ public class Util {
 		Map<String,String> entries = new LinkedHashMap<String,String>();
 		for (String pair: configuration.trim().split("\\s+")) {
 			String[] kv = pair.split(":");
-			entries.put(kv[0], kv[1]);
+			entries.put(kv[0], kv.length < 2 ? null : kv[1]);
 		}
 		return entries;
 	}

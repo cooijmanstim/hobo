@@ -22,6 +22,10 @@ public class Game {
 		state = State.fromConfiguration(configuration, names);
 	}
 
+	public State getState() {
+		return state;
+	}
+	
 	public void play() {
 		state.setup();
 
@@ -83,6 +87,30 @@ public class Game {
 			PlayerState ps = state.playerState(p.handle);
 			System.out.println(ps.name+": "+ps.finalScore());
 		}
+	}
+	
+	public String returnScores() {
+		String result = "";
+		for (Player p: players) {
+			PlayerState ps = state.playerState(p.handle);
+			result += ps.name+": "+ps.finalScore();
+		}
+		return result;
+	}
+	
+	public PlayerState whoWon() {
+		PlayerState[] players = new PlayerState[state.players().length];
+		players[0] = state.playerState(0);
+		players[1] = state.playerState(1);
+		PlayerState winningPlayer = null;
+		int h = Integer.MIN_VALUE;
+		for(int i = 0; i < players.length; i++) {
+			if(players[i].finalScore() > h) {
+				winningPlayer = players[i];
+				h = players[i].finalScore();
+			}
+		}
+		return winningPlayer;
 	}
 
 	private boolean aborted = false;
