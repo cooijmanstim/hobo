@@ -262,6 +262,7 @@ public strictfp class MersenneTwisterFast implements Serializable, Cloneable
     
     // cloning constructor
     public MersenneTwisterFast(MersenneTwisterFast that) {
+    	this.mti = that.mti;
     	this.mt = that.mt.clone();
     	this.mag01 = that.mag01.clone();
     	this.__nextNextGaussian = that.__nextNextGaussian;
