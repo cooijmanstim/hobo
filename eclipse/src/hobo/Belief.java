@@ -368,6 +368,16 @@ public class Belief {
 			System.err.println(Arrays.deepToString(jpd));
 			throw new RuntimeException();
 		}
+
+		// okay, this took me hours and hours to find -- make sure completedMissions
+		// is consistent with the rest of the state
+		for (PlayerState ps: s.playerStates()) {
+			ps.completedMissions = EnumSet.noneOf(Mission.class);
+			for (Mission m: ps.missions) {
+				if (Util.shortestPath(m.source, m.destination, ps.railways) != null)
+					ps.completedMissions.add(m);
+			}
+		}
 	}
 
 	// modifies s
@@ -434,6 +444,16 @@ public class Belief {
 			for (int k = 0; k < players.length; k++)
 				player_mission_suspicion[ibest][k] = 0;
 			continue sampling;
+		}
+
+		// okay, this took me hours and hours to find -- make sure completedMissions
+		// is consistent with the rest of the state
+		for (PlayerState ps: s.playerStates()) {
+			ps.completedMissions = EnumSet.noneOf(Mission.class);
+			for (Mission m: ps.missions) {
+				if (Util.shortestPath(m.source, m.destination, ps.railways) != null)
+					ps.completedMissions.add(m);
+			}
 		}
 	}
 
