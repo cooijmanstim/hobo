@@ -106,7 +106,7 @@ public class Util {
 			else if (zeroCostRailways.contains(railway))
 				g = prev.g;
 			else
-				g = prev.g + prev.city.distances[city.ordinal()];
+				g = prev.g + railway.score();
 
 			f = g + h;
 		}
