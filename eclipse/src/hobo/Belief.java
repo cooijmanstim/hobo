@@ -6,6 +6,7 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class Belief {
 	private final MersenneTwisterFast random;
@@ -47,8 +48,6 @@ public class Belief {
 
 	private int player; // beliefs of which player?
 	
-	private double relevance_weight, alpha, beta, gamma;
-	
 	private PlayerBelief[] players;
 	
 	private CardBag known_deck_cards;
@@ -62,14 +61,10 @@ public class Belief {
 
 	private List<Event> events;
 
-	public Belief(int player, long seed, double relevance_weight, double alpha, double beta, double gamma) {
+	public Belief(int player, long seed) {
 		this.random = new MersenneTwisterFast(seed);
 		this.events = new ArrayList<Event>();
 		this.player = player;
-		this.relevance_weight = relevance_weight;
-		this.alpha = alpha;
-		this.beta = beta;
-		this.gamma = gamma;
 	}
 
 	public void initialize(State s) {
@@ -156,18 +151,21 @@ public class Belief {
 		handleDeckRestoration(s);
 		
 		Railway r = d.railway;
+		PlayerState ps = s.playerState(d.player);
+		Set<Railway> usableRailways = s.usableRailwaysFor(d.player);
 		for (Mission m: Mission.all) {
-			double[] A = { m.source.x, m.source.y },
-			         B = { m.destination.x, m.destination.y },
-			         C = { r.source.x, r.source.y },
-			         D = { r.destination.x, r.destination.y };
-			       // don't let alongness count for too much -- add a constant
-			double relevance =  gamma * Math.pow(Util.segmentAlongness(A, B, C, D), alpha)
-			                    // punish if the railway strays too far
-			                    // (but sqrt for diminishing punishment over distance)
-			                  / (1 + Math.pow(Math.max(Util.distanceOfPointToSegment(C, A, B),
-			                		                   Util.distanceOfPointToSegment(D, A, B)), beta));
-			player_mission_suspicion[m.ordinal()][d.player] += relevance_weight * relevance;
+			List<Railway> path_with_r    = Util.shortestPath(m.source, m.destination, usableRailways, ps.railways);
+			if (path_with_r == null)
+				continue;
+
+			ps.railways.remove(r);
+			List<Railway> path_without_r = Util.shortestPath(m.source, m.destination, usableRailways, ps.railways);
+			ps.railways.add(r);
+			if (path_without_r == null)
+				continue;
+
+			int saving = Util.pathCost(path_without_r) - Util.pathCost(path_with_r);
+			player_mission_suspicion[m.ordinal()][d.player] += saving;
 		}
 	}
 
@@ -374,7 +372,7 @@ public class Belief {
 		for (PlayerState ps: s.playerStates()) {
 			ps.completedMissions = EnumSet.noneOf(Mission.class);
 			for (Mission m: ps.missions) {
-				if (Util.shortestPath(m.source, m.destination, ps.railways) != null)
+				if (Util.shortestPath(m.source, m.destination, ps.railways, ps.railways) != null)
 					ps.completedMissions.add(m);
 			}
 		}
@@ -451,7 +449,7 @@ public class Belief {
 		for (PlayerState ps: s.playerStates()) {
 			ps.completedMissions = EnumSet.noneOf(Mission.class);
 			for (Mission m: ps.missions) {
-				if (Util.shortestPath(m.source, m.destination, ps.railways) != null)
+				if (Util.shortestPath(m.source, m.destination, ps.railways, ps.railways) != null)
 					ps.completedMissions.add(m);
 			}
 		}

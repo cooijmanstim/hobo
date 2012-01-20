@@ -226,6 +226,12 @@ public class State implements Cloneable {
 		}
 		return result;
 	}
+	
+	public Set<Railway> freeRailways() {
+		Set<Railway> railways = EnumSet.allOf(Railway.class);
+		railways.removeAll(owner_by_railway.keySet()); // XXX: cost of keySet()?
+		return railways;
+	}
 
 	public CardBag openCards() {
 		return open_deck;

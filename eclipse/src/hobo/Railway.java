@@ -1,6 +1,8 @@
 package hobo;
 
 import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.Set;
 
 public enum Railway {
 	Vancouver_Calgary_1(3, Color.GREY),
@@ -105,6 +107,7 @@ public enum Railway {
 	Miami_NewOrleans_1(6, Color.RED);
 
 	public static final Railway[] all = values();
+	public static final Set<Railway> emptySet = EnumSet.noneOf(Railway.class);
 
 	static {
 		// find and couple double railways

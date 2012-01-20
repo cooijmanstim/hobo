@@ -7,19 +7,14 @@ public class UncertainPlayer extends Player {
 	public /* pretend final */ Belief belief;
 	private final Player player;
 	private long seed;
-	private double relevance_weight, alpha, beta, gamma;
 	private boolean verbose;
 
-	public UncertainPlayer(String name, Player player, int sample_size, int decision_time, long seed, double relevance_weight, double alpha, double beta, double gamma, boolean verbose) {
+	public UncertainPlayer(String name, Player player, int sample_size, int decision_time, long seed, boolean verbose) {
 		this.name = name;
 		this.player = player;
 		this.sample_size = sample_size;
 		this.decision_time = decision_time;
 		this.seed = seed;
-		this.relevance_weight = relevance_weight;
-		this.alpha = alpha;
-		this.beta = beta;
-		this.gamma = gamma;
 		this.verbose = verbose;
 	}
 
@@ -28,7 +23,6 @@ public class UncertainPlayer extends Player {
 		int sample_size = -1;
 		int decision_time = 5;
 		long seed = System.currentTimeMillis();
-		double relevance_weight = 1, alpha = 1, beta = 1, gamma = 1;
 		boolean verbose = true;
 
 		for (Map.Entry<String,String> entry: Util.parseConfiguration(configuration).entrySet()) {
@@ -37,14 +31,10 @@ public class UncertainPlayer extends Player {
 			if (k.equals("sample_size"))             sample_size = Integer.parseInt(v);
 			if (k.equals("decision_time"))           decision_time = Integer.parseInt(v);
 			if (k.equals("belief_seed"))             seed = Long.parseLong(v);
-			if (k.equals("belief_relevance_weight")) relevance_weight = Double.parseDouble(v);
-			if (k.equals("belief_alpha"))            alpha = Double.parseDouble(v);
-			if (k.equals("belief_beta"))             beta = Double.parseDouble(v);
-			if (k.equals("belief_gamma"))            gamma = Double.parseDouble(v);
 			if (k.equals("verbose"))                 verbose = Boolean.parseBoolean(v);
 		}
 
-		return new UncertainPlayer(name, Player.fromConfiguration(configuration), sample_size, decision_time, seed, relevance_weight, alpha, beta, gamma, verbose);
+		return new UncertainPlayer(name, Player.fromConfiguration(configuration), sample_size, decision_time, seed, verbose);
 	}
 
 	@Override public void perceive(Event e) {
@@ -65,7 +55,7 @@ public class UncertainPlayer extends Player {
 	@Override public void setHandle(int handle) {
 		super.setHandle(handle);
 		player.setHandle(handle);
-		belief = new Belief(handle, seed, relevance_weight, alpha, beta, gamma);
+		belief = new Belief(handle, seed);
 	}
 	
 	@Override public void setDecisionTime(int decision_time) {

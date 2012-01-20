@@ -11,15 +11,15 @@ public class ParameterTuning {
 	}
 	
 	public static void tuneBelief() {
-		tuneByCrossEntropy(10, 10, 0.2, new double[]{ 1, 1, 1, 1 }, new double[]{ 1, 1, 1, 1 }, new Function<double[], Double>() {
+		tuneByCrossEntropy(10, 10, 0.2, new double[]{ 1 }, new double[]{ 1 }, new Function<double[], Double>() {
 			@Override public Double call(double[] xs) {
 				if (xs[0] < 0 || xs[3] < 0)
 					return Double.NEGATIVE_INFINITY;
 				
 				try {
 					Game g = new Game("verbose:false",
-					                  Player.fromConfiguration("uncertain montecarlo name:carlo verbose:false decision_time:1 belief_relevance_weight:"+xs[0]+" belief_alpha:"+xs[1]+" belief_beta:"+xs[2]+" belief_gamma:"+xs[3]),
-					                  Player.fromConfiguration("uncertain minimax    name:carlo verbose:false decision_time:1 belief_relevance_weight:"+xs[0]+" belief_alpha:"+xs[1]+" belief_beta:"+xs[2]+" belief gamma:"+xs[3]));
+					                  Player.fromConfiguration("uncertain montecarlo name:carlo verbose:false decision_time:1 belief_relevance_weight:"+xs[0]),
+					                  Player.fromConfiguration("uncertain minimax    name:carlo verbose:false decision_time:1 belief_relevance_weight:"+xs[0]));
 					g.play();
 
 					double y = 0;

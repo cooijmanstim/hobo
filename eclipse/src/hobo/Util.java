@@ -57,13 +57,22 @@ public class Util {
 		return e.iterator().next();
 	}
 	
-	public static List<Railway> shortestPath(City a, City b, Set<Railway> railways) {
-		if (railways.size() == 0)
+	public static int pathCost(List<Railway> rs) {
+		int cost = 0;
+		for (Railway r: rs)
+			// score is a measure of how difficult to get a railway is
+			cost += r.score();
+		return cost;
+	}
+
+	// only railways in railways are used
+	public static List<Railway> shortestPath(City a, City b, Set<Railway> railways, Set<Railway> zeroCostRailways) {
+		if (railways.isEmpty())
 			return null;
 		
 		Set<City> seen = EnumSet.noneOf(City.class);
 		PriorityQueue<AStarNode> fringe = new PriorityQueue<AStarNode>(railways.size());
-		fringe.offer(new AStarNode(a, null, null, b));
+		fringe.offer(new AStarNode(a, null, null, b, zeroCostRailways));
 		AStarNode x;
 		while ((x = fringe.poll()) != null) {
 			if (seen.contains(x.city))
@@ -74,7 +83,7 @@ public class Util {
 			for (Railway r: x.city.railways) {
 				if (!railways.contains(r))
 					continue;
-				fringe.offer(new AStarNode(r.otherCity(x.city), r, x, b));
+				fringe.offer(new AStarNode(r.otherCity(x.city), r, x, b, zeroCostRailways));
 			}
 		}
 		return null;
@@ -84,12 +93,17 @@ public class Util {
 		public final Railway railway;
 		public final City city;
 		public final AStarNode prev;
-		public final double f, g, h;
+		public /* pretend final */ double f, g, h;
 
-		public AStarNode(City city, Railway railway, AStarNode prev, City target) {
+		public AStarNode(City city, Railway railway, AStarNode prev, City target, Set<Railway> zeroCostRailways) {
 			this.city = city; this.railway = railway; this.prev = prev;
 			h = city.distances[target.ordinal()];
-			g = (prev == null ? 0 : prev.g + prev.city.distances[city.ordinal()]);
+
+			// cost to get to the previous node
+			g = prev == null ? 0 : prev.g;
+			// add cost of railway
+			if (!zeroCostRailways.contains(railway))
+				g += prev.city.distances[city.ordinal()];
 			f = g + h;
 		}
 
@@ -153,7 +167,7 @@ public class Util {
 		return clusters;
 	}
 
-	public static Set<Railway> getSpanningTree(Set<Mission> missions, Set<Railway> railways) {
+	public static Set<Railway> getSpanningTree(Set<Mission> missions, Set<Railway> railways, Set<Railway> zeroCostRailways) {
 		Set<Railway> tree = EnumSet.noneOf(Railway.class);
 		if(missions.isEmpty())
 			return tree;
@@ -163,12 +177,12 @@ public class Util {
 			for (Mission m: cluster) {
 				List<Railway> rs;
 				if(subtree.isEmpty()) {
-					rs = shortestPath(m.source, m.destination, railways);
+					rs = shortestPath(m.source, m.destination, railways, zeroCostRailways);
 					if (rs != null) subtree.addAll(rs);
 				} else {
-					rs = shortestPath(m.source, getClosestCity(subtree, m.source), railways);
+					rs = shortestPath(m.source, getClosestCity(subtree, m.source), railways, zeroCostRailways);
 					if (rs != null) subtree.addAll(rs);
-					rs = shortestPath(m.destination, getClosestCity(subtree, m.destination), railways);
+					rs = shortestPath(m.destination, getClosestCity(subtree, m.destination), railways, zeroCostRailways);
 					if (rs != null) subtree.addAll(rs);
 				}
 			}

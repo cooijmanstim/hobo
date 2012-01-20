@@ -107,7 +107,7 @@ public class PlayerState implements Cloneable {
 	public void receiveMissions(Set<Mission> ms) {
 		missions.addAll(ms);
 		for (Mission m: ms) {
-			if (Util.shortestPath(m.source, m.destination, railways) != null) {
+			if (Util.shortestPath(m.source, m.destination, railways, railways) != null) {
 				completedMissions.add(m);
 				score += m.value;
 			} else {
@@ -203,7 +203,7 @@ public class PlayerState implements Cloneable {
 		if (s.gameOver()) return finalScore();
 
 		double u = 0.0;
-		Set<Railway> tree = Util.getSpanningTree(missions, s.usableRailwaysFor(handle));
+		Set<Railway> tree = Util.getSpanningTree(missions, s.usableRailwaysFor(handle), s.playerState(handle).railways);
 		int length = 0;
 		int LENGTH = 0;
 		for (Railway r: tree) {
