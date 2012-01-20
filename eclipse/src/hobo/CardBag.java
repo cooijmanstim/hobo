@@ -29,12 +29,7 @@ public class CardBag implements Cloneable, Iterable<Color> {
 	}
 	
 	@Override public int hashCode() {
-		int h = 0;
-		for (int i = 0; i < Color.all.length; i++) {
-			if (ks[i] > 0)
-				h = (h << ks[i]) ^ Color.all[i].hashCode();
-		}
-		return h;
+		return Arrays.hashCode(ks);
 	}
 
 	public int size() { return size; }

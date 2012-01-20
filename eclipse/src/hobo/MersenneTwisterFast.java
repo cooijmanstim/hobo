@@ -193,18 +193,9 @@ public strictfp class MersenneTwisterFast implements Serializable, Cloneable
     /* We're overriding all internal data, to my knowledge, so this should be okay */
     public MersenneTwisterFast clone()
         {
-        try
-            {
-            MersenneTwisterFast f = (MersenneTwisterFast)(super.clone());
-            f.mt = (int[])(mt.clone());
-            f.mag01 = (int[])(mag01.clone());
-            f.__nextNextGaussian = __nextNextGaussian;
-            f.__haveNextNextGaussian = __haveNextNextGaussian;
-            return f;
-            }
-        catch (CloneNotSupportedException e) { throw new InternalError(); } // should never happen
+    	return new MersenneTwisterFast(this);
         }
-    
+
     public boolean stateEquals(Object o)
         {
         if (o==this) return true;
@@ -269,6 +260,13 @@ public strictfp class MersenneTwisterFast implements Serializable, Cloneable
         setSeed(seed);
         }
     
+    // cloning constructor
+    public MersenneTwisterFast(MersenneTwisterFast that) {
+    	this.mt = that.mt.clone();
+    	this.mag01 = that.mag01.clone();
+    	this.__nextNextGaussian = that.__nextNextGaussian;
+    	this.__haveNextNextGaussian = that.__haveNextNextGaussian;
+    }
 
     /**
      * Constructor using an array of integers as seed.
