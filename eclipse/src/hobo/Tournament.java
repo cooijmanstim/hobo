@@ -4,8 +4,7 @@ import java.util.Arrays;
 
 public class Tournament {
 	public static void play() {
-		// TODO: use the tuned belief parameters here
-		String common_configuration = "verbose:false decision_time:1 belief_relevance_weight:1 belief_alpha:1 belief_beta:1 belief_gamma:1";
+		String common_configuration = "verbose:false decision_time:1";
 		String[] player_configurations = {
 				// TODO: use the tuned parameters for each combination of strategic and use_signum in here
 				"montecarlo strategic:false use_signum:false expansion_threshold:10 uct_weight:1 sigmoid_steepness:"+(1.0/70),

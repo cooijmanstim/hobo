@@ -10,32 +10,6 @@ public class ParameterTuning {
 		tuneMCTS();
 	}
 	
-	public static void tuneBelief() {
-		tuneByCrossEntropy(10, 10, 0.2, new double[]{ 1 }, new double[]{ 1 }, new Function<double[], Double>() {
-			@Override public Double call(double[] xs) {
-				if (xs[0] < 0 || xs[3] < 0)
-					return Double.NEGATIVE_INFINITY;
-				
-				try {
-					Game g = new Game("verbose:false",
-					                  Player.fromConfiguration("uncertain montecarlo name:carlo verbose:false decision_time:1 belief_relevance_weight:"+xs[0]),
-					                  Player.fromConfiguration("uncertain minimax    name:carlo verbose:false decision_time:1 belief_relevance_weight:"+xs[0]));
-					g.play();
-
-					double y = 0;
-					int n = g.players.length;
-					for (int i = 0; i < g.players.length; i++)
-						y += ((UncertainPlayer)g.players[i]).belief.averageLikelihoodOfReality();
-					y /= n;
-					return y;
-				} catch (Throwable t) {
-					t.printStackTrace();
-					return Double.NEGATIVE_INFINITY;
-				}
-			}
-		});
-	}
-	
 	public static void tuneMCTS() {
 		// need to tune it four times, for all combinations
 		// of strategic/use_signum
