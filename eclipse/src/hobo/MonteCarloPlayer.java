@@ -7,18 +7,21 @@ public class MonteCarloPlayer extends Player {
 	// if false, aheadness will be recorded, and squashed by a sigmoid
 	// with weight sigmoid_steepness
 	// alpha is the sigmoid steepness for draw card probability in the playout
+	// beta is the exponent for the hand utility, to make the distribution more
+	// pronounced
 	private int decision_time, expansion_threshold;
-	private double uct_weight, sigmoid_steepness, alpha;
+	private double uct_weight, sigmoid_steepness, alpha, beta;
 	private boolean verbose, strategic, use_signum;
 	private final MersenneTwisterFast random;
 
-	public MonteCarloPlayer(String name, long seed, int decision_time, int expansion_threshold, double uct_weight, double sigmoid_steepness, double alpha, boolean verbose, boolean strategic, boolean use_signum) {
+	public MonteCarloPlayer(String name, long seed, int decision_time, int expansion_threshold, double uct_weight, double sigmoid_steepness, double alpha, double beta, boolean verbose, boolean strategic, boolean use_signum) {
 		this.name = name;
 		this.decision_time = decision_time;
 		this.expansion_threshold = expansion_threshold;
 		this.uct_weight = uct_weight;
 		this.sigmoid_steepness = sigmoid_steepness;
 		this.alpha = alpha;
+		this.beta = beta;
 		this.verbose = verbose;
 		this.strategic = strategic;
 		this.use_signum = use_signum;
@@ -28,7 +31,7 @@ public class MonteCarloPlayer extends Player {
 	public static MonteCarloPlayer fromConfiguration(String configuration) {
 		String name = "carlo";
 		int decision_time = 5, expansion_threshold = 10;
-		double uct_weight = 1, sigmoid_steepness = 25, alpha = 1/20.0;
+		double uct_weight = 1, sigmoid_steepness = 25, alpha = 1/20.0, beta = 2;
 		boolean verbose = true, strategic = false, use_signum = true;
 		long seed = System.currentTimeMillis();
 		
@@ -41,12 +44,13 @@ public class MonteCarloPlayer extends Player {
 			if (k.equals("uct_weight"))          uct_weight = Double.parseDouble(v);
 			if (k.equals("sigmoid_steepness"))   sigmoid_steepness = Double.parseDouble(v);
 			if (k.equals("alpha"))               alpha = Double.parseDouble(v);
+			if (k.equals("beta"))                beta = Double.parseDouble(v);
 			if (k.equals("verbose"))             verbose = Boolean.parseBoolean(v);
 			if (k.equals("strategic"))           strategic = Boolean.parseBoolean(v);
 			if (k.equals("use_signum"))          use_signum = Boolean.parseBoolean(v);
 		}
 
-		return new MonteCarloPlayer(name, seed, decision_time, expansion_threshold, uct_weight, sigmoid_steepness, alpha, verbose, strategic, use_signum);
+		return new MonteCarloPlayer(name, seed, decision_time, expansion_threshold, uct_weight, sigmoid_steepness, alpha, beta, verbose, strategic, use_signum);
 	}
 	
 	@Override public void setDecisionTime(int decision_time) {
@@ -358,12 +362,10 @@ public class MonteCarloPlayer extends Player {
 				DrawCardDecision dcd = (DrawCardDecision)d;
 				CardBag hand = s.playerState(d.player).hand;
 				Color c = dcd.color == null ? s.deck.cardOnTop(s.random) : dcd.color;
-				double oldu = hand.utilityAsHand();
 				hand.add(c);
 				double newu = hand.utilityAsHand();
 				hand.remove(c);
-				double du = newu - oldu;
-				return Util.logsig(du); // keep the log-function because of negative values
+				return Math.pow(newu, beta);
 			} else if (d instanceof DrawMissionsDecision) {
 				return 1;
 			} else if (d instanceof KeepMissionsDecision) {

@@ -39,7 +39,7 @@ public class ParameterTuning {
 	public static void tuneMCTS() {
 		// need to tune it four times, for all combinations
 		// of strategic/use_signum
-		tuneByCrossEntropy(10, 10, 0.2, new double[]{ 15, 1, 70, 20 }, new double[]{ 5, 1, 10, 5 }, new Function<double[], Double>() {
+		tuneByCrossEntropy(10, 10, 0.2, new double[]{ 15, 1, 70, 20, 2 }, new double[]{ 5, 1, 10, 5, 2 }, new Function<double[], Double>() {
 			@Override public Double call(double[] xs) {
 				if (xs[0] < 0)
 					return Double.NEGATIVE_INFINITY;
@@ -49,6 +49,7 @@ public class ParameterTuning {
 					                  + " uct_weight:"+xs[1]
 					                  + " sigmoid_steepness:"+(1/xs[2])
 					                  + " alpha:"+(1/xs[3])
+					                  + " beta:"+xs[4]
 					                  + " strategic:false use_signum:false";
 					Game g = new Game("verbose:false",
 					                  Player.fromConfiguration("montecarlo name:carlo verbose:false decision_time:1"+parameters),
