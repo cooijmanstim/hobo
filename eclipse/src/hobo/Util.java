@@ -57,11 +57,13 @@ public class Util {
 		return e.iterator().next();
 	}
 	
-	public static int pathCost(List<Railway> rs) {
+	public static int pathCost(List<Railway> rs, Set<Railway> zeroCostRailways) {
 		int cost = 0;
-		for (Railway r: rs)
-			// score is a measure of how difficult to get a railway is
-			cost += r.score();
+		for (Railway r: rs) {
+			if (!zeroCostRailways.contains(r))
+				// score is a measure of difficulty of getting the railway
+				cost += r.score();
+		}
 		return cost;
 	}
 
@@ -99,11 +101,13 @@ public class Util {
 			this.city = city; this.railway = railway; this.prev = prev;
 			h = city.distances[target.ordinal()];
 
-			// cost to get to the previous node
-			g = prev == null ? 0 : prev.g;
-			// add cost of railway
-			if (!zeroCostRailways.contains(railway))
-				g += prev.city.distances[city.ordinal()];
+			if (prev == null)
+				g = 0;
+			else if (zeroCostRailways.contains(railway))
+				g = prev.g;
+			else
+				g = prev.g + prev.city.distances[city.ordinal()];
+
 			f = g + h;
 		}
 

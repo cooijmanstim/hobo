@@ -157,14 +157,16 @@ public class Belief {
 			List<Railway> path_with_r    = Util.shortestPath(m.source, m.destination, usableRailways, ps.railways);
 			if (path_with_r == null)
 				continue;
+			int cost_with_r = Util.pathCost(path_with_r, ps.railways);
 
 			ps.railways.remove(r);
 			List<Railway> path_without_r = Util.shortestPath(m.source, m.destination, usableRailways, ps.railways);
 			ps.railways.add(r);
 			if (path_without_r == null)
 				continue;
+			int cost_without_r = Util.pathCost(path_without_r, ps.railways);
 
-			int saving = Util.pathCost(path_without_r) - Util.pathCost(path_with_r);
+			int saving = cost_without_r - cost_with_r;
 			player_mission_suspicion[m.ordinal()][d.player] += saving;
 		}
 	}
