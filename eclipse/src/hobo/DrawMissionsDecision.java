@@ -40,12 +40,8 @@ public class DrawMissionsDecision extends Decision {
 		// assume drawing 3 missions
 
 		Mission[] ms = s.missions.toArray(new Mission[s.missions.size()]);
-		int n = ms.length;
-
-		int nmss = 0;
-		for (int k = 1; k <= 3; k++)
-			nmss += Util.binomial_coefficient(k, n);
-		Object[] mss = new Object[nmss];
+		int n = ms.length, m = Math.min(3, ms.length);
+		Object[] mss = new Object[(int)Util.binomial_coefficient(m, n)];
 
 		// I'm getting lazy
 		int imss = 0;
