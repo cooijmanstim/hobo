@@ -36,8 +36,6 @@ public abstract class Player {
 			return HumanPlayer.fromConfiguration(s);
 		else if (impl.equals("minimax"))
 			return MinimaxPlayer.fromConfiguration(s);
-		else if (impl.equals("maxn"))
-			return MaxNPlayer.fromConfiguration(s);
 		else if (impl.equals("montecarlo"))
 			return MonteCarloPlayer.fromConfiguration(s);
 		else if (impl.equals("uncertain"))
