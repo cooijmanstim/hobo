@@ -92,7 +92,7 @@ public class DrawMissionsDecision extends Decision {
 			p.drawn_missions = ms;
 		}
 		
-		a.drawn_missions = p.drawn_missions;
+		if (undoably) a.drawn_missions = p.drawn_missions;
 		return a;
 	}
 
