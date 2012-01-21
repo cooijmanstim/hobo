@@ -176,20 +176,24 @@ public class MinimaxPlayer extends Player {
 		for (Decision d: ds) {
 			total_nbranches++;
 
-			AppliedDecision ad = d.apply(s, true);
+			// calculate expected value of all possible outcomes of the decision
+			double u = 0;
+			Object[] outcomes = d.outcomeDesignators(s);
+			for (int i = 0; i < outcomes.length; i++) {
+				AppliedDecision ad = d.apply(s, outcomes[i], true);
 
-			double u;
-			try {
-				// next ply if decision ended a turn
-				int newply = ply;
-				if (s.currentPlayer() != d.player)
-					newply++;
+				try {
+					// next ply if decision ended a turn
+					int newply = ply;
+					if (s.currentPlayer() != d.player)
+						newply++;
 
-				u = minimax(s, depth - 1, newply, a, b, coalition).utility;
-			} finally {
-				// recursion might throw outoftime
-				ad.undo();
-			}
+					u += d.outcomeLikelihood(s, outcomes[i]) * minimax(s, depth - 1, newply, a, b, coalition).utility;
+				} finally {
+					// recursion might throw outoftime
+					ad.undo();
+				}
+ 			}
 
 			if (maximizing) {
 				if (u > a) {
@@ -210,53 +214,6 @@ public class MinimaxPlayer extends Player {
 		}
 		total_nbranches_nterms++;
 		return new EvaluatedDecision(dbest, maximizing ? a : b);
-	}
-
-	@Override public Set<EvaluatedDecision> evaluateDecisions(Set<Decision> ds, State s) {
-		outOfTime = false;
-		Timer t = new Timer();
-		t.schedule(new TimerTask() {
-			public void run() {
-				outOfTime = true;
-			}
-		}, decision_time * 1000);
-
-		Set<EvaluatedDecision> edsbest = null;
-		try {
-			for (int depth = 0; depth <= max_depth; depth++) {
-				Set<EvaluatedDecision> eds = new HashSet<EvaluatedDecision>(ds.size());
-
-				int ply = 0;
-				boolean[] coalition = selectCoalition(s);
-
-				for (Decision d: ds) {
-					AppliedDecision ad = d.apply(s, true);
-
-					// next ply if decision ended a turn
-					int newply = ply;
-					if (s.currentPlayer() != d.player)
-						newply++;
-
-					EvaluatedDecision ed = minimax(s, depth, newply,
-					                               Double.NEGATIVE_INFINITY,
-					                               Double.POSITIVE_INFINITY,
-					                               coalition);
-
-					ad.undo();
-
-					eds.add(new EvaluatedDecision(d, ed.utility));
-				}
-
-				edsbest = eds;
-			}
-		} catch (OutOfTimeException e) {
-			if (verbose) System.out.println("out of time");
-		}
-
-		if (!outOfTime)
-			t.cancel();
-
-		return edsbest;
 	}
 
 	// decisions stored in the killer moves table should never be applied/undone

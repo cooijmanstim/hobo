@@ -1,6 +1,7 @@
 package hobo;
 
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.Set;
 
 public class DrawMissionsDecision extends Decision {
@@ -34,19 +35,60 @@ public class DrawMissionsDecision extends Decision {
 		if (s.missions.isEmpty()) return "no missions to draw";
 		return null;
 	}
+
+	@Override public Object[] outcomeDesignators(State s) {
+		// assume drawing 3 missions
+
+		Mission[] ms = s.missions.toArray(new Mission[s.missions.size()]);
+		int n = ms.length;
+
+		int nmss = 0;
+		for (int k = 1; k <= 3; k++)
+			nmss += Util.binomial_coefficient(k, n);
+		Object[] mss = new Object[nmss];
+
+		int imss = 0;
+		for (int i = 0; i < n; i++) {
+			mss[imss++] = EnumSet.of(ms[i]);
+			for (int j = i + 1; j < n; j++) {
+				mss[imss++] = EnumSet.of(ms[i], ms[j]);
+				for (int k = j + 1; k < n; k++) {
+					mss[imss++] = EnumSet.of(ms[i], ms[j], ms[k]);
+				}
+			}
+		}
+
+		return mss;
+	}
 	
-	@Override public AppliedDecision apply(State s, boolean undoably) {
+	@Override public double outcomeLikelihood(State s, Object mission_set) {
+		// assume mission_set valid draw from the deck
+		int n = s.missions.size();
+		return 1.0 / (Util.binomial_coefficient(1, n) + Util.binomial_coefficient(2, n) + Util.binomial_coefficient(3, n));
+	}
+	
+	@Override public AppliedDecision apply(State s, Object forced_mission_set, boolean undoably) {
 		AppliedDecision a = undoably ? new AppliedDecision(this, s) : null;
 
 		s.switchToPlayer(player);
 		PlayerState p = s.playerState(player);
 
-		p.drawn_missions = Util.remove_sample(s.missions, 3, s.random, EnumSet.noneOf(Mission.class));
+		if (forced_mission_set == null) {
+			p.drawn_missions = Util.remove_sample(s.missions, 3, s.random, EnumSet.noneOf(Mission.class));
+		} else {
+			@SuppressWarnings("unchecked")
+			Set<Mission> ms = (Set<Mission>)forced_mission_set;
+			s.missions.removeAll(ms);
+			p.drawn_missions = ms;
+		}
 		
+		a.drawn_missions = p.drawn_missions;
 		return a;
 	}
 
 	public class AppliedDecision extends hobo.AppliedDecision {
+		public Set<Mission> drawn_missions;
+		
 		public AppliedDecision(Decision d, State s) { super(d, s); }
 
 		@Override public void undo() {

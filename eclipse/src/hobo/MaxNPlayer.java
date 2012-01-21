@@ -121,7 +121,4 @@ public class MaxNPlayer extends Player {
 	// pfft
 	@Override public void setDecisionTime(int t) {}
 	@Override public void setVerbose(boolean v) {}
-	@Override public Set<hobo.EvaluatedDecision> evaluateDecisions(Set<Decision> ds, State s) {
-		return null;
-	}
 }

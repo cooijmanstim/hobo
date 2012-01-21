@@ -15,7 +15,6 @@ public abstract class Player {
 
 	public void perceive(Event e) {};
 	public abstract Decision decide(State s);
-	public abstract Set<EvaluatedDecision> evaluateDecisions(Set<Decision> ds, State s);
 
 	public void loss(State s) {}
 	public void win(State s) {}

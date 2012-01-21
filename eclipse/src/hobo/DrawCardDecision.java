@@ -33,7 +33,7 @@ public class DrawCardDecision extends Decision {
 	@Override public int hashCode() {
 		return player ^ (color == null ? -1 : color.hashCode()) ^ classHashCode;
 	}
-	
+
 	public static Set<Decision> availableTo(State s, PlayerState ps, Set<Decision> ds) {
 		if (ps.drawn_missions != null)
 			return ds;
@@ -67,7 +67,15 @@ public class DrawCardDecision extends Decision {
 		return null;
 	}
 	
-	@Override public AppliedDecision apply(State s, boolean undoably) {
+	@Override public Object[] outcomeDesignators(State s) {
+		return s.deck.availableColors();
+	}
+	
+	@Override public double outcomeLikelihood(State s, Object color) {
+		return s.deck.count((Color)color) * 1.0 / s.deck.size();
+	}
+
+	@Override public AppliedDecision apply(State s, Object forced_color, boolean undoably) {
 		AppliedDecision a = undoably ? new AppliedDecision(this, s) : null;
 
 		s.switchToPlayer(player);
@@ -78,7 +86,8 @@ public class DrawCardDecision extends Decision {
 		if (undoably) a.old_drawn_card = p.drawn_card;
 
 		if (color == null) {
-			p.drawn_card = s.deck.draw(s.random);
+			p.drawn_card = forced_color == null ? s.deck.draw(s.random)
+			                                    : s.deck.draw((Color)forced_color);
 		} else {
 			p.drawn_card = s.open_deck.draw(color);
 			if (p.drawn_card == Color.GREY)

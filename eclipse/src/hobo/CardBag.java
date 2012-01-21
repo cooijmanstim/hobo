@@ -324,6 +324,22 @@ public class CardBag implements Cloneable, Iterable<Color> {
 		return false;
 	}
 
+	// pffft
+	private static final Color[] no_colors = new Color[0];
+	public Color[] availableColors() {
+		if (size == 0) return no_colors;
+		int n = 0;
+		for (int i = 0; i < ks.length; i++)
+			if (ks[i] > 0)
+				n++;
+		Color[] colors = new Color[n];
+		int j = 0;
+		for (int i = 0; i < ks.length; i++)
+			if (ks[i] > 0)
+				colors[j++] = Color.all[i];
+		assert(j == n);
+		return colors;
+	}
 
 	// tests below here
 	public static void requireIteratorFinitude() {

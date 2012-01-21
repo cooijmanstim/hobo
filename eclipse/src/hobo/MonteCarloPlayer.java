@@ -91,11 +91,6 @@ public class MonteCarloPlayer extends Player {
 		return tree.decide();
 	}
 
-	@Override public Set<EvaluatedDecision> evaluateDecisions(Set<Decision> ds, State s) {
-		Node tree = buildTree(s, ds);
-		return tree.evaluatedDecisions();
-	}
-
 	public Node buildTree(State s, Set<Decision> ds) {
 		outOfTime = false;
 		new Timer().schedule(new TimerTask() {
@@ -167,16 +162,6 @@ public class MonteCarloPlayer extends Player {
 				}
 			}
 			return dbest;
-		}
-
-		// return the evaluation of the top-level decisions
-		public Set<EvaluatedDecision> evaluatedDecisions() {
-			assert(!chance_node);
-
-			Set<EvaluatedDecision> eds = new HashSet<EvaluatedDecision>(children.size());
-			for (Map.Entry<Decision, Node> dn: children.entrySet())
-				eds.add(new EvaluatedDecision(dn.getKey(), dn.getValue().expectedValue()));
-			return eds;
 		}
 
 		public double expectedValue() {

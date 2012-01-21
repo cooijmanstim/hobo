@@ -44,7 +44,4 @@ public class HumanPlayer extends Player {
 	// pfft
 	@Override public void setDecisionTime(int t) {}
 	@Override public void setVerbose(boolean v) {}
-	@Override public Set<EvaluatedDecision> evaluateDecisions(Set<Decision> ds, State s) {
-		return null;
-	}
 }

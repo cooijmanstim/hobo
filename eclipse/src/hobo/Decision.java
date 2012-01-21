@@ -22,5 +22,21 @@ public abstract class Decision {
 	}
 
 	public abstract String reasonForIllegality(State s);
-	public abstract AppliedDecision apply(State s, boolean undoably);
+	public abstract AppliedDecision apply(State s, Object outcome_designator, boolean undoably);
+
+	// decisions can have multiple outcomes; this method gives the caller a way to ask
+	// for specific ones.  the caller can choose an outcome by passing the corresponding
+	// outcome designator to apply.
+	private static final Object[] justoneplskthx = { null }; 
+	public Object[] outcomeDesignators(State s) {
+		return justoneplskthx;
+	}
+	
+	public double outcomeLikelihood(State s, Object outcome_designator) {
+		return 1;
+	}
+
+	public AppliedDecision apply(State s, boolean undoably) {
+		return apply(s, null, undoably);
+	}
 }
