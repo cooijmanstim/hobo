@@ -282,7 +282,6 @@ public class MinimaxPlayer extends Player {
 					ms.add(m);
 			}
 			completedMissions.add(ps.handle, ms);
-			
 		}
 		completions = new LinkedList<Set<Mission>>();
 	}
@@ -328,8 +327,6 @@ public class MinimaxPlayer extends Player {
 	}
 
 	public double utility(State s, PlayerState ps) {
-		double u = 0.0;
-
 		Set<Railway> tree = Util.getSpanningTree(ps.missions, s.usableRailwaysFor(handle), s.playerState(handle).railways);
 		
 		// figure out to what extent the spanning tree has been completed
@@ -346,14 +343,16 @@ public class MinimaxPlayer extends Player {
 		for (Mission m: ps.missions)
 			total_missions_value += m.value;
 
-		u += total_missions_value * (length * 2.0 / LENGTH - 1);
+		double plan_score = total_missions_value * (length * 2.0 / LENGTH - 1);
 
-		int completed_score = 0;
+		// compute real score
+		int score = ps.score;
 		Set<Mission> completedMissions = this.completedMissions.get(ps.handle);
 		for (Mission m: ps.missions)
-			completed_score += (completedMissions.contains(m) ? 1 : -1) * m.value;
+			score += (completedMissions.contains(m) ? 1 : -1) * m.value;
 
-		return ps.score + completed_score + u + ps.hand.utilityAsHand();
+		// also reward a good hand and punish missions
+		return score + plan_score + ps.hand.utilityAsHand() - Math.pow(ps.missions.size(), 2);
 	}
 	
 	public double averageBranchingFactor() {
