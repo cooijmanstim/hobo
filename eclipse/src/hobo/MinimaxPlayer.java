@@ -206,10 +206,10 @@ public class MinimaxPlayer extends Player {
 
 					u += d.outcomeLikelihood(s, outcomes[i]) * minimax(s, depth - 1, newply, a, b, coalition).utility;
 				} finally {
-					downdateCaches(s, d, ad);
-
 					// recursion might throw outoftime
 					ad.undo();
+
+					downdateCaches(s, d, ad);
 				}
  			}
 
@@ -274,10 +274,10 @@ public class MinimaxPlayer extends Player {
 							                                                   Double.POSITIVE_INFINITY,
 							                                                   coalition).utility;
 						} finally {
-							downdateCaches(s, d, ad);
-
 							// recursion might throw outoftime
 							ad.undo();
+
+							downdateCaches(s, d, ad);
 						}
 		 			}
 					
@@ -368,12 +368,14 @@ public class MinimaxPlayer extends Player {
 			Railway r = ((ClaimRailwayDecision)d).railway;
 			Set<Mission> incompleteMissions = EnumSet.copyOf(ps.missions);
 			incompleteMissions.removeAll(completedMissions);
+			ps.railways.remove(r);
 			Set<Mission> completion = ps.missionsCompletedBy(r, incompleteMissions);
+			ps.railways.add(r);
 			completedMissions.addAll(completion);
 			completions.push(completion);
 		} else if (d instanceof KeepMissionsDecision) {
 			for (Mission m: ((KeepMissionsDecision)d).missions) {
-				if (Util.shortestPath(m.source, m.destination, ps.railways, ps.railways) != null)
+				if (ps.missionCompleted(m))
 					completedMissions.add(m);
 			}
 		}

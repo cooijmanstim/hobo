@@ -2,6 +2,11 @@ package hobo;
 
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class ParameterTuning {
 	public static final MersenneTwisterFast random = new MersenneTwisterFast();
@@ -54,14 +59,17 @@ public class ParameterTuning {
 		});
 	}
 
+	private static final int nthreads = 2;
 	public static void tuneByCrossEntropy(int population_size, int selection_size, int sample_size,
 		                                  double[] initial_means, double[] initial_stdevs,
-		                                  Function<double[],Double> evaluation) {
+		                                  final Function<double[],Double> evaluation) {
 		final double alpha = 0.1;
 		double[] means = initial_means.clone(), stdevs = initial_stdevs.clone();
 		final int nvariables = means.length;
 
-		double[][] population = new double[population_size][nvariables];
+		final double[][] population = new double[population_size][nvariables];
+
+		ExecutorService pool = Executors.newFixedThreadPool(nthreads);
 		
 		while (true) {
 			System.out.println("means:  "+Arrays.toString(means));
@@ -72,10 +80,36 @@ public class ParameterTuning {
 					population[i][j] = means[j] + random.nextGaussian() * stdevs[j];
 			}
 
+			// fuck you java
+			Object[] future_evaluations = new Object[population_size];
+			for (int i = 0; i < population_size; i++) {
+				for (int k = 0; k < sample_size; k++) {
+					final int j = i;
+					future_evaluations[i] = pool.submit(new Callable<Double>() {
+						@Override public Double call() {
+							return evaluation.call(population[j]);
+						}
+					});
+				}
+			}
+
 			final double[] evaluations = new double[population_size];
-			for (int i = 0; i < population_size; i++)
-				for (int k = 0; k < sample_size; k++)
-					evaluations[i] = evaluation.call(population[i]);
+			for (int i = 0; i < population_size; i++) {
+				for (int k = 0; k < sample_size; k++) {
+					try {
+						while (true) {
+							try {
+								evaluations[i] = ((Future<Double>)future_evaluations[i]).get();
+								break;
+							} catch (InterruptedException e) {
+								continue;
+							}
+						}
+					} catch (ExecutionException e) {
+						evaluations[i] = Double.NEGATIVE_INFINITY;
+					}
+				}
+			}
 
 			// now jump through hoops to sort population by evaluations
 			Integer[] permutation = new Integer[population_size];
