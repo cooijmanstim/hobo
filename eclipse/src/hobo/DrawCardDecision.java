@@ -68,10 +68,12 @@ public class DrawCardDecision extends Decision {
 	}
 	
 	@Override public Object[] outcomeDesignators(State s) {
+		if (color != null) return super.outcomeDesignators(s);
 		return s.deck.availableColors();
 	}
 	
 	@Override public double outcomeLikelihood(State s, Object color) {
+		if (color != null) return 1;
 		return s.deck.count((Color)color) * 1.0 / s.deck.size();
 	}
 
