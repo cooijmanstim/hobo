@@ -281,7 +281,7 @@ public class MinimaxPlayer extends Player {
 				if (ps.missionCompleted(m))
 					ms.add(m);
 			}
-			completedMissions.set(ps.handle, ms);
+			completedMissions.add(ps.handle, ms);
 			
 		}
 		completions = new LinkedList<Set<Mission>>();
