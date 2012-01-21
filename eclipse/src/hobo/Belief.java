@@ -284,6 +284,9 @@ public class Belief {
 	
 	// modifies s
 	public void sampleMissions(State s) {
+		// get a working copy of this matrix
+		double[][] player_mission_suspicion = Util.clone(this.player_mission_suspicion);
+
 		// determine how many missions we need to sample for each player
 		int[] ns = new int[players.length];
 		for (int i = 0; i < players.length; i++) {
@@ -295,8 +298,16 @@ public class Belief {
 		// players' missions will be removed from this as we go along
 		s.missions = EnumSet.allOf(Mission.class);
 
-		// get a working copy of this matrix
-		double[][] player_mission_suspicion = Util.clone(this.player_mission_suspicion);
+		// make sure our own drawn_missions aren't assigned to other players
+		Set<Mission> ms = s.playerState(player).drawn_missions;
+		if (ms != null) {
+			for (Mission m: ms) {
+				s.missions.remove(m);
+				for (int k = 0; k < players.length; k++)
+					player_mission_suspicion[m.ordinal()][k] = 0;
+			}
+		}
+		
 		sampling: while (true) {
 			// should terminate?
 			boolean samples_needed = false;
@@ -380,10 +391,22 @@ public class Belief {
 					ps.completedMissions.add(m);
 			}
 		}
+		
+		// and this took me DAYS to find -- make sure drawn_missions is consistent as well
+		for (PlayerState ps: s.playerStates()) {
+			// drawn_missions for ourselves are done above, before sampling
+			if (ps.handle == player)
+				continue;
+			if (ps.drawn_missions != null)
+				ps.drawn_missions = Util.remove_sample(s.missions, ps.drawn_missions.size(), random, EnumSet.noneOf(Mission.class));
+		}
 	}
 
 	// modifies s
 	public void maximumLikelihoodMissions(State s) {
+		// get a working copy of this matrix
+		double[][] player_mission_suspicion = Util.clone(this.player_mission_suspicion);
+				
 		// determine how many missions we need to sample for each player
 		int[] ns = new int[players.length];
 		for (int i = 0; i < players.length; i++) {
@@ -394,9 +417,17 @@ public class Belief {
 
 		// players' missions will be removed from this as we go along
 		s.missions = EnumSet.allOf(Mission.class);
+		
+		// make sure our own drawn_missions aren't assigned to other players
+		Set<Mission> ms = s.playerState(player).drawn_missions;
+		if (ms != null) {
+			for (Mission m: ms) {
+				s.missions.remove(m);
+				for (int k = 0; k < players.length; k++)
+					player_mission_suspicion[m.ordinal()][k] = 0;
+			}
+		}
 
-		// get a working copy of this matrix
-		double[][] player_mission_suspicion = Util.clone(this.player_mission_suspicion);
 		sampling: while (true) {
 			// should terminate?
 			boolean samples_needed = false;
@@ -457,6 +488,15 @@ public class Belief {
 					ps.completedMissions.add(m);
 			}
 		}
+
+		// and this took me DAYS to find -- make sure drawn_missions is consistent as well
+		for (PlayerState ps: s.playerStates()) {
+			// drawn_missions for ourselves are done above, before sampling
+			if (ps.handle == player)
+				continue;
+			if (ps.drawn_missions != null)
+				ps.drawn_missions = Util.remove_sample(s.missions, ps.drawn_missions.size(), random, EnumSet.noneOf(Mission.class));
+		}
 	}
 
 	public double likelihoodOfMissions(State s) {
@@ -516,6 +556,8 @@ public class Belief {
 				}
 			}
 		}
+		
+		// pfft, should we really bother with drawn_missions?
 
 		return p;
 	}
