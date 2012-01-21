@@ -7,12 +7,10 @@ public class ParameterTuning {
 	public static final MersenneTwisterFast random = new MersenneTwisterFast();
 	
 	public static void main(String[] args) {
-		tuneMCTS();
+		tuneMinimax();
 	}
-	
+
 	public static void tuneMCTS() {
-		// need to tune it four times, for all combinations
-		// of strategic/use_signum
 		tuneByCrossEntropy(10, 10, 0.2, new double[]{ 15, 1, 70, 20, 2 }, new double[]{ 5, 1, 10, 5, 2 }, new Function<double[], Double>() {
 			@Override public Double call(double[] xs) {
 				if (xs[0] < 0)
@@ -38,6 +36,24 @@ public class ParameterTuning {
 		});
 	}
 	
+	public static void tuneMinimax() {
+		tuneByCrossEntropy(10, 10, 0.2, new double[]{ 1, 1, 1, 1, 1 }, new double[]{ 1, 1, 1, 1, 1 }, new Function<double[], Double>() {
+			@Override public Double call(double[] xs) {
+				try {
+					String parameters = " alpha:"+xs[0]+" beta:"+xs[1]+" gamma:"+xs[2]+" delta:"+xs[3]+" zeta:"+xs[4];
+					Game g = new Game("verbose:false",
+					                  Player.fromConfiguration("minimax    name:joshua verbose:false decision_time:1"+parameters),
+					                  Player.fromConfiguration("montecarlo name:carlo  verbose:false decision_time:1"));
+					g.play();
+					return 1.0 * Math.signum(g.state.aheadness(0));
+				} catch (Throwable t) {
+					t.printStackTrace();
+					return Double.NEGATIVE_INFINITY;
+				}
+			}
+		});
+	}
+
 	public static void tuneByCrossEntropy(int population_size, int sample_size, double rho,
 		                                  double[] initial_means, double[] initial_stdevs,
 		                                  Function<double[],Double> evaluation) {

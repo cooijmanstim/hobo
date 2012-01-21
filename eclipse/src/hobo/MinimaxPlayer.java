@@ -8,14 +8,20 @@ public class MinimaxPlayer extends Player {
 	private final double paranoia;
 	private int max_depth, decision_time;
 	private boolean best_reply, verbose;
+	private double alpha, beta, gamma, delta, zeta;
 
-	public MinimaxPlayer(String name, double paranoia, boolean best_reply, boolean verbose, int max_depth, int decision_time) {
+	public MinimaxPlayer(String name, double paranoia, boolean best_reply, boolean verbose, int max_depth, int decision_time, double alpha, double beta, double gamma, double delta, double zeta) {
 		this.name = name;
 		this.paranoia = paranoia;
 		this.best_reply = best_reply;
 		this.verbose = verbose;
 		this.max_depth = max_depth;
 		this.decision_time = decision_time;
+		this.alpha = alpha;
+		this.beta = beta;
+		this.gamma = gamma;
+		this.delta = delta;
+		this.zeta = zeta;
 		// store N_KILLER_MOVES killer moves per ply
 		// max_depth is an upper bound on number of plies
 		this.killer_moves = new Decision[max_depth][N_KILLER_MOVES];
@@ -28,6 +34,7 @@ public class MinimaxPlayer extends Player {
 		boolean verbose = true;
 		int max_depth = 25;
 		int decision_time = 5;
+		double alpha = 1, beta = 1, gamma = 1, delta = 1, zeta = 1;
 		
 		for (Map.Entry<String,String> entry: Util.parseConfiguration(configuration).entrySet()) {
 			String k = entry.getKey(), v = entry.getValue();
@@ -37,9 +44,14 @@ public class MinimaxPlayer extends Player {
 			if (k.equals("verbose"))       verbose = Boolean.parseBoolean(v);
 			if (k.equals("max_depth"))     max_depth = Integer.parseInt(v);
 			if (k.equals("decision_time")) decision_time = Integer.parseInt(v);
+			if (k.equals("alpha"))         alpha = Double.parseDouble(v);
+			if (k.equals("beta"))          beta = Double.parseDouble(v);
+			if (k.equals("gamma"))         gamma = Double.parseDouble(v);
+			if (k.equals("delta"))         delta = Double.parseDouble(v);
+			if (k.equals("zeta"))          zeta = Double.parseDouble(v);
 		}
 		
-		return new MinimaxPlayer(name, paranoia, best_reply, verbose, max_depth, decision_time);
+		return new MinimaxPlayer(name, paranoia, best_reply, verbose, max_depth, decision_time, alpha, beta, gamma, delta, zeta);
 	}
 	
 	@Override public void setDecisionTime(int decision_time) {
@@ -352,7 +364,7 @@ public class MinimaxPlayer extends Player {
 			score += (completedMissions.contains(m) ? 1 : -1) * m.value;
 
 		// also reward a good hand and punish missions
-		return score + plan_score + ps.hand.utilityAsHand() - Math.pow(ps.missions.size(), 2);
+		return alpha * score + beta * plan_score + gamma * ps.hand.utilityAsHand() - delta * Math.pow(ps.missions.size(), zeta);
 	}
 	
 	public double averageBranchingFactor() {
