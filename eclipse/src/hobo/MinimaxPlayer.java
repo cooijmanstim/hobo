@@ -63,10 +63,12 @@ public class MinimaxPlayer extends Player {
 
 	public Decision decide(State s) {
 		State t = s.clone(); // to be sure we don't mess with the real state
+
 		if (verbose) {
 			System.out.println("----------------------------------------------------");
 			System.out.println(name+" ("+handle+") deciding...");
 		}
+		initializeCaches(t);
 		boolean[] coalition = selectCoalition(t);
 		if (verbose) System.out.println("assumed coalition "+Arrays.toString(coalition));
 		EvaluatedDecision ed = deepenIteratively(t, 0, coalition);
@@ -183,6 +185,8 @@ public class MinimaxPlayer extends Player {
 				AppliedDecision ad = d.apply(s, outcomes[i], true);
 
 				try {
+					updateCaches(s, d, ad);
+
 					// next ply if decision ended a turn
 					int newply = ply;
 					if (s.currentPlayer() != d.player)
@@ -190,6 +194,8 @@ public class MinimaxPlayer extends Player {
 
 					u += d.outcomeLikelihood(s, outcomes[i]) * minimax(s, depth - 1, newply, a, b, coalition).utility;
 				} finally {
+					downdateCaches(s, d, ad);
+
 					// recursion might throw outoftime
 					ad.undo();
 				}
@@ -261,12 +267,93 @@ public class MinimaxPlayer extends Player {
 		}
 	}
 
-	public static double utility(State s, boolean[] coalition) {
+	// cache
+	List<Set<Mission>> completedMissions;
+	// stack to keep track of claim undo info as we recurse
+	Deque<Set<Mission>> completions; 
+	
+	private void initializeCaches(State s) {
+		List<PlayerState> players = s.playerStates();
+		completedMissions = new ArrayList<Set<Mission>>(players.size());
+		for (PlayerState ps: players) {
+			Set<Mission> ms = EnumSet.noneOf(Mission.class);
+			for (Mission m: ps.missions) {
+				if (ps.missionCompleted(m))
+					ms.add(m);
+			}
+			completedMissions.set(ps.handle, ms);
+			
+		}
+		completions = new LinkedList<Set<Mission>>();
+	}
+
+	private void updateCaches(State s, Decision d, AppliedDecision ad) {
+		int player = d.player;
+		PlayerState ps = s.playerState(player);
+		Set<Mission> completedMissions = this.completedMissions.get(player);
+		if (d instanceof ClaimRailwayDecision) {
+			Railway r = ((ClaimRailwayDecision)d).railway;
+			Set<Mission> incompleteMissions = EnumSet.copyOf(ps.missions);
+			incompleteMissions.removeAll(completedMissions);
+			Set<Mission> completion = ps.missionsCompletedBy(r, incompleteMissions);
+			completedMissions.addAll(completion);
+			completions.push(completion);
+		} else if (d instanceof KeepMissionsDecision) {
+			for (Mission m: ((KeepMissionsDecision)d).missions) {
+				if (Util.shortestPath(m.source, m.destination, ps.railways, ps.railways) != null)
+					completedMissions.add(m);
+			}
+		}
+	}
+	
+	private void downdateCaches(State s, Decision d, AppliedDecision ad) {
+		int player = d.player;
+		Set<Mission> completedMissions = this.completedMissions.get(player);
+		if (d instanceof ClaimRailwayDecision) {
+			completedMissions.removeAll(completions.pop());
+		} else if (d instanceof KeepMissionsDecision) {
+			for (Mission m: ((KeepMissionsDecision)d).missions) {
+				if (completedMissions.contains(m))
+					completedMissions.remove(m);
+			}
+		}
+	}
+
+	public double utility(State s, boolean[] coalition) {
 		// advantage of coalition over opposition
 		int u = 0;
 		for (PlayerState ps: s.playerStates())
-			u += (coalition[ps.handle] ? 1 : -1) * ps.utility(s);
+			u += (coalition[ps.handle] ? 1 : -1) * utility(s, ps);
 		return u;
+	}
+
+	public double utility(State s, PlayerState ps) {
+		double u = 0.0;
+
+		Set<Railway> tree = Util.getSpanningTree(ps.missions, s.usableRailwaysFor(handle), s.playerState(handle).railways);
+		
+		// figure out to what extent the spanning tree has been completed
+		int length = 0;
+		int LENGTH = 0;
+		for (Railway r: tree) {
+			LENGTH += r.length;
+			if (ps.railways.contains(r))
+				length += r.length;
+		}
+		
+		// consider that the extent to which all missions are completed
+		int total_missions_value = 0;
+		for (Mission m: ps.missions)
+			total_missions_value += m.value;
+
+		u += total_missions_value * (length * 2.0 / LENGTH - 1);
+
+		int completed_score = 0;
+		Set<Mission> completedMissions = this.completedMissions.get(ps.handle);
+		for (Mission m: ps.missions)
+			completed_score += (completedMissions.contains(m) ? 1 : -1) * m.value;
+
+		return ps.score + completed_score + u + ps.hand.utilityAsHand();
 	}
 	
 	public double averageBranchingFactor() {

@@ -17,7 +17,6 @@ public class PlayerState implements Cloneable {
 	public int ncars = 45, score = 0;
 	public CardBag hand = new CardBag();
 	public Set<Mission> missions = EnumSet.noneOf(Mission.class);	
-	public Set<Mission> completedMissions = EnumSet.noneOf(Mission.class);
 	public Set<Railway> railways = EnumSet.noneOf(Railway.class);
 
 	// when ncars drops below this at the end of a player's turn, the game
@@ -35,7 +34,6 @@ public class PlayerState implements Cloneable {
 		that.score = this.score;
 		that.hand.addAll(this.hand);
 		that.missions.addAll(this.missions);
-		that.completedMissions.addAll(this.completedMissions);
 		that.railways.addAll(this.railways);
 		that.drawn_card = this.drawn_card;
 		that.drawn_missions = this.drawn_missions;
@@ -50,7 +48,6 @@ public class PlayerState implements Cloneable {
 		if (this.score != that.score) return false;
 		if (!this.hand.equals(that.hand)) return false;
 		if (!this.missions.equals(that.missions)) return false;
-		if (!this.completedMissions.equals(that.completedMissions)) return false;
 		if (!this.railways.equals(that.railways)) return false;
 		if (this.drawn_card != that.drawn_card) return false;
 		if (this.drawn_missions == null && that.drawn_missions != null) return false;
@@ -65,7 +62,7 @@ public class PlayerState implements Cloneable {
 	}
 
 	public boolean missionCompleted(Mission m) {
-		return completedMissions.contains(m);
+		return Util.shortestPath(m.source, m.destination, railways, railways) != null;
 	}
 	
 	public boolean almostOutOfCars() {
@@ -73,31 +70,20 @@ public class PlayerState implements Cloneable {
 	}
    
 	public int finalScore() {
+		int score = this.score;
+		for (Mission m: missions)
+			score += (missionCompleted(m) ? 1 : -1) * m.value;
 		return score;
 	}
 
-	// completedMissions undo info
-	Deque<Set<Mission>> completions = new LinkedList<Set<Mission>>();
-	
 	public void claim(Railway r) {
 		ncars -= r.length;
 		score += r.score();
-
-		Set<Mission> ms = missionsCompletedBy(r);
-		completedMissions.addAll(ms);
-		for (Mission m: ms)
-			score += 2 * m.value;
-		completions.push(ms);
 
 		railways.add(r);
 	}
 
 	public void unclaim(Railway r) {
-		Set<Mission> ms = completions.pop();
-		completedMissions.removeAll(ms);
-		for (Mission m: ms)
-			score -= 2 * m.value;
-
 		score -= r.score();
 		ncars += r.length;
 
@@ -106,25 +92,9 @@ public class PlayerState implements Cloneable {
 	
 	public void receiveMissions(Set<Mission> ms) {
 		missions.addAll(ms);
-		for (Mission m: ms) {
-			if (Util.shortestPath(m.source, m.destination, railways, railways) != null) {
-				completedMissions.add(m);
-				score += m.value;
-			} else {
-				score -= m.value;
-			}
-		}
 	}
 
 	public void unreceiveMissions(Set<Mission> ms) {
-		for (Mission m: ms) {
-			if (completedMissions.contains(m)) {
-				score -= m.value;
-				completedMissions.remove(m);
-			} else {
-				score += m.value;
-			}
-		}
 		missions.removeAll(ms);
 	}
 	
@@ -144,7 +114,7 @@ public class PlayerState implements Cloneable {
 	* of the two sets. Missions with both cities in one set were already
 	* completed. Missions with one city in neither set will not be completed.
 	*/
-	public Set<Mission> missionsCompletedBy(Railway r) {
+	public Set<Mission> missionsCompletedBy(Railway r, Set<Mission> missions) {
 		// cities already visited
 		Set<City> explored = EnumSet.noneOf(City.class);
 
@@ -158,8 +128,6 @@ public class PlayerState implements Cloneable {
 			return newly_completed_missions;
 
 		findMissions: for (Mission m: missions) {
-			if (missionCompleted(m))
-				continue;
 			for (City c1: cities1) {
 				if (!m.connects(c1))
 					continue;
@@ -197,27 +165,5 @@ public class PlayerState implements Cloneable {
 		for(Mission m : missions)
 			i += m.value;
 		return i;
-	}
-
-	public double utility(State s) {
-		if (s.gameOver()) return finalScore();
-
-		double u = 0.0;
-		Set<Railway> tree = Util.getSpanningTree(missions, s.usableRailwaysFor(handle), s.playerState(handle).railways);
-		int length = 0;
-		int LENGTH = 0;
-		for (Railway r: tree) {
-			LENGTH += r.length;
-			if (railways.contains(r))
-				length += r.length;
-		}
-		u += getMissionPoints() * (length * 2.0 / LENGTH - 1);
-		
-		int mPoints = 0;
-		if (missions.size() > 3) {
-			mPoints += 10*(missions.size()-3);
-		}
-		
-		return score + u + hand.utilityAsHand() - mPoints;
 	}
 }
