@@ -21,7 +21,7 @@ public class UncertainPlayer extends Player {
 	public static UncertainPlayer fromConfiguration(String configuration) {
 		String name = "uncertain";
 		int sample_size = -1;
-		int decision_time = 5;
+		int decision_time = 5000;
 		long seed = System.currentTimeMillis();
 		boolean verbose = true;
 
@@ -75,10 +75,28 @@ public class UncertainPlayer extends Player {
 	public Decision decideBySampling(State s) {
 		player.setVerbose(false);
 		player.setDecisionTime((int)Math.round(decision_time * 1.0 / sample_size));
-		
-		// TODO: gibbs sampling
-		
-		return null;
+
+		Map<Decision,double[]> evaluations = new LinkedHashMap<Decision,double[]>();
+		Set<Decision> decisions = s.allPossibleDecisions();
+		for (Decision d: decisions)
+			evaluations.put(d, new double[sample_size]);
+
+		for (int i = 0; i < sample_size; i++) {
+			State t = belief.sample(s);
+			for (EvaluatedDecision ed: player.evaluateDecisions(decisions, t))
+				evaluations.get(ed.decision)[i] = ed.utility;
+		}
+
+		Decision dbest = null;
+		double ubest = Double.NEGATIVE_INFINITY;
+		for (Map.Entry<Decision,double[]> entry: evaluations.entrySet()) {
+			double u = Util.mean(entry.getValue());
+			if (u > ubest) {
+				dbest = entry.getKey();
+				ubest = u;
+			}
+		}
+		return dbest;
 	}
 
 	@Override public double[] statistics() {

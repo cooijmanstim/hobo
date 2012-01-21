@@ -11,7 +11,7 @@ public class ParameterTuning {
 	}
 
 	public static void tuneMCTS() {
-		tuneByCrossEntropy(10, 10, 0.2, new double[]{ 15, 1, 70, 20, 2 }, new double[]{ 5, 1, 10, 5, 2 }, new Function<double[], Double>() {
+		tuneByCrossEntropy(5, 2, 8, new double[]{ 15, 1, 70, 20, 2 }, new double[]{ 5, 1, 10, 5, 2 }, new Function<double[], Double>() {
 			@Override public Double call(double[] xs) {
 				if (xs[0] < 0)
 					return Double.NEGATIVE_INFINITY;
@@ -22,28 +22,10 @@ public class ParameterTuning {
 					                  + " sigmoid_steepness:"+(1/xs[2])
 					                  + " alpha:"+(1/xs[3])
 					                  + " beta:"+xs[4]
-					                  + " strategic:false use_signum:false";
+					                  + " strategic:false use_signum:true";
 					Game g = new Game("verbose:false",
-					                  Player.fromConfiguration("montecarlo name:carlo verbose:false decision_time:1"+parameters),
-					                  Player.fromConfiguration("minimax    name:carlo verbose:false decision_time:1"));
-					g.play();
-					return 1.0 * Math.signum(g.state.aheadness(0));
-				} catch (Throwable t) {
-					t.printStackTrace();
-					return Double.NEGATIVE_INFINITY;
-				}
-			}
-		});
-	}
-	
-	public static void tuneMinimax() {
-		tuneByCrossEntropy(10, 10, 0.2, new double[]{ 1, 1, 1, 1, 1 }, new double[]{ 1, 1, 1, 1, 1 }, new Function<double[], Double>() {
-			@Override public Double call(double[] xs) {
-				try {
-					String parameters = " alpha:"+xs[0]+" beta:"+xs[1]+" gamma:"+xs[2]+" delta:"+xs[3]+" zeta:"+xs[4];
-					Game g = new Game("verbose:false",
-					                  Player.fromConfiguration("minimax    name:joshua verbose:false decision_time:1"+parameters),
-					                  Player.fromConfiguration("montecarlo name:carlo  verbose:false decision_time:1"));
+					                  Player.fromConfiguration("uncertain montecarlo verbose:false sample_size:3 decision_time:3000"+parameters),
+					                  Player.fromConfiguration("uncertain minimax    verbose:false sample_size:3 decision_time:3000"));
 					g.play();
 					return 1.0 * Math.signum(g.state.aheadness(0));
 				} catch (Throwable t) {
@@ -54,12 +36,30 @@ public class ParameterTuning {
 		});
 	}
 
-	public static void tuneByCrossEntropy(int population_size, int sample_size, double rho,
+	public static void tuneMinimax() {
+		tuneByCrossEntropy(5, 2, 8, new double[]{ 1, 1, 1, 1, 1 }, new double[]{ 1, 1, 1, 1, 1 }, new Function<double[], Double>() {
+			@Override public Double call(double[] xs) {
+				try {
+					String parameters = " alpha:"+xs[0]+" beta:"+xs[1]+" gamma:"+xs[2]+" delta:"+xs[3]+" zeta:"+xs[4];
+					Game g = new Game("verbose:false",
+					                  Player.fromConfiguration("uncertain minimax    verbose:false sample_size:3 decision_time:3000"+parameters),
+					                  Player.fromConfiguration("uncertain montecarlo verbose:false sample_size:3 decision_time:3000"));
+					g.play();
+					return 1.0 * Math.signum(g.state.aheadness(0));
+				} catch (Throwable t) {
+					t.printStackTrace();
+					return Double.NEGATIVE_INFINITY;
+				}
+			}
+		});
+	}
+
+	public static void tuneByCrossEntropy(int population_size, int selection_size, int sample_size,
 		                                  double[] initial_means, double[] initial_stdevs,
 		                                  Function<double[],Double> evaluation) {
 		final double alpha = 0.1;
 		double[] means = initial_means.clone(), stdevs = initial_stdevs.clone();
-		final int nvariables = means.length, elites_size = (int)Math.round(rho * population_size);
+		final int nvariables = means.length;
 
 		double[][] population = new double[population_size][nvariables];
 		
@@ -87,14 +87,14 @@ public class ParameterTuning {
 				}
 			});
 			
-			System.out.println("elites: ");
-			double[][] elites = new double[elites_size][nvariables];
-			for (int i = 0; i < elites_size; i++) {
-				elites[i] = population[permutation[i]];
-				System.out.println(evaluations[permutation[i]]+"\t"+Arrays.toString(elites[i]));
+			System.out.println("elites:");
+			double[][] selection = new double[selection_size][nvariables];
+			for (int i = 0; i < selection_size; i++) {
+				selection[i] = population[permutation[i]];
+				System.out.println("  "+evaluations[permutation[i]]+"\t"+Arrays.toString(selection[i]));
 			}
 
-			double[][] sampleT = Util.transpose(elites);
+			double[][] sampleT = Util.transpose(selection);
 			for (int i = 0; i < nvariables; i++) {
 				means [i] = alpha * Util.mean (sampleT[i]) + (1 - alpha) * means[i];
 				stdevs[i] = alpha * Util.stdev(sampleT[i]) + (1 - alpha) * stdevs[i];

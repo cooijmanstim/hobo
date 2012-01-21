@@ -33,7 +33,7 @@ public class MinimaxPlayer extends Player {
 		boolean best_reply = false;
 		boolean verbose = true;
 		int max_depth = 25;
-		int decision_time = 5;
+		int decision_time = 5000;
 		double alpha = 1, beta = 1, gamma = 1, delta = 1, zeta = 1;
 		
 		for (Map.Entry<String,String> entry: Util.parseConfiguration(configuration).entrySet()) {
@@ -101,7 +101,7 @@ public class MinimaxPlayer extends Player {
 			public void run() {
 				outOfTime = true;
 			}
-		}, decision_time * 1000);
+		}, decision_time);
 
 		EvaluatedDecision ed = null;
 		int depth = 0;
@@ -232,6 +232,68 @@ public class MinimaxPlayer extends Player {
 		}
 		total_nbranches_nterms++;
 		return new EvaluatedDecision(dbest, maximizing ? a : b);
+	}
+
+	// here be duplication, also s may be modified
+	@Override public Set<EvaluatedDecision> evaluateDecisions(Set<Decision> ds, State s) {
+		initializeCaches(s);
+		
+		outOfTime = false;
+		Timer t = new Timer();
+		t.schedule(new TimerTask() {
+			public void run() {
+				outOfTime = true;
+			}
+		}, decision_time);
+
+		Set<EvaluatedDecision> edsbest = null;
+		try {
+			for (int depth = 0; depth <= max_depth; depth++) {
+				Set<EvaluatedDecision> eds = new HashSet<EvaluatedDecision>(ds.size());
+
+				int ply = 0;
+				boolean[] coalition = selectCoalition(s);
+
+				for (Decision d: ds) {
+					// calculate expected value of all possible outcomes of the decision
+					double u = 0;
+					Object[] outcomes = d.outcomeDesignators(s);
+					for (int i = 0; i < outcomes.length; i++) {
+						AppliedDecision ad = d.apply(s, outcomes[i], true);
+
+						try {
+							updateCaches(s, d, ad);
+
+							// next ply if decision ended a turn
+							int newply = ply;
+							if (s.currentPlayer() != d.player)
+								newply++;
+
+							u += d.outcomeLikelihood(s, outcomes[i]) * minimax(s, depth, newply,
+							                                                   Double.NEGATIVE_INFINITY,
+							                                                   Double.POSITIVE_INFINITY,
+							                                                   coalition).utility;
+						} finally {
+							downdateCaches(s, d, ad);
+
+							// recursion might throw outoftime
+							ad.undo();
+						}
+		 			}
+					
+					eds.add(new EvaluatedDecision(d, u));
+				}
+
+				edsbest = eds;
+			}
+		} catch (OutOfTimeException e) {
+			if (verbose) System.out.println("out of time");
+		}
+
+		if (!outOfTime)
+			t.cancel();
+
+		return edsbest;
 	}
 
 	// decisions stored in the killer moves table should never be applied/undone

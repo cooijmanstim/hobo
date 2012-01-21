@@ -45,4 +45,8 @@ public abstract class Player {
 	}
 
 	public double[] statistics() { return null; };
+	
+	public Set<EvaluatedDecision> evaluateDecisions(Set<Decision> ds, State s) {
+		throw new RuntimeException();
+	}
 }

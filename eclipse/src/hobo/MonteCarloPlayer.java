@@ -9,16 +9,15 @@ public class MonteCarloPlayer extends Player {
 	// alpha is the sigmoid steepness for draw card probability in the playout
 	// beta is the exponent for the hand utility, to make the distribution more
 	// pronounced
-	private int decision_time, expansion_threshold, chance_node_width;
+	private int decision_time, expansion_threshold;
 	private double uct_weight, sigmoid_steepness, alpha, beta;
 	private boolean verbose, strategic, use_signum;
 	private final MersenneTwisterFast random;
 
-	public MonteCarloPlayer(String name, long seed, int decision_time, int expansion_threshold, int chance_node_width, double uct_weight, double sigmoid_steepness, double alpha, double beta, boolean verbose, boolean strategic, boolean use_signum) {
+	public MonteCarloPlayer(String name, long seed, int decision_time, int expansion_threshold, double uct_weight, double sigmoid_steepness, double alpha, double beta, boolean verbose, boolean strategic, boolean use_signum) {
 		this.name = name;
 		this.decision_time = decision_time;
 		this.expansion_threshold = expansion_threshold;
-		this.chance_node_width = chance_node_width;
 		this.uct_weight = uct_weight;
 		this.sigmoid_steepness = sigmoid_steepness;
 		this.alpha = alpha;
@@ -31,7 +30,7 @@ public class MonteCarloPlayer extends Player {
 	
 	public static MonteCarloPlayer fromConfiguration(String configuration) {
 		String name = "carlo";
-		int decision_time = 5, expansion_threshold = 10, chance_node_width = 10;
+		int decision_time = 5000, expansion_threshold = 10;
 		double uct_weight = 1, sigmoid_steepness = 25, alpha = 1/20.0, beta = 2;
 		boolean verbose = true, strategic = false, use_signum = true;
 		long seed = System.currentTimeMillis();
@@ -42,7 +41,6 @@ public class MonteCarloPlayer extends Player {
 			if (k.equals("seed"))                seed = Long.parseLong(v);
 			if (k.equals("decision_time"))       decision_time = Integer.parseInt(v);
 			if (k.equals("expansion_threshold")) expansion_threshold = Integer.parseInt(v);
-			if (k.equals("chance_node_width"))   chance_node_width = Integer.parseInt(v);
 			if (k.equals("uct_weight"))          uct_weight = Double.parseDouble(v);
 			if (k.equals("sigmoid_steepness"))   sigmoid_steepness = Double.parseDouble(v);
 			if (k.equals("alpha"))               alpha = Double.parseDouble(v);
@@ -52,7 +50,7 @@ public class MonteCarloPlayer extends Player {
 			if (k.equals("use_signum"))          use_signum = Boolean.parseBoolean(v);
 		}
 
-		return new MonteCarloPlayer(name, seed, decision_time, expansion_threshold, chance_node_width, uct_weight, sigmoid_steepness, alpha, beta, verbose, strategic, use_signum);
+		return new MonteCarloPlayer(name, seed, decision_time, expansion_threshold, uct_weight, sigmoid_steepness, alpha, beta, verbose, strategic, use_signum);
 	}
 	
 	@Override public void setDecisionTime(int decision_time) {
@@ -91,13 +89,18 @@ public class MonteCarloPlayer extends Player {
 		return tree.decide();
 	}
 
+	@Override public Set<EvaluatedDecision> evaluateDecisions(Set<Decision> ds, State s) {
+		Node tree = buildTree(s, ds);
+		return tree.evaluatedDecisions();
+	}
+
 	public Node buildTree(State s, Set<Decision> ds) {
 		outOfTime = false;
 		new Timer().schedule(new TimerTask() {
 			public void run() {
 				outOfTime = true;
 			}
-		}, decision_time * 1000);
+		}, decision_time);
 
 		int simulation_count = 0;
 		Node tree = new Node(false);
@@ -155,6 +158,16 @@ public class MonteCarloPlayer extends Player {
 				}
 			}
 			return dbest;
+		}
+
+		// return the evaluation of the top-level decisions
+		public Set<EvaluatedDecision> evaluatedDecisions() {
+			assert(!chance_node);
+
+			Set<EvaluatedDecision> eds = new HashSet<EvaluatedDecision>(children.size());
+			for (Map.Entry<Decision, Node> dn: children.entrySet())
+				eds.add(new EvaluatedDecision(dn.getKey(), dn.getValue().expectedValue()));
+			return eds;
 		}
 
 		public double expectedValue() {
