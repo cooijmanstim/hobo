@@ -20,8 +20,9 @@ public class ParameterTuning {
 		System.out.println("tuning "+(strategic ? "strategic" : "uniform")+" mcts");
 		tuneByCrossEntropy(5, 2, 8, new double[]{ 15, 1, 70, 20, 2 }, new double[]{ 5, 1, 10, 5, 2 }, new Function<double[], Double>() {
 			@Override public Double call(double[] xs) {
+				// xs[0] must be positive, so return something < -1
 				if (xs[0] < 0)
-					return Double.NEGATIVE_INFINITY;
+					return xs[0] - 1;
 
 				String parameters = " expansion_threshold:"+((int)Math.round(xs[0]))
 				                  + " uct_weight:"+xs[1]
