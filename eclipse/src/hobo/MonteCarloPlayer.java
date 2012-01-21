@@ -127,22 +127,15 @@ public class MonteCarloPlayer extends Player {
 		private Set<Decision> all_possible_decisions = null;
 		private Map<Decision,Node> children = null;
 
-		// for draw card nodes; use a limited number of seeds
-		private long[] seeds;
-		private Node[] outcomes;
+		// for chance nodes
+		private Object[] outcomes;
+		private double[] likelihoods;
+		private Node[] outcome_nodes;
 
 		public Node(boolean chance_node) {
 			this.chance_node = chance_node;
-
-			if (chance_node) {
-				seeds = new long[chance_node_width];
-				for (int i = 0; i < chance_node_width; i++)
-					// TODO: improve
-					seeds[i] = random.nextInt();
-				outcomes = new Node[chance_node_width];
-			} else {
-				children = new LinkedHashMap<Decision,Node>(100);
-			}
+			if (!chance_node)
+				children = new LinkedHashMap<Decision,Node>(100); // TODO: 100? really?
 		}
 
 		// pick the best decision after all the simulations are done
@@ -182,12 +175,12 @@ public class MonteCarloPlayer extends Player {
 			return n;
 		}
 		
-		public Node childFor(int seed_index) {
+		public Node childFor(int outcome_index) {
 			assert(chance_node);
-			Node n = outcomes[seed_index];
+			Node n = outcome_nodes[outcome_index];
 			if (n == null) {
 				n = new Node(false);
-				outcomes[seed_index] = n;
+				outcome_nodes[outcome_index] = n;
 			}
 			return n;
 		}
@@ -206,10 +199,34 @@ public class MonteCarloPlayer extends Player {
 			Decision dnext = null;
 
 			if (chance_node) {
-				int seed_index = random.nextInt(chance_node_width);
-				s.random.setSeed(seeds[seed_index]);
-				dprev.apply(s, false);
-				nnext = childFor(seed_index);
+				if (outcomes == null) {
+					outcomes = dprev.outcomeDesignators(s);
+					outcome_nodes = new Node[outcomes.length];
+					if (!(dprev instanceof DrawMissionsDecision)) {
+						likelihoods = new double[outcomes.length];
+						for (int i = 0; i < outcomes.length; i++)
+							likelihoods[i] = dprev.outcomeLikelihood(s, outcomes[i]);
+					}
+				}
+
+				int i;
+				// draw missions has a flat distribution, so we can select in O(1)
+				if (dprev instanceof DrawMissionsDecision) {
+					i = random.nextInt(outcomes.length);
+				} else {
+					double x = random.nextDouble();
+					for (i = 0; i < outcomes.length; i++) {
+						assert(0 <= likelihoods[i] && likelihoods[i] <= 1);
+						x -= likelihoods[i];
+						if (x < 0)
+							break;
+					}
+					if (x >= 0)
+						throw new RuntimeException();
+				}
+					
+				dprev.apply(s, outcomes[i], false);
+				nnext = childFor(i);
 				dnext = null;
 			} else {
 				if (dprev != null)
@@ -265,6 +282,7 @@ public class MonteCarloPlayer extends Player {
 
 		public int playout(State s, Decision dprev) {
 			s.random.setSeed(random.nextInt());
+			
 			if (dprev != null)
 				dprev.apply(s, false);
 

@@ -47,13 +47,20 @@ public class DrawMissionsDecision extends Decision {
 			nmss += Util.binomial_coefficient(k, n);
 		Object[] mss = new Object[nmss];
 
+		// I'm getting lazy
 		int imss = 0;
 		for (int i = 0; i < n; i++) {
-			mss[imss++] = EnumSet.of(ms[i]);
-			for (int j = i + 1; j < n; j++) {
-				mss[imss++] = EnumSet.of(ms[i], ms[j]);
-				for (int k = j + 1; k < n; k++) {
-					mss[imss++] = EnumSet.of(ms[i], ms[j], ms[k]);
+			if (n == 1) {
+				mss[imss++] = EnumSet.of(ms[i]);
+			} else {
+				for (int j = i + 1; j < n; j++) {
+					if (n == 2) {
+						mss[imss++] = EnumSet.of(ms[i], ms[j]);
+					} else {
+						for (int k = j + 1; k < n; k++) {
+							mss[imss++] = EnumSet.of(ms[i], ms[j], ms[k]);
+						}
+					}
 				}
 			}
 		}
@@ -62,9 +69,12 @@ public class DrawMissionsDecision extends Decision {
 	}
 	
 	@Override public double outcomeLikelihood(State s, Object mission_set) {
-		// assume mission_set valid draw from the deck
+		@SuppressWarnings("unchecked")
+		Set<Mission> ms = (Set<Mission>)mission_set;
 		int n = s.missions.size();
-		return 1.0 / (Util.binomial_coefficient(1, n) + Util.binomial_coefficient(2, n) + Util.binomial_coefficient(3, n));
+		int k = ms.size();
+		assert(0 < k && k <= 3 && k <= n);
+		return 1.0 / Util.binomial_coefficient(1, k);
 	}
 	
 	@Override public AppliedDecision apply(State s, Object forced_mission_set, boolean undoably) {
