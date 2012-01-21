@@ -9,15 +9,16 @@ public class MonteCarloPlayer extends Player {
 	// alpha is the sigmoid steepness for draw card probability in the playout
 	// beta is the exponent for the hand utility, to make the distribution more
 	// pronounced
-	private int decision_time, expansion_threshold;
+	private int decision_time, expansion_threshold, chance_node_width;
 	private double uct_weight, sigmoid_steepness, alpha, beta;
 	private boolean verbose, strategic, use_signum;
 	private final MersenneTwisterFast random;
 
-	public MonteCarloPlayer(String name, long seed, int decision_time, int expansion_threshold, double uct_weight, double sigmoid_steepness, double alpha, double beta, boolean verbose, boolean strategic, boolean use_signum) {
+	public MonteCarloPlayer(String name, long seed, int decision_time, int expansion_threshold, int chance_node_width, double uct_weight, double sigmoid_steepness, double alpha, double beta, boolean verbose, boolean strategic, boolean use_signum) {
 		this.name = name;
 		this.decision_time = decision_time;
 		this.expansion_threshold = expansion_threshold;
+		this.chance_node_width = chance_node_width;
 		this.uct_weight = uct_weight;
 		this.sigmoid_steepness = sigmoid_steepness;
 		this.alpha = alpha;
@@ -30,7 +31,7 @@ public class MonteCarloPlayer extends Player {
 	
 	public static MonteCarloPlayer fromConfiguration(String configuration) {
 		String name = "carlo";
-		int decision_time = 5, expansion_threshold = 10;
+		int decision_time = 5, expansion_threshold = 10, chance_node_width = 10;
 		double uct_weight = 1, sigmoid_steepness = 25, alpha = 1/20.0, beta = 2;
 		boolean verbose = true, strategic = false, use_signum = true;
 		long seed = System.currentTimeMillis();
@@ -41,6 +42,7 @@ public class MonteCarloPlayer extends Player {
 			if (k.equals("seed"))                seed = Long.parseLong(v);
 			if (k.equals("decision_time"))       decision_time = Integer.parseInt(v);
 			if (k.equals("expansion_threshold")) expansion_threshold = Integer.parseInt(v);
+			if (k.equals("chance_node_width"))   chance_node_width = Integer.parseInt(v);
 			if (k.equals("uct_weight"))          uct_weight = Double.parseDouble(v);
 			if (k.equals("sigmoid_steepness"))   sigmoid_steepness = Double.parseDouble(v);
 			if (k.equals("alpha"))               alpha = Double.parseDouble(v);
@@ -50,7 +52,7 @@ public class MonteCarloPlayer extends Player {
 			if (k.equals("use_signum"))          use_signum = Boolean.parseBoolean(v);
 		}
 
-		return new MonteCarloPlayer(name, seed, decision_time, expansion_threshold, uct_weight, sigmoid_steepness, alpha, beta, verbose, strategic, use_signum);
+		return new MonteCarloPlayer(name, seed, decision_time, expansion_threshold, chance_node_width, uct_weight, sigmoid_steepness, alpha, beta, verbose, strategic, use_signum);
 	}
 	
 	@Override public void setDecisionTime(int decision_time) {
@@ -103,12 +105,12 @@ public class MonteCarloPlayer extends Player {
 		}, decision_time * 1000);
 
 		int simulation_count = 0;
-		Node tree = new Node();
+		Node tree = new Node(false);
 		// ds is for speed only
 		if (ds != null)
 			tree.all_possible_decisions = ds;
 		while (!outOfTime) {
-			tree.populate(s.clone());
+			tree.populate(s.clone(), null);
 			total_nsimulations++;
 			simulation_count++;
 		}
@@ -122,82 +124,36 @@ public class MonteCarloPlayer extends Player {
 	private class Node {
 		private int visit_count = 0;
 		private int total_value = 0;
+
+		private boolean chance_node;
+
+		// for decision nodes
 		private boolean fully_expanded = false;
-
 		private Set<Decision> all_possible_decisions = null;
-		private final Map<Decision,Node> children = new LinkedHashMap<Decision,Node>(100);
+		private Map<Decision,Node> children = null;
 
-		public Node() {}
+		// for draw card nodes; use a limited number of seeds
+		private long[] seeds;
+		private Node[] outcomes;
 
-		public double expectedValue() {
-			double ev = total_value * 1.0 / visit_count;
-			if (!use_signum)
-				ev = Util.logsig(sigmoid_steepness * ev);
-			return ev;
+		public Node(boolean chance_node) {
+			this.chance_node = chance_node;
+
+			if (chance_node) {
+				seeds = new long[chance_node_width];
+				for (int i = 0; i < chance_node_width; i++)
+					// TODO: improve
+					seeds[i] = random.nextInt();
+				outcomes = new Node[chance_node_width];
+			} else {
+				children = new LinkedHashMap<Decision,Node>(100);
+			}
 		}
 
-		public Node childFor(Decision d) {
-			Node n = children.get(d);
-			if (n == null) {
-				n = new Node();
-				children.put(d, n);
-			}
-			return n;
-		}
-		
-		public void fullyExpand() {
-			for (Decision d: all_possible_decisions)
-				childFor(d);
-			fully_expanded = true;
-		}
-		
-		public void printStatistics() {
-			int count = 0;
-			double total = 0, min = Double.POSITIVE_INFINITY, max = Double.NEGATIVE_INFINITY;
-			for (Node n: children.values()) {
-				// expectedValue will be NaN
-				if (n.visit_count == 0)
-					continue;
-				double u = n.expectedValue();
-				
-				total += u;
-				count++;
-				
-				min = Math.min(min, u);
-				max = Math.max(max, u);
-			}
-			double mean = total / count, variance = 0;
-			for (Node n: children.values()) {
-				// expectedValue will be NaN
-				if (n.visit_count == 0)
-					continue;
-				double u = n.expectedValue();
-				
-				variance += Math.pow(u - mean, 2);
-			}
-			List<Map.Entry<Decision,Node>> dns = new ArrayList<Map.Entry<Decision,Node>>(children.entrySet());
-			// zzzzzzz <<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-			Iterator<Map.Entry<Decision,Node>> idns = dns.iterator();
-			// I HATE THIS CODE!  I HATE JAVA!
-			while (idns.hasNext()) {
-				Map.Entry<Decision,Node> dn = idns.next();
-				if (Double.isNaN(dn.getValue().expectedValue()))
-					idns.remove();
-			}
-			Collections.sort(dns, new Comparator<Map.Entry<Decision,Node>>() {
-				public int compare(Map.Entry<Decision,Node> a, Map.Entry<Decision,Node> b) {
-					// AUGH,   URRGHLL
-					return -Double.compare(a.getValue().expectedValue(), b.getValue().expectedValue());
-				}
-			});
-			System.out.println("up to 10 best: ");
-			for (Map.Entry<Decision,Node> dn: dns.subList(0, Math.min(10, /* nyarrr */ dns.size()))) {
-				System.out.println(dn.getValue().expectedValue()+"\t"+dn.getValue().visit_count+" visits\t"+dn.getKey());
-			}
-			System.out.println("count "+count+" min "+min+" max "+max+" mean "+mean+" stdev "+Math.sqrt(variance));
-		}
-		
+		// pick the best decision after all the simulations are done
 		public Decision decide() {
+			assert(!chance_node);
+
 			double ubest = Double.NEGATIVE_INFINITY;
 			Decision dbest = null;
 			for (Map.Entry<Decision,Node> dn: children.entrySet()) {
@@ -212,67 +168,109 @@ public class MonteCarloPlayer extends Player {
 			}
 			return dbest;
 		}
-		
+
+		// return the evaluation of the top-level decisions
 		public Set<EvaluatedDecision> evaluatedDecisions() {
+			assert(!chance_node);
+
 			Set<EvaluatedDecision> eds = new HashSet<EvaluatedDecision>(children.size());
 			for (Map.Entry<Decision, Node> dn: children.entrySet())
 				eds.add(new EvaluatedDecision(dn.getKey(), dn.getValue().expectedValue()));
 			return eds;
 		}
 
-		public int populate(State s) {
-			// cache all possible decisions
-			if (all_possible_decisions == null && !fully_expanded)
-				all_possible_decisions = s.allPossibleDecisions();
-			// ensure cache is correct
-			//if (all_possible_decisions != null)
-			//	assert(all_possible_decisions.equals(s.allPossibleDecisions()));
+		public double expectedValue() {
+			double ev = total_value * 1.0 / visit_count;
+			if (!use_signum)
+				ev = Util.logsig(sigmoid_steepness * ev);
+			return ev;
+		}
+		
+		// get or create child node
+		public Node childFor(Decision d) {
+			assert(!chance_node);
+			Node n = children.get(d);
+			if (n == null) {
+				n = new Node(d instanceof DrawCardDecision || d instanceof DrawMissionsDecision);
+				children.put(d, n);
+			}
+			return n;
+		}
+		
+		public Node childFor(int seed_index) {
+			assert(chance_node);
+			Node n = outcomes[seed_index];
+			if (n == null) {
+				n = new Node(false);
+				outcomes[seed_index] = n;
+			}
+			return n;
+		}
+		
+		public void fullyExpand() {
+			assert(!chance_node);
+			for (Decision d: all_possible_decisions)
+				childFor(d);
+			fully_expanded = true;
+			all_possible_decisions = null;
+		}
 
-			if (visit_count >= expansion_threshold)
-				fullyExpand();
-			
-			int value;
-			if (fully_expanded) {
-				// 2 players or fully paranoid
-				boolean maximizing = s.currentPlayer() == handle;
-				
-				Node nbest = null;
-				Decision dbest = null;
-				double ubest = Double.NEGATIVE_INFINITY;
-				for (Map.Entry<Decision,Node> dn: children.entrySet()) {
-					Decision d = dn.getKey();
-					Node n = dn.getValue();
+		// select, expand
+		public int populate(State s, Decision dprev) {
+			Node nnext = null;
+			Decision dnext = null;
 
-					double u;
-					if (n.visit_count == 0) {
-						// division by zero results in NaN, not infinity
-						u = Double.POSITIVE_INFINITY;
-					} else {
-						double eu = n.expectedValue();
-						u = (maximizing ? 1 : -1) * eu;
-						u += 2 * uct_weight * Math.sqrt(Math.log(visit_count) / n.visit_count); // UCT
-					}
-
-					if (Double.isNaN(u) || u > ubest) {
-						ubest = u;
-						dbest = d;
-						nbest = n;
-					}
-				}
-				dbest.apply(s, false);
-				value = nbest.populate(s);
+			if (chance_node) {
+				int seed_index = random.nextInt(chance_node_width);
+				s.random.setSeed(seeds[seed_index]);
+				dprev.apply(s, false);
+				nnext = childFor(seed_index);
+				dnext = null;
 			} else {
-				Decision d = sample(all_possible_decisions, s);
-				d.apply(s, false);
-				Node n = childFor(d);
-				if (n.visit_count == 0) {
-					// new node, play it out
-					value = n.playout(s);
+				if (dprev != null)
+					dprev.apply(s, false);
+
+				// cache possible decisions
+				if (all_possible_decisions == null && !fully_expanded)
+					all_possible_decisions = s.allPossibleDecisions();
+
+				if (visit_count >= expansion_threshold && !fully_expanded)
+					fullyExpand();
+
+				if (fully_expanded) {
+					// 2 players or fully paranoid
+					boolean maximizing = s.currentPlayer() == handle;
+
+					double ubest = Double.NEGATIVE_INFINITY;
+					for (Map.Entry<Decision,Node> dn: children.entrySet()) {
+						Decision d = dn.getKey();
+						Node n = dn.getValue();
+
+						double u;
+						if (n.visit_count == 0) {
+							// division by zero results in NaN, not infinity
+							u = Double.POSITIVE_INFINITY;
+						} else {
+							double eu = n.expectedValue();
+							u = (maximizing ? 1 : -1) * eu;
+							u += 2 * uct_weight * Math.sqrt(Math.log(visit_count) / n.visit_count); // UCT
+						}
+
+						if (Double.isNaN(u) || u > ubest) {
+							ubest = u;
+							dnext = d;
+							nnext = n;
+						}
+					}
 				} else {
-					// existing node, search further
-					value = n.populate(s);
+					dnext = sample(all_possible_decisions, s);
+					nnext = childFor(dnext);
 				}
 			}
+
+			// if visit count is zero, we created our new node for this simulation,
+			// so do a playout and be done with it.  otherwise select/expand further.
+			int value = nnext.visit_count == 0 ? nnext.playout(s, dnext) : nnext.populate(s, dnext);
 
 			total_value += value;
 			visit_count++;
@@ -280,7 +278,11 @@ public class MonteCarloPlayer extends Player {
 			return value;
 		}
 
-		public int playout(State s) {
+		public int playout(State s, Decision dprev) {
+			s.random.setSeed(random.nextInt());
+			if (dprev != null)
+				dprev.apply(s, false);
+
 			while (!s.gameOver()) {
 				Decision d = chooseDecision(s);
 				d.apply(s, false);
@@ -294,10 +296,13 @@ public class MonteCarloPlayer extends Player {
 			return value;
 		}
 
+
+		// playout strategy
 		public Decision chooseDecision(State s) {
-			PlayerState ps = s.currentPlayerState();
 			if (!strategic)
 				return Util.sample(s.allPossibleDecisions(), random);
+			
+			PlayerState ps = s.currentPlayerState();
 			Set<Decision> ds = new LinkedHashSet<Decision>(50);
 			if (ps.drawn_card != null) {
 				ds = DrawCardDecision.availableTo(s, ps, ds);
@@ -376,6 +381,54 @@ public class MonteCarloPlayer extends Player {
 		
 		@Override public String toString() {
 			return "Node(visit_count: "+visit_count+" total_value: "+total_value+" expected_value: "+expectedValue()+" fully_expanded: "+fully_expanded+" children: "+children+")";
+		}
+		
+		public void printStatistics() {
+			assert(!chance_node);
+			
+			int count = 0;
+			double total = 0, min = Double.POSITIVE_INFINITY, max = Double.NEGATIVE_INFINITY;
+			for (Node n: children.values()) {
+				// expectedValue will be NaN
+				if (n.visit_count == 0)
+					continue;
+				double u = n.expectedValue();
+				
+				total += u;
+				count++;
+				
+				min = Math.min(min, u);
+				max = Math.max(max, u);
+			}
+			double mean = total / count, variance = 0;
+			for (Node n: children.values()) {
+				// expectedValue will be NaN
+				if (n.visit_count == 0)
+					continue;
+				double u = n.expectedValue();
+				
+				variance += Math.pow(u - mean, 2);
+			}
+			List<Map.Entry<Decision,Node>> dns = new ArrayList<Map.Entry<Decision,Node>>(children.entrySet());
+			// zzzzzzz <<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+			Iterator<Map.Entry<Decision,Node>> idns = dns.iterator();
+			// I HATE THIS CODE!  I HATE JAVA!
+			while (idns.hasNext()) {
+				Map.Entry<Decision,Node> dn = idns.next();
+				if (Double.isNaN(dn.getValue().expectedValue()))
+					idns.remove();
+			}
+			Collections.sort(dns, new Comparator<Map.Entry<Decision,Node>>() {
+				public int compare(Map.Entry<Decision,Node> a, Map.Entry<Decision,Node> b) {
+					// AUGH,   URRGHLL
+					return -Double.compare(a.getValue().expectedValue(), b.getValue().expectedValue());
+				}
+			});
+			System.out.println("up to 10 best: ");
+			for (Map.Entry<Decision,Node> dn: dns.subList(0, Math.min(10, /* nyarrr */ dns.size()))) {
+				System.out.println(dn.getValue().expectedValue()+"\t"+dn.getValue().visit_count+" visits\t"+dn.getKey());
+			}
+			System.out.println("count "+count+" min "+min+" max "+max+" mean "+mean+" stdev "+Math.sqrt(variance));
 		}
 	}
 }
