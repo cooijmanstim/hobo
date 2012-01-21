@@ -72,9 +72,9 @@ public class DrawCardDecision extends Decision {
 		return s.deck.availableColors();
 	}
 	
-	@Override public double outcomeLikelihood(State s, Object color) {
+	@Override public double outcomeLikelihood(State s, Object forced_color) {
 		if (color != null) return 1;
-		return s.deck.count((Color)color) * 1.0 / s.deck.size();
+		return s.deck.count((Color)forced_color) * 1.0 / s.deck.size();
 	}
 
 	@Override public AppliedDecision apply(State s, Object forced_color, boolean undoably) {
