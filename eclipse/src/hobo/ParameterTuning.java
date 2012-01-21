@@ -16,45 +16,38 @@ public class ParameterTuning {
 	}
 
 	public static void tuneMCTS() {
+		final boolean strategic = false;
+		System.out.println("tuning "+(strategic ? "strategic" : "uniform")+" mcts");
 		tuneByCrossEntropy(5, 2, 8, new double[]{ 15, 1, 70, 20, 2 }, new double[]{ 5, 1, 10, 5, 2 }, new Function<double[], Double>() {
 			@Override public Double call(double[] xs) {
 				if (xs[0] < 0)
 					return Double.NEGATIVE_INFINITY;
 
-				try {
-					String parameters = " expansion_threshold:"+((int)Math.round(xs[0]))
-					                  + " uct_weight:"+xs[1]
-					                  + " sigmoid_steepness:"+(1/xs[2])
-					                  + " alpha:"+(1/xs[3])
-					                  + " beta:"+xs[4]
-					                  + " strategic:false use_signum:true";
-					Game g = new Game("verbose:false",
-					                  Player.fromConfiguration("uncertain montecarlo verbose:false sample_size:3 decision_time:3000"+parameters),
-					                  Player.fromConfiguration("uncertain minimax    verbose:false sample_size:3 decision_time:3000"));
-					g.play();
-					return 1.0 * Math.signum(g.state.aheadness(0));
-				} catch (Throwable t) {
-					t.printStackTrace();
-					return Double.NEGATIVE_INFINITY;
-				}
+				String parameters = " expansion_threshold:"+((int)Math.round(xs[0]))
+				                  + " uct_weight:"+xs[1]
+				                  + " sigmoid_steepness:"+(1/xs[2])
+				                  + " alpha:"+(1/xs[3])
+				                  + " beta:"+xs[4]
+				                  + " strategic:"+strategic+" use_signum:true";
+				Game g = new Game("verbose:false",
+				                  Player.fromConfiguration("uncertain montecarlo verbose:false sample_size:3 decision_time:3000"+parameters),
+				                  Player.fromConfiguration("uncertain minimax    verbose:false sample_size:3 decision_time:3000"));
+				g.play();
+				return 1.0 * Math.signum(g.state.aheadness(0));
 			}
 		});
 	}
 
 	public static void tuneMinimax() {
+		System.out.println("tuning minimax");
 		tuneByCrossEntropy(5, 2, 8, new double[]{ 1, 1, 1, 1, 1 }, new double[]{ 1, 1, 1, 1, 1 }, new Function<double[], Double>() {
 			@Override public Double call(double[] xs) {
-				try {
-					String parameters = " alpha:"+xs[0]+" beta:"+xs[1]+" gamma:"+xs[2]+" delta:"+xs[3]+" zeta:"+xs[4];
-					Game g = new Game("verbose:false",
-					                  Player.fromConfiguration("uncertain minimax    verbose:false sample_size:3 decision_time:3000"+parameters),
-					                  Player.fromConfiguration("uncertain montecarlo verbose:false sample_size:3 decision_time:3000"));
-					g.play();
-					return 1.0 * Math.signum(g.state.aheadness(0));
-				} catch (Throwable t) {
-					t.printStackTrace();
-					return Double.NEGATIVE_INFINITY;
-				}
+				String parameters = " alpha:"+xs[0]+" beta:"+xs[1]+" gamma:"+xs[2]+" delta:"+xs[3]+" zeta:"+xs[4];
+				Game g = new Game("verbose:false",
+				                  Player.fromConfiguration("uncertain minimax    verbose:false sample_size:3 decision_time:3000"+parameters),
+				                  Player.fromConfiguration("uncertain montecarlo verbose:false sample_size:3 decision_time:3000"));
+				g.play();
+				return 1.0 * Math.signum(g.state.aheadness(0));
 			}
 		});
 	}
@@ -68,6 +61,7 @@ public class ParameterTuning {
 		final int nvariables = means.length;
 
 		final double[][] population = new double[population_size][nvariables];
+		final long[] failures_and_tries = new long[2];
 
 		ExecutorService pool = Executors.newFixedThreadPool(nthreads);
 		
@@ -97,6 +91,8 @@ public class ParameterTuning {
 			for (int i = 0; i < population_size; i++) {
 				for (int k = 0; k < sample_size; k++) {
 					try {
+						failures_and_tries[1]++;
+
 						while (true) {
 							try {
 								evaluations[i] = ((Future<Double>)future_evaluations[i]).get();
@@ -106,6 +102,10 @@ public class ParameterTuning {
 							}
 						}
 					} catch (ExecutionException e) {
+						e.printStackTrace();
+						failures_and_tries[0]++;
+						if (failures_and_tries[1] > 100 && failures_and_tries[0] * 1.0 / failures_and_tries[1] > 0.5)
+							throw new RuntimeException("too many failures -- something is wrong", e);
 						evaluations[i] = Double.NEGATIVE_INFINITY;
 					}
 				}
