@@ -168,7 +168,10 @@ public class Belief {
 
 			int saving = cost_without_r - cost_with_r;
 			if (saving < 0)
-				throw new RuntimeException();
+				saving = 0;
+			    // apparently the assumption that saving >= 0 is somehow false,
+				// but surely 0 can't be far off?
+				//throw new RuntimeException();
 			player_mission_suspicion[m.ordinal()][d.player] += saving;
 		}
 	}

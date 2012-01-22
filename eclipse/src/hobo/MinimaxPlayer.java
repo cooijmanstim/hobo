@@ -34,7 +34,7 @@ public class MinimaxPlayer extends Player {
 		boolean verbose = true;
 		int max_depth = 25;
 		int decision_time = 5000;
-		double alpha = 1, beta = 1, gamma = 1, delta = 1, zeta = 1;
+		double alpha = 1, beta = 1, gamma = 1, delta = 10, zeta = 1;
 		
 		for (Map.Entry<String,String> entry: Util.parseConfiguration(configuration).entrySet()) {
 			String k = entry.getKey(), v = entry.getValue();
@@ -403,6 +403,14 @@ public class MinimaxPlayer extends Player {
 	}
 
 	public double utility(State s, PlayerState ps) {
+		// compute real score
+		int score = ps.score;
+		Set<Mission> completedMissions = this.completedMissions.get(ps.handle);
+		for (Mission m: ps.missions)
+			score += (completedMissions.contains(m) ? 1 : -1) * m.value;
+				
+		if (s.gameOver()) return score;
+
 		Set<Railway> tree = Util.getSpanningTree(ps.missions, s.usableRailwaysFor(handle), s.playerState(handle).railways);
 		
 		// figure out to what extent the spanning tree has been completed
@@ -420,12 +428,6 @@ public class MinimaxPlayer extends Player {
 			total_missions_value += m.value;
 
 		double plan_score = total_missions_value * (length * 2.0 / LENGTH - 1);
-
-		// compute real score
-		int score = ps.score;
-		Set<Mission> completedMissions = this.completedMissions.get(ps.handle);
-		for (Mission m: ps.missions)
-			score += (completedMissions.contains(m) ? 1 : -1) * m.value;
 
 		// also reward a good hand and punish missions
 		return alpha * score + beta * plan_score + gamma * ps.hand.utilityAsHand() - delta * Math.pow(ps.missions.size(), zeta);

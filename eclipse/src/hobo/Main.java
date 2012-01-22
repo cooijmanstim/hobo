@@ -79,8 +79,8 @@ public class Main {
 				
 				final JTextField[] fields = {
 					new JTextField("seed:0"),
-					new JTextField("uncertain montecarlo name:carlo sample_size:-1 strategic:false decision_time:5000"),
-					new JTextField("uncertain minimax name:joshua sample_size:-1 decision_time:5000"),
+					new JTextField("uncertain montecarlo name:carlo sample_size:3 strategic:true decision_time:6000"),
+					new JTextField("uncertain minimax name:joshua sample_size:3 decision_time:6000"),
 					new JTextField(""),
 					new JTextField(""),
 					new JTextField(""),
