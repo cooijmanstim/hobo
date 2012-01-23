@@ -1,17 +1,25 @@
 package hobo;
 
 import java.util.Arrays;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class Tournament {
+	public static void main(String[] args) {
+		play();
+	}
+	
+	private static final int nthreads = 2;
+
 	public static void play() {
-		String common_configuration = "verbose:false decision_time:1";
-		String[] player_configurations = {
-				// TODO: use the tuned parameters for each combination of strategic and use_signum in here
-				"montecarlo strategic:false use_signum:false expansion_threshold:10 uct_weight:1 sigmoid_steepness:"+(1.0/70),
-				"montecarlo strategic:false use_signum:true  expansion_threshold:10 uct_weight:1",
-				"montecarlo strategic:true  use_signum:false expansion_threshold:10 uct_weight:1 sigmoid_steepness:"+(1.0/70)+" alpha:"+(1.0/20),
-				"montecarlo strategic:true  use_signum:true  expansion_threshold:10 uct_weight:1 alpha:"+(1.0/20),
-				"minimax",
+		final String common_configuration = "verbose:false sample_size:3 decision_time:3000";
+		final String[] player_configurations = {
+				"montecarlo strategic:false use_signum:true expansion_threshold:10 uct_weight:1",
+				"montecarlo strategic:true  use_signum:true expansion_threshold:10 uct_weight:1 alpha:"+(1.0/20)+" beta:2",
+				"minimax alpha:1 beta:1 gamma:1 delta:10 zeta:1",
 		};
 
 		System.out.println("configurations:");
@@ -20,25 +28,56 @@ public class Tournament {
 			System.out.println(i+": "+player_configurations[i]);
 		}
 
+		int npairs = (int)Util.binomial_coefficient(2, player_configurations.length);
+		final long[] failures_and_tries = new long[2];
+		ExecutorService pool = Executors.newFixedThreadPool(nthreads);
+
+		int round = 0;
+
 		System.out.println("results:");
 		while (true) {
-			for (int i = 0; i < player_configurations.length; i++) {
-				for (int j = i; j < player_configurations.length; j++) {
-					try {
-						Player a = Player.fromConfiguration(player_configurations[i]),
-						       b = Player.fromConfiguration(player_configurations[j]);
-						Game g = new Game("verbose:false", a, b);
-						g.play();
-						// format: two lines per game
-						// i {-1,0,1} j a.stats
-						// j {-1,0,1} i b.stats
-						int w = (int)Math.signum(g.state.aheadness(0));
-						System.out.println(i+" "+(+w)+" "+j+" "+Arrays.toString(a.statistics()));
-						System.out.println(j+" "+(-w)+" "+i+" "+Arrays.toString(b.statistics()));
-					} catch (Throwable t) {
-						t.printStackTrace();
+			System.out.println("round "+round);
+			round++;
+
+			Object[] future_logs = new Object[npairs];
+
+			try {
+				int m = 0;
+				for (int i = 0; i < player_configurations.length; i++) {
+					for (int j = i + 1; j < player_configurations.length; j++) {
+						failures_and_tries[1]++;
+
+						final int k = i, l = j;
+						future_logs[m++] = pool.submit(new Callable<String>() {
+							@Override public String call() {
+								Player a = Player.fromConfiguration(player_configurations[k]),
+								       b = Player.fromConfiguration(player_configurations[l]);
+								Game g = new Game("verbose:false", a, b);
+								g.play();
+								// line format: k l {-1,0,1} [a.stats...] [b.stats...]
+								int w = (int)Math.signum(g.state.aheadness(0));
+								return k+" "+l+" "+(+w)+" "+Arrays.toString(a.statistics())+" "+Arrays.toString(b.statistics());
+							}
+						});
 					}
 				}
+				
+				for (m = 0; m < npairs; m++) {
+					while (true) {
+						try {
+							String log = ((Future<String>)future_logs[m]).get();
+							System.out.println(log);
+							break;
+						} catch (InterruptedException e) {
+							continue;
+						}
+					}
+				}
+			} catch (ExecutionException e) {
+				e.printStackTrace();
+				failures_and_tries[0]++;
+				if (failures_and_tries[1] > 100 && failures_and_tries[0] * 1.0 / failures_and_tries[1] > 0.5)
+					throw new RuntimeException("too many failures -- something is wrong", e);
 			}
 		}
 	}
