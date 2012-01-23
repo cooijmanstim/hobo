@@ -34,7 +34,7 @@ public class MinimaxPlayer extends Player {
 		boolean verbose = true;
 		int max_depth = 25;
 		int decision_time = 5000;
-		double alpha = 1, beta = 1, gamma = 1, delta = 1, zeta = 2;
+		double alpha = 2, beta = 1, gamma = 1, delta = 1, zeta = 2;
 		
 		for (Map.Entry<String,String> entry: Util.parseConfiguration(configuration).entrySet()) {
 			String k = entry.getKey(), v = entry.getValue();

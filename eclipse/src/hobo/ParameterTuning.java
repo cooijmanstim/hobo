@@ -41,7 +41,7 @@ public class ParameterTuning {
 
 	public static void tuneMinimax() {
 		System.out.println("tuning minimax");
-		tuneByCrossEntropy(5, 2, 8, new double[]{ 1, 1, 1, 1, 1 }, new double[]{ 1, 1, 1, 1, 1 }, new Function<double[], Double>() {
+		tuneByCrossEntropy(5, 2, 8, new double[]{ 2, 1, 1, 1, 2 }, new double[]{ 1, 1, 1, 1, 1 }, new Function<double[], Double>() {
 			@Override public Double call(double[] xs) {
 				String parameters = " alpha:"+xs[0]+" beta:"+xs[1]+" gamma:"+xs[2]+" delta:"+xs[3]+" zeta:"+xs[4];
 				Game g = new Game("verbose:false",
