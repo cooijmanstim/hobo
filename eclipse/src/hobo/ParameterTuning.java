@@ -121,12 +121,16 @@ public class ParameterTuning {
 					return -Double.compare(evaluations[a], evaluations[b]);
 				}
 			});
+
+			System.out.println("population:");
+			for (int i = 0; i < population_size; i++) {
+				int j = permutation[i];
+				System.out.println("  "+evaluations[j]+"\t"+Arrays.toString(population[j]));
+			}
 			
-			System.out.println("elites:");
 			double[][] selection = new double[selection_size][nvariables];
 			for (int i = 0; i < selection_size; i++) {
 				selection[i] = population[permutation[i]];
-				System.out.println("  "+evaluations[permutation[i]]+"\t"+Arrays.toString(selection[i]));
 			}
 
 			double[][] sampleT = Util.transpose(selection);
