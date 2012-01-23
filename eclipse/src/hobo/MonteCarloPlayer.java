@@ -91,6 +91,7 @@ public class MonteCarloPlayer extends Player {
 
 	@Override public Set<EvaluatedDecision> evaluateDecisions(Set<Decision> ds, State s) {
 		Node tree = buildTree(s, ds);
+		total_ndecisions++;
 		return tree.evaluatedDecisions();
 	}
 

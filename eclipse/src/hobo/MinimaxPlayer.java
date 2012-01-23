@@ -116,7 +116,7 @@ public class MinimaxPlayer extends Player {
 		} catch (OutOfTimeException e) {
 			if (verbose) System.out.println("out of time");
 		} finally {
-			total_depth += depth;
+			total_depth += depth - 1;
 			total_depth_nterms++;
 		}
 		
@@ -247,8 +247,9 @@ public class MinimaxPlayer extends Player {
 		}, decision_time);
 
 		Set<EvaluatedDecision> edsbest = null;
+		int depth = 0;
 		try {
-			for (int depth = 0; depth <= max_depth; depth++) {
+			for (depth = 0; depth <= max_depth; depth++) {
 				Set<EvaluatedDecision> eds = new HashSet<EvaluatedDecision>(ds.size());
 
 				int ply = 0;
@@ -288,11 +289,15 @@ public class MinimaxPlayer extends Player {
 			}
 		} catch (OutOfTimeException e) {
 			if (verbose) System.out.println("out of time");
+		} finally {
+			total_depth += depth - 1;
+			total_depth_nterms++;
 		}
 
 		if (!outOfTime)
 			t.cancel();
 
+		total_ndecisions++;
 		return edsbest;
 	}
 
