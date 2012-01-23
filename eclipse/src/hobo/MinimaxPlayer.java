@@ -433,9 +433,13 @@ public class MinimaxPlayer extends Player {
 			total_missions_value += m.value;
 
 		double plan_score = total_missions_value * (length * 2.0 / LENGTH - 1);
+				
+		int nmissions = ps.missions.size();
+		if (ps.drawn_missions != null)
+			nmissions += ps.drawn_missions.size();
 
 		// also reward a good hand and punish missions
-		return alpha * score + beta * plan_score + gamma * ps.hand.utilityAsHand() - delta * Math.pow(ps.missions.size(), zeta);
+		return alpha * score + beta * plan_score + gamma * ps.hand.utilityAsHand() - delta * Math.pow(nmissions, zeta);
 	}
 	
 	public double averageBranchingFactor() {
