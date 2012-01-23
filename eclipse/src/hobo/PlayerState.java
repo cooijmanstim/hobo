@@ -11,17 +11,18 @@ import java.util.Set;
 public class PlayerState implements Cloneable {
 	public static int next_color_index = 0;
 
-	public final int handle;
-	public final String name;
-	public final Color color;
-	public int ncars = 45, score = 0;
-	public CardBag hand = new CardBag();
-	public Set<Mission> missions = EnumSet.noneOf(Mission.class);	
-	public Set<Railway> railways = EnumSet.noneOf(Railway.class);
-
+	public static final int INITIAL_NCARS = 45;
 	// when ncars drops below this at the end of a player's turn, the game
 	// goes on for one last round.
 	public static final int MIN_NCARS = 3;
+
+	public final int handle;
+	public final String name;
+	public final Color color;
+	public int ncars = INITIAL_NCARS, score = 0;
+	public CardBag hand = new CardBag();
+	public Set<Mission> missions = EnumSet.noneOf(Mission.class);	
+	public Set<Railway> railways = EnumSet.noneOf(Railway.class);
 
 	// choosing to draw a card or to draw missions are stateful actions that require
 	// an additional decision.  these variables keep track of the state.

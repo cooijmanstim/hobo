@@ -17,7 +17,8 @@ public class Tournament {
 	public static void play() {
 		final String common_configuration = "verbose:false sample_size:3 decision_time:3000";
 		final String[] player_configurations = {
-				"montecarlo strategic:false use_signum:true expansion_threshold:10 uct_weight:1",
+				"montecarlo strategic:false use_signum:true hybrid:true  expansion_threshold:10 uct_weight:1",
+				"montecarlo strategic:false use_signum:true hybrid:false expansion_threshold:10 uct_weight:1",
 				"montecarlo strategic:true  use_signum:true expansion_threshold:10 uct_weight:1 alpha:"+(1.0/20)+" beta:2",
 				"minimax alpha:1 beta:1 gamma:1 delta:10 zeta:1",
 		};

@@ -284,4 +284,12 @@ public class State implements Cloneable {
 		ds = KeepMissionsDecision.availableTo(this, ps, ds);
 		return ds;
 	}
+
+	public boolean farFromOver() {
+		for (PlayerState ps: players) {
+			if (ps.ncars < (PlayerState.INITIAL_NCARS / 2))
+				return false;
+		}
+		return true;
+	}
 }

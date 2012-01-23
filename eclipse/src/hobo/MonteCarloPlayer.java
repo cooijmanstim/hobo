@@ -11,10 +11,10 @@ public class MonteCarloPlayer extends Player {
 	// pronounced
 	private int decision_time, expansion_threshold;
 	private double uct_weight, sigmoid_steepness, alpha, beta;
-	private boolean verbose, strategic, use_signum;
+	private boolean verbose, strategic, use_signum, hybrid;
 	private final MersenneTwisterFast random;
 
-	public MonteCarloPlayer(String name, long seed, int decision_time, int expansion_threshold, double uct_weight, double sigmoid_steepness, double alpha, double beta, boolean verbose, boolean strategic, boolean use_signum) {
+	public MonteCarloPlayer(String name, long seed, int decision_time, int expansion_threshold, double uct_weight, double sigmoid_steepness, double alpha, double beta, boolean verbose, boolean strategic, boolean use_signum, boolean hybrid) {
 		this.name = name;
 		this.decision_time = decision_time;
 		this.expansion_threshold = expansion_threshold;
@@ -25,6 +25,7 @@ public class MonteCarloPlayer extends Player {
 		this.verbose = verbose;
 		this.strategic = strategic;
 		this.use_signum = use_signum;
+		this.hybrid = hybrid;
 		this.random = new MersenneTwisterFast(seed);
 	}
 	
@@ -32,7 +33,7 @@ public class MonteCarloPlayer extends Player {
 		String name = "carlo";
 		int decision_time = 5000, expansion_threshold = 10;
 		double uct_weight = 1, sigmoid_steepness = 25, alpha = 1/20.0, beta = 2;
-		boolean verbose = true, strategic = false, use_signum = true;
+		boolean verbose = true, strategic = false, use_signum = true, hybrid = false;
 		long seed = System.currentTimeMillis();
 		
 		for (Map.Entry<String,String> entry: Util.parseConfiguration(configuration).entrySet()) {
@@ -48,9 +49,10 @@ public class MonteCarloPlayer extends Player {
 			if (k.equals("verbose"))             verbose = Boolean.parseBoolean(v);
 			if (k.equals("strategic"))           strategic = Boolean.parseBoolean(v);
 			if (k.equals("use_signum"))          use_signum = Boolean.parseBoolean(v);
+			if (k.equals("hybrid"))              hybrid = Boolean.parseBoolean(v);
 		}
 
-		return new MonteCarloPlayer(name, seed, decision_time, expansion_threshold, uct_weight, sigmoid_steepness, alpha, beta, verbose, strategic, use_signum);
+		return new MonteCarloPlayer(name, seed, decision_time, expansion_threshold, uct_weight, sigmoid_steepness, alpha, beta, verbose, strategic, use_signum, hybrid);
 	}
 	
 	@Override public void setDecisionTime(int decision_time) {
@@ -84,15 +86,33 @@ public class MonteCarloPlayer extends Player {
 			System.out.println("----------------------------------------------------");
 			System.out.println(name+" ("+handle+") deciding...");
 		}
-		Node tree = buildTree(s, null);
+
+		Decision d = null;
+		if (hybrid && s.farFromOver()) {
+			d = new DrawCardDecision(handle, null);
+		} else {
+			Node tree = buildTree(s, null);
+			d = tree.decide();
+		}
 		total_ndecisions++;
-		return tree.decide();
+		return d;
 	}
 
 	@Override public Set<EvaluatedDecision> evaluateDecisions(Set<Decision> ds, State s) {
-		Node tree = buildTree(s, ds);
+		Set<EvaluatedDecision> eds = new HashSet<EvaluatedDecision>(ds.size());
+		if (hybrid && s.farFromOver()) {
+			for (Decision d: ds) {
+				double u = 0;
+				if (d instanceof DrawCardDecision && ((DrawCardDecision)d).color == null)
+					u = 1;
+				eds.add(new EvaluatedDecision(d, u));
+			}
+		} else {
+			Node tree = buildTree(s, ds);
+			eds = tree.evaluatedDecisions();
+		}
 		total_ndecisions++;
-		return tree.evaluatedDecisions();
+		return eds;
 	}
 
 	public Node buildTree(State s, Set<Decision> ds) {
