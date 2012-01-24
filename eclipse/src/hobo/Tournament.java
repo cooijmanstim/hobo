@@ -15,12 +15,12 @@ public class Tournament {
 	private static final int nthreads = 2;
 
 	public static void play() {
-		final String common_configuration = "verbose:false sample_size:3 decision_time:3000";
+		final String common_configuration = "verbose:false sample_size:3 decision_time:6000 belief_alpha:1.9";
 		final String[] player_configurations = {
-				"montecarlo strategic:false use_signum:true hybrid:true  expansion_threshold:10 uct_weight:1",
-				"montecarlo strategic:false use_signum:true hybrid:false expansion_threshold:10 uct_weight:1",
-				"montecarlo strategic:true  use_signum:true expansion_threshold:10 uct_weight:1 alpha:"+(1.0/20)+" beta:2",
-				"minimax alpha:1 beta:1 gamma:1 delta:10 zeta:1",
+				"montecarlo strategic:false use_signum:true hybrid:true  expansion_threshold:15 uct_weight:1",
+				"montecarlo strategic:false use_signum:true hybrid:false expansion_threshold:15 uct_weight:1",
+				"montecarlo strategic:true  use_signum:true expansion_threshold:14 uct_weight:1 alpha:0.05 beta:2",
+				"minimax alpha:1 beta:1 gamma:1 delta:2 zeta:2",
 		};
 
 		System.out.println("configurations:");
