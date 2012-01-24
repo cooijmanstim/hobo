@@ -12,7 +12,7 @@ public class ParameterTuning {
 	public static final MersenneTwisterFast random = new MersenneTwisterFast();
 	
 	public static void main(String[] args) {
-		tuneMinimax();
+		tuneBelief();
 	}
 
 	public static void tuneMCTS() {
@@ -49,6 +49,27 @@ public class ParameterTuning {
 				                  Player.fromConfiguration("uncertain montecarlo verbose:false sample_size:3 decision_time:3000"));
 				g.play();
 				return 1.0 * Math.signum(g.state.aheadness(0));
+			}
+		});
+	}
+
+	public static void tuneBelief() {
+		System.out.println("tuning belief");
+		tuneByCrossEntropy(5, 2, 3, new double[]{ 2 }, new double[]{ 1 }, new Function<double[], Double>() {
+			@Override public Double call(double[] xs) {
+				String parameters = " belief_alpha:"+xs[0];
+				Game g = new Game("verbose:false",
+				                  Player.fromConfiguration("uncertain minimax    verbose:false sample_size:3 decision_time:6000"+parameters),
+				                  Player.fromConfiguration("uncertain montecarlo verbose:false sample_size:3 decision_time:6000"+parameters));
+				System.out.println(xs[0]);
+				g.play();
+				
+				double[] accuracies = new double[g.players.length];
+				for (int i = 0; i < g.players.length; i++) {
+					double[] stats = g.players[i].statistics();
+					accuracies[i] = stats[stats.length-1];
+				}
+				return Util.mean(accuracies);
 			}
 		});
 	}

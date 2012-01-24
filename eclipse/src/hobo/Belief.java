@@ -48,6 +48,8 @@ public class Belief {
 
 	private int player; // beliefs of which player?
 	
+	private double alpha;
+	
 	private PlayerBelief[] players;
 	
 	private CardBag known_deck_cards;
@@ -61,10 +63,11 @@ public class Belief {
 
 	private List<Event> events;
 
-	public Belief(int player, long seed) {
+	public Belief(int player, long seed, double alpha) {
 		this.random = new MersenneTwisterFast(seed);
 		this.events = new ArrayList<Event>();
 		this.player = player;
+		this.alpha = alpha;
 	}
 
 	public void initialize(State s) {
@@ -172,7 +175,7 @@ public class Belief {
 			    // apparently the assumption that saving >= 0 is somehow false,
 				// but surely 0 can't be far off?
 				//throw new RuntimeException();
-			player_mission_suspicion[m.ordinal()][d.player] += saving;
+			player_mission_suspicion[m.ordinal()][d.player] += Math.pow(saving, alpha);
 		}
 	}
 
@@ -234,6 +237,25 @@ public class Belief {
 		double p = 1;
 		p *= likelihoodOfCards(s);
 		p *= likelihoodOfMissions(s);
+		return p;
+	}
+	
+	public double zeroKnowledgeLikelihoodOf(State s) {
+		double p = 1;
+		CardBag cards = State.INITIAL_DECK.clone();
+		cards.removeAll(s.discarded);
+		cards.removeAll(s.open_deck);
+		Set<Mission> missions = EnumSet.allOf(Mission.class);
+		for (PlayerState ps: s.playerStates()) {
+			if (ps.handle == player) continue;
+			int kmissions = ps.missions.size();
+			if (ps.drawn_missions != null) kmissions += ps.drawn_missions.size();
+			p /= Util.multivariate_hypergeometric(ps.hand.multiplicities(), cards.multiplicities());
+			p /= Util.binomial_coefficient(kmissions, missions.size());
+			cards.removeAll(ps.hand);
+			missions.removeAll(ps.missions);
+			if (ps.drawn_missions != null) missions.removeAll(ps.drawn_missions);
+		}
 		return p;
 	}
 
@@ -540,7 +562,20 @@ public class Belief {
 			}
 		}
 		
-		// pfft, should we really bother with drawn_missions?
+		// bother with drawn_missions
+		int nmissions = 0;
+		for (int i = 0; i < player_mission_suspicion.length; i++) {
+			for (int j = 0; j < player_mission_suspicion[i].length; j++) {
+				if (player_mission_suspicion[i][j] != 0)
+					nmissions++;
+			}
+		}
+		for (PlayerState ps: s.playerStates()) {
+			if (ps.drawn_missions == null) continue;
+			int k = ps.drawn_missions.size();
+			p /= Util.binomial_coefficient(k, nmissions);
+			nmissions -= k;
+		}
 
 		return p;
 	}
@@ -597,17 +632,5 @@ public class Belief {
 				known_cards = new CardBag();
 			}
 		}
-	}
-
-	public static double zeroKnowledgeLikelihoodOfMissions(State state) {
-		double p = 1;
-		int n = Mission.all.length;
-		for (PlayerState ps: state.playerStates()) {
-			int k = ps.missions.size();
-			p *= Util.factorial(k) * 1.0 / Util.binomial_coefficient(k, n);
-			n -= k;
-		}
-		// the rest are all in the mission deck
-		return p;
 	}
 }

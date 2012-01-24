@@ -324,6 +324,10 @@ public class CardBag implements Cloneable, Iterable<Color> {
 		return false;
 	}
 
+	public int[] multiplicities() {
+		return ks.clone();
+	}
+
 	// pffft
 	private static final Color[] no_colors = new Color[0];
 	public Color[] availableColors() {
